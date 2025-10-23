@@ -14,23 +14,18 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $empresaAtual = null;
-        $whitelabelAtual = null;
-        $ultimoAcesso = null;
 
-        if (session('empresa_atual_id')) {
-            $empresaAtual = Empresa::with('whitelabel')->find(session('empresa_atual_id'));
-            $whitelabelAtual = $empresaAtual?->whitelabel;
+        // Se não há empresa selecionada, selecionar a primeira disponível
+        if (!session('current_company') && $user->empresas->count() > 0) {
+            $firstCompany = $user->empresas->first();
+            session(['current_company' => $firstCompany]);
+            session(['current_company_id' => $firstCompany->id]);
         }
 
-        if (session('whitelabel_atual_id') && session('empresa_atual_id')) {
-            $ultimoAcesso = UltimaAcesso::with(['whitelabel', 'empresa'])
-                ->where('usuario_id', $user->id)
-                ->where('whitelabel_id', session('whitelabel_atual_id'))
-                ->where('empresa_id', session('empresa_atual_id'))
-                ->first();
-        }
+        $currentCompany = session('current_company');
+        $currentWhitelabel = session('current_whitelabel');
+        $lastAccess = session('last_access');
 
-        return view('dashboard');
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess'));
     }
 }

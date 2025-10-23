@@ -25,8 +25,13 @@ class RegisterController extends Controller
             'empresa_nome' => 'required|string|max:255',
             'nome' => 'required|string|max:255',
             'telefone' => 'required|string|max:20',
-            'email' => 'required|string|email|max:255|unique:usuario,email',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:usuario,email',
             'senha' => 'required|string|min:6|confirmed',
+        ], [
+            'email.email' => 'O email deve ter um formato válido.',
+            'email.unique' => 'Este email já está sendo usado por outro usuário.',
+            'senha.min' => 'A senha deve ter pelo menos 6 caracteres.',
+            'senha.confirmed' => 'A confirmação da senha não confere.',
         ]);
 
         // Criar usuário

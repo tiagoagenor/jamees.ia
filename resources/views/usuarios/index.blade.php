@@ -4,7 +4,7 @@
 @section('page-title', 'Usuários')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div id="usuarios-app" class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>
@@ -294,12 +294,12 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button type="button"
-                                                    onclick="deleteUsuario('{{ $usuario->id }}', '{{ $usuario->nome }}')"
+                                                    @click="deleteUsuario('{{ $usuario->id }}', '{{ $usuario->nome }}')"
                                                     class="text-red-600 hover:text-red-900">
                                                 <i class="fas fa-trash"></i>
                                             </button>
 
-                                            <form id="delete-form-{{ $usuario->id }}"
+                                            <form :id="`delete-form-{{ $usuario->id }}`"
                                                   method="POST"
                                                   action="{{ route('usuarios.destroy', $usuario) }}"
                                                   style="display: none;">
@@ -342,36 +342,9 @@
     </div>
 </div>
 
+<script src="{{ asset('js/vue-components.js') }}"></script>
 <script>
-function deleteUsuario(id, nome) {
-    Swal.fire({
-        title: 'Tem certeza?',
-        text: `Você está prestes a excluir o usuário "${nome}". Esta ação não pode ser desfeita!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sim, excluir!',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Mostrar loading
-            Swal.fire({
-                title: 'Excluindo...',
-                text: 'Aguarde enquanto excluímos o usuário.',
-                icon: 'info',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Submeter o formulário
-            document.getElementById(`delete-form-${id}`).submit();
-        }
-    });
-}
+const { createApp } = Vue;
+createApp(window.UsuariosIndex).mount('#usuarios-app');
 </script>
 @endsection

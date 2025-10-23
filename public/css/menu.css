@@ -1,0 +1,27 @@
+/* Menu animations */
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Smooth transitions for submenu arrows */
+.fa-chevron-down {
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Submenu animations */
+#cadastro-submenu,
+#financeiro-submenu,
+#configuracoes-submenu {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effects for menu items */
+.menu-item:hover {
+    background-color: rgba(55, 65, 81, 0.1);
+}
+
+/* Active menu item styling */
+.menu-item-active {
+    background-color: rgba(55, 65, 81, 0.2);
+    color: white;
+}

@@ -26,7 +26,14 @@
             </div>
             <div class="ml-4">
                 <h3 class="text-lg font-semibold text-gray-900">Empresa Atual</h3>
-                <p class="text-gray-600">Jamees Sistemas</p>
+                <p class="text-gray-600">
+                    @if($currentCompany)
+                        {{ $currentCompany->nome_fantasia ?? $currentCompany->razao_social }}
+                        <span class="text-xs text-gray-500">({{ $currentCompany->tipo }})</span>
+                    @else
+                        Nenhuma empresa selecionada
+                    @endif
+                </p>
             </div>
         </div>
     </div>
@@ -39,7 +46,13 @@
             </div>
             <div class="ml-4">
                 <h3 class="text-lg font-semibold text-gray-900">Último Acesso</h3>
-                <p class="text-gray-600">{{ now()->format('d/m/Y H:i') }}</p>
+                <p class="text-gray-600">
+                    @if($lastAccess)
+                        {{ $lastAccess->criado_em ? $lastAccess->criado_em->format('d/m/Y H:i') : 'Nunca' }}
+                    @else
+                        {{ now()->format('d/m/Y H:i') }}
+                    @endif
+                </p>
             </div>
         </div>
     </div>
