@@ -1,0 +1,463 @@
+@extends('layouts.app')
+
+@section('title', 'Criar Empresa - Jamees')
+@section('page-title', 'Criar Empresa')
+
+@section('content')
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Nova Empresa</h3>
+            <p class="text-sm text-gray-500">Preencha os dados da empresa</p>
+        </div>
+
+        <form method="POST" action="{{ route('empresas.store') }}" class="p-6 space-y-6">
+            @csrf
+
+            <!-- Informações Básicas -->
+            <div class="space-y-6">
+                <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Informações Básicas</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Whitelabel -->
+                    <div>
+                        <label for="whitelabel_id" class="block text-sm font-medium text-gray-700 mb-1">Whitelabel *</label>
+                        <select id="whitelabel_id"
+                                name="whitelabel_id"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Selecione um whitelabel</option>
+                            @foreach($whitelabels as $whitelabel)
+                                <option value="{{ $whitelabel->id }}" {{ old('whitelabel_id') == $whitelabel->id ? 'selected' : '' }}>
+                                    {{ $whitelabel->nome }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('whitelabel_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Tipo -->
+                    <div>
+                        <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                        <select id="tipo"
+                                name="tipo"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Selecione o tipo</option>
+                            <option value="PJ" {{ old('tipo') == 'PJ' ? 'selected' : '' }}>Pessoa Jurídica</option>
+                            <option value="PF" {{ old('tipo') == 'PF' ? 'selected' : '' }}>Pessoa Física</option>
+                        </select>
+                        @error('tipo')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Nome Fantasia -->
+                    <div>
+                        <label for="nome_fantasia" class="block text-sm font-medium text-gray-700 mb-1">Nome Fantasia *</label>
+                        <input type="text"
+                               id="nome_fantasia"
+                               name="nome_fantasia"
+                               value="{{ old('nome_fantasia') }}"
+                               required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('nome_fantasia')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Razão Social -->
+                    <div>
+                        <label for="razao_social" class="block text-sm font-medium text-gray-700 mb-1">Razão Social *</label>
+                        <input type="text"
+                               id="razao_social"
+                               name="razao_social"
+                               value="{{ old('razao_social') }}"
+                               required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('razao_social')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- CNPJ -->
+                    <div>
+                        <label for="cnpj" class="block text-sm font-medium text-gray-700 mb-1">CNPJ/CPF *</label>
+                        <input type="text"
+                               id="cnpj"
+                               name="cnpj"
+                               value="{{ old('cnpj') }}"
+                               required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('cnpj')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Nome Referência -->
+                    <div>
+                        <label for="nome_referencia" class="block text-sm font-medium text-gray-700 mb-1">Nome Referência</label>
+                        <input type="text"
+                               id="nome_referencia"
+                               name="nome_referencia"
+                               value="{{ old('nome_referencia') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('nome_referencia')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações Tributárias -->
+            <div class="space-y-6">
+                <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Informações Tributárias</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Inscrição Estadual -->
+                    <div>
+                        <label for="inscricao_estadual" class="block text-sm font-medium text-gray-700 mb-1">Inscrição Estadual</label>
+                        <input type="text"
+                               id="inscricao_estadual"
+                               name="inscricao_estadual"
+                               value="{{ old('inscricao_estadual') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('inscricao_estadual')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Inscrição Estadual Isenta -->
+                    <div>
+                        <label for="inscricao_estadual_isenta" class="block text-sm font-medium text-gray-700 mb-1">Inscrição Estadual Isenta</label>
+                        <input type="text"
+                               id="inscricao_estadual_isenta"
+                               name="inscricao_estadual_isenta"
+                               value="{{ old('inscricao_estadual_isenta') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('inscricao_estadual_isenta')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Inscrição Municipal -->
+                    <div>
+                        <label for="inscricao_municipal" class="block text-sm font-medium text-gray-700 mb-1">Inscrição Municipal</label>
+                        <input type="text"
+                               id="inscricao_municipal"
+                               name="inscricao_municipal"
+                               value="{{ old('inscricao_municipal') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('inscricao_municipal')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- CNAE -->
+                    <div>
+                        <label for="cnae" class="block text-sm font-medium text-gray-700 mb-1">CNAE</label>
+                        <input type="text"
+                               id="cnae"
+                               name="cnae"
+                               value="{{ old('cnae') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('cnae')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Regime Tributário -->
+                    <div>
+                        <label for="regime_tributario" class="block text-sm font-medium text-gray-700 mb-1">Regime Tributário</label>
+                        <input type="text"
+                               id="regime_tributario"
+                               name="regime_tributario"
+                               value="{{ old('regime_tributario') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('regime_tributario')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Regime Especial -->
+                    <div>
+                        <label for="regime_especial" class="block text-sm font-medium text-gray-700 mb-1">Regime Especial</label>
+                        <input type="text"
+                               id="regime_especial"
+                               name="regime_especial"
+                               value="{{ old('regime_especial') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('regime_especial')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações Pessoais (para PF) -->
+            <div class="space-y-6" id="pessoa-fisica-section" style="display: none;">
+                <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Informações Pessoais</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nome -->
+                    <div>
+                        <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <input type="text"
+                               id="nome"
+                               name="nome"
+                               value="{{ old('nome') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('nome')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- CPF -->
+                    <div>
+                        <label for="cpf" class="block text-sm font-medium text-gray-700 mb-1">CPF</label>
+                        <input type="text"
+                               id="cpf"
+                               name="cpf"
+                               value="{{ old('cpf') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('cpf')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- RG -->
+                    <div>
+                        <label for="rg" class="block text-sm font-medium text-gray-700 mb-1">RG</label>
+                        <input type="text"
+                               id="rg"
+                               name="rg"
+                               value="{{ old('rg') }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        @error('rg')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contatos -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Contatos</h4>
+                    <button type="button"
+                            id="add-contato"
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-plus mr-1"></i>
+                        Adicionar Contato
+                    </button>
+                </div>
+
+                <div id="contatos-container">
+                    <!-- Contatos serão adicionados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Endereços -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Endereços</h4>
+                    <button type="button"
+                            id="add-endereco"
+                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="fas fa-plus mr-1"></i>
+                        Adicionar Endereço
+                    </button>
+                </div>
+
+                <div id="enderecos-container">
+                    <!-- Endereços serão adicionados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="space-y-6">
+                <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Configurações</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Status -->
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="status"
+                                name="status"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="1" {{ old('status', '1') == '1' ? 'selected' : '' }}>Ativo</option>
+                            <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Inativo</option>
+                        </select>
+                        @error('status')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Principal -->
+                    <div>
+                        <label for="principal" class="block text-sm font-medium text-gray-700 mb-1">Empresa Principal</label>
+                        <select id="principal"
+                                name="principal"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="0" {{ old('principal', '0') == '0' ? 'selected' : '' }}>Não</option>
+                            <option value="1" {{ old('principal') == '1' ? 'selected' : '' }}>Sim</option>
+                        </select>
+                        @error('principal')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
+                <a href="{{ route('empresas.index') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="fas fa-save mr-2"></i>
+                    Salvar Empresa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoSelect = document.getElementById('tipo');
+    const pessoaFisicaSection = document.getElementById('pessoa-fisica-section');
+
+    // Controles de contatos
+    const contatosContainer = document.getElementById('contatos-container');
+    const addContatoBtn = document.getElementById('add-contato');
+    let contatoIndex = 0;
+
+    // Controles de endereços
+    const enderecosContainer = document.getElementById('enderecos-container');
+    const addEnderecoBtn = document.getElementById('add-endereco');
+    let enderecoIndex = 0;
+
+    // Toggle seção pessoa física
+    function togglePessoaFisica() {
+        if (tipoSelect.value === 'PF') {
+            pessoaFisicaSection.style.display = 'block';
+        } else {
+            pessoaFisicaSection.style.display = 'none';
+        }
+    }
+
+    tipoSelect.addEventListener('change', togglePessoaFisica);
+    togglePessoaFisica(); // Executar na inicialização
+
+    // Adicionar contato
+    function addContato() {
+        const contatoDiv = document.createElement('div');
+        contatoDiv.className = 'border border-gray-200 rounded-lg p-4 mb-4';
+        contatoDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <h5 class="text-sm font-medium text-gray-900">Contato ${contatoIndex + 1}</h5>
+                <button type="button" class="remove-contato text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select name="contatos[${contatoIndex}][tipo]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="telefone">Telefone</option>
+                        <option value="email">Email</option>
+                        <option value="site">Site</option>
+                        <option value="whatsapp">WhatsApp</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Dado</label>
+                    <input type="text" name="contatos[${contatoIndex}][dado]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Digite o contato">
+                </div>
+            </div>
+        `;
+
+        contatosContainer.appendChild(contatoDiv);
+        contatoIndex++;
+
+        // Adicionar evento de remoção
+        contatoDiv.querySelector('.remove-contato').addEventListener('click', function() {
+            contatoDiv.remove();
+        });
+    }
+
+    // Adicionar endereço
+    function addEndereco() {
+        const enderecoDiv = document.createElement('div');
+        enderecoDiv.className = 'border border-gray-200 rounded-lg p-4 mb-4';
+        enderecoDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-4">
+                <h5 class="text-sm font-medium text-gray-900">Endereço ${enderecoIndex + 1}</h5>
+                <button type="button" class="remove-endereco text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][cep]" class="cep-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="00000-000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][logradouro]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Rua, Avenida, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][numero]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="123">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][complemento]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Apto, Sala, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][bairro]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="Nome do bairro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                    <input type="text" name="enderecos[${enderecoIndex}][uf]" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="MG" maxlength="2">
+                </div>
+            </div>
+        `;
+
+        enderecosContainer.appendChild(enderecoDiv);
+        enderecoIndex++;
+
+        // Adicionar evento de remoção
+        enderecoDiv.querySelector('.remove-endereco').addEventListener('click', function() {
+            enderecoDiv.remove();
+        });
+
+        // Aplicar máscara de CEP
+        const cepInput = enderecoDiv.querySelector('.cep-input');
+        cepInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                e.target.value = value.substring(0, 5) + '-' + value.substring(5, 8);
+            } else {
+                e.target.value = value;
+            }
+        });
+    }
+
+    // Event listeners
+    addContatoBtn.addEventListener('click', addContato);
+    addEnderecoBtn.addEventListener('click', addEndereco);
+
+    // Adicionar um contato e um endereço por padrão
+    addContato();
+    addEndereco();
+});
+</script>
+@endsection
