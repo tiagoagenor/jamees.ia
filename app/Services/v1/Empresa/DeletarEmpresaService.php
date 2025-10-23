@@ -11,15 +11,11 @@ class DeletarEmpresaService
         try {
             $empresa->delete();
 
-            return [
-                'success' => true,
-                'message' => 'Empresa excluída com sucesso!'
-            ];
+            return redirect()->route('empresas.index')
+                ->with('success', 'Empresa excluída com sucesso!');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao excluir empresa: ' . $e->getMessage()
-            ];
+            return redirect()->back()
+                ->with('error', 'Erro ao excluir empresa: ' . $e->getMessage());
         }
     }
 }

@@ -12,9 +12,9 @@ class FormularioEditarEmpresaService
         $empresa->load('whitelabel', 'contatos', 'enderecos');
         $whitelabels = Whitelabel::all();
 
-        return [
+        return view('empresas.edit', [
             'empresa' => $empresa,
             'whitelabels' => $whitelabels
-        ];
+        ]);
     }
 }

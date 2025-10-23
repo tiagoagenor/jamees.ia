@@ -64,12 +64,18 @@ class UsuarioController extends Controller
 
     public function index(Request $request)
     {
-        $result = $this->listarUsuariosService->execute($request);
-        
-        return view('usuarios.index', $result);
+        return $this->listarUsuariosService->execute($request);
     }
 }
 ```
+
+### Services Retornam Views/Redirects
+
+Os services agora retornam diretamente as views ou redirects, deixando os controllers extremamente limpos:
+
+- **Views**: `return view('usuarios.index', $data)`
+- **Redirects**: `return redirect()->route('usuarios.index')->with('success', 'Mensagem')`
+- **Controllers**: Apenas chamam o service e retornam o resultado
 
 ### Benefícios da Injeção de Dependência
 

@@ -12,9 +12,9 @@ class FormularioEditarUsuarioService
         $usuario->load('empresas', 'geral', 'enderecos', 'telefones');
         $empresas = Empresa::all();
 
-        return [
+        return view('usuarios.edit', [
             'usuario' => $usuario,
             'empresas' => $empresas
-        ];
+        ]);
     }
 }

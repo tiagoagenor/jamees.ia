@@ -29,9 +29,7 @@ class EmpresaController extends Controller
      */
     public function index(Request $request)
     {
-        $result = $this->listarEmpresasService->execute($request);
-
-        return view('empresas.index', $result);
+        return $this->listarEmpresasService->execute($request);
     }
 
     /**
@@ -39,9 +37,7 @@ class EmpresaController extends Controller
      */
     public function create()
     {
-        $result = $this->formularioCriarEmpresaService->execute();
-
-        return view('empresas.create', $result);
+        return $this->formularioCriarEmpresaService->execute();
     }
 
     /**
@@ -49,16 +45,7 @@ class EmpresaController extends Controller
      */
     public function store(Request $request)
     {
-        $result = $this->criarEmpresaService->execute($request);
-
-        if ($result['success']) {
-            return redirect()->route('empresas.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', $result['message']);
-        }
+        return $this->criarEmpresaService->execute($request);
     }
 
     /**
@@ -66,9 +53,7 @@ class EmpresaController extends Controller
      */
     public function show(Empresa $empresa)
     {
-        $result = $this->mostrarEmpresaService->execute($empresa);
-
-        return view('empresas.show', $result);
+        return $this->mostrarEmpresaService->execute($empresa);
     }
 
     /**
@@ -76,9 +61,7 @@ class EmpresaController extends Controller
      */
     public function edit(Empresa $empresa)
     {
-        $result = $this->formularioEditarEmpresaService->execute($empresa);
-
-        return view('empresas.edit', $result);
+        return $this->formularioEditarEmpresaService->execute($empresa);
     }
 
     /**
@@ -86,16 +69,7 @@ class EmpresaController extends Controller
      */
     public function update(Request $request, Empresa $empresa)
     {
-        $result = $this->atualizarEmpresaService->execute($request, $empresa);
-
-        if ($result['success']) {
-            return redirect()->route('empresas.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', $result['message']);
-        }
+        return $this->atualizarEmpresaService->execute($request, $empresa);
     }
 
     /**
@@ -103,14 +77,6 @@ class EmpresaController extends Controller
      */
     public function destroy(Empresa $empresa)
     {
-        $result = $this->deletarEmpresaService->execute($empresa);
-
-        if ($result['success']) {
-            return redirect()->route('empresas.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->with('error', $result['message']);
-        }
+        return $this->deletarEmpresaService->execute($empresa);
     }
 }

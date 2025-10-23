@@ -29,9 +29,7 @@ class UsuarioController extends Controller
      */
     public function index(Request $request)
     {
-        $result = $this->listarUsuariosService->execute($request);
-
-        return view('usuarios.index', $result);
+        return $this->listarUsuariosService->execute($request);
     }
 
     /**
@@ -39,9 +37,7 @@ class UsuarioController extends Controller
      */
     public function create()
     {
-        $result = $this->formularioCriarUsuarioService->execute();
-
-        return view('usuarios.create', $result);
+        return $this->formularioCriarUsuarioService->execute();
     }
 
     /**
@@ -49,16 +45,7 @@ class UsuarioController extends Controller
      */
     public function store(Request $request)
     {
-        $result = $this->criarUsuarioService->execute($request);
-
-        if ($result['success']) {
-            return redirect()->route('usuarios.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', $result['message']);
-        }
+        return $this->criarUsuarioService->execute($request);
     }
 
     /**
@@ -66,9 +53,7 @@ class UsuarioController extends Controller
      */
     public function show(Usuario $usuario)
     {
-        $result = $this->mostrarUsuarioService->execute($usuario);
-
-        return view('usuarios.show', $result);
+        return $this->mostrarUsuarioService->execute($usuario);
     }
 
     /**
@@ -76,9 +61,7 @@ class UsuarioController extends Controller
      */
     public function edit(Usuario $usuario)
     {
-        $result = $this->formularioEditarUsuarioService->execute($usuario);
-
-        return view('usuarios.edit', $result);
+        return $this->formularioEditarUsuarioService->execute($usuario);
     }
 
     /**
@@ -86,16 +69,7 @@ class UsuarioController extends Controller
      */
     public function update(Request $request, Usuario $usuario)
     {
-        $result = $this->atualizarUsuarioService->execute($request, $usuario);
-
-        if ($result['success']) {
-            return redirect()->route('usuarios.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', $result['message']);
-        }
+        return $this->atualizarUsuarioService->execute($request, $usuario);
     }
 
     /**
@@ -103,14 +77,6 @@ class UsuarioController extends Controller
      */
     public function destroy(Usuario $usuario)
     {
-        $result = $this->deletarUsuarioService->execute($usuario);
-
-        if ($result['success']) {
-            return redirect()->route('usuarios.index')
-                ->with('success', $result['message']);
-        } else {
-            return redirect()->back()
-                ->with('error', $result['message']);
-        }
+        return $this->deletarUsuarioService->execute($usuario);
     }
 }

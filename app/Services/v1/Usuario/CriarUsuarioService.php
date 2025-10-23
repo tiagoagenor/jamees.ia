@@ -109,17 +109,13 @@ class CriarUsuarioService
                 ]);
             }
 
-            return [
-                'success' => true,
-                'message' => 'Usuário criado com sucesso!',
-                'usuario' => $usuario
-            ];
+            return redirect()->route('usuarios.index')
+                ->with('success', 'Usuário criado com sucesso!');
 
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao criar usuário: ' . $e->getMessage()
-            ];
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erro ao criar usuário: ' . $e->getMessage());
         }
     }
 }

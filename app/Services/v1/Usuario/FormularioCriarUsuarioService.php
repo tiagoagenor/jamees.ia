@@ -10,8 +10,8 @@ class FormularioCriarUsuarioService
     {
         $empresas = Empresa::all();
 
-        return [
+        return view('usuarios.create', [
             'empresas' => $empresas
-        ];
+        ]);
     }
 }

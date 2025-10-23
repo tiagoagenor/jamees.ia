@@ -11,15 +11,11 @@ class DeletarUsuarioService
         try {
             $usuario->delete();
 
-            return [
-                'success' => true,
-                'message' => 'Usuário excluído com sucesso!'
-            ];
+            return redirect()->route('usuarios.index')
+                ->with('success', 'Usuário excluído com sucesso!');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao excluir usuário: ' . $e->getMessage()
-            ];
+            return redirect()->back()
+                ->with('error', 'Erro ao excluir usuário: ' . $e->getMessage());
         }
     }
 }

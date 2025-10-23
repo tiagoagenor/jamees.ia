@@ -131,17 +131,13 @@ class AtualizarUsuarioService
                 ]);
             }
 
-            return [
-                'success' => true,
-                'message' => 'Usuário atualizado com sucesso!',
-                'usuario' => $usuario
-            ];
+            return redirect()->route('usuarios.index')
+                ->with('success', 'Usuário atualizado com sucesso!');
 
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao atualizar usuário: ' . $e->getMessage()
-            ];
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erro ao atualizar usuário: ' . $e->getMessage());
         }
     }
 }

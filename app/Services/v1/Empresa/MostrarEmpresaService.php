@@ -10,8 +10,8 @@ class MostrarEmpresaService
     {
         $empresa->load('whitelabel', 'contatos', 'enderecos');
 
-        return [
+        return view('empresas.show', [
             'empresa' => $empresa
-        ];
+        ]);
     }
 }

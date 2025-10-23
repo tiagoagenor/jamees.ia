@@ -52,13 +52,13 @@ class ListarUsuariosService
 
         $usuarios = $query->paginate(15)->withQueryString();
 
-        return [
+        return view('usuarios.index', [
             'usuarios' => $usuarios,
             'filtros' => $request->only(['nome', 'email', 'status', 'empresa_id', 'cpf', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection
             ]
-        ];
+        ]);
     }
 }

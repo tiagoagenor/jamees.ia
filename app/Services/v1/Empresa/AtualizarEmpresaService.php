@@ -104,17 +104,13 @@ class AtualizarEmpresaService
                 }
             }
 
-            return [
-                'success' => true,
-                'message' => 'Empresa atualizada com sucesso!',
-                'empresa' => $empresa
-            ];
+            return redirect()->route('empresas.index')
+                ->with('success', 'Empresa atualizada com sucesso!');
 
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao atualizar empresa: ' . $e->getMessage()
-            ];
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Erro ao atualizar empresa: ' . $e->getMessage());
         }
     }
 }

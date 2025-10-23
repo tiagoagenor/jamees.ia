@@ -10,8 +10,8 @@ class MostrarUsuarioService
     {
         $usuario->load('empresas', 'geral', 'enderecos', 'telefones');
 
-        return [
+        return view('usuarios.show', [
             'usuario' => $usuario
-        ];
+        ]);
     }
 }

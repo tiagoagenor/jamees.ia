@@ -52,13 +52,13 @@ class ListarEmpresasService
 
         $empresas = $query->paginate(15)->withQueryString();
 
-        return [
+        return view('empresas.index', [
             'empresas' => $empresas,
             'filtros' => $request->only(['nome_fantasia', 'razao_social', 'cnpj', 'tipo', 'status', 'whitelabel_id', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection
             ]
-        ];
+        ]);
     }
 }

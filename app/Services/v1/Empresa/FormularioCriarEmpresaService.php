@@ -10,8 +10,8 @@ class FormularioCriarEmpresaService
     {
         $whitelabels = Whitelabel::all();
 
-        return [
+        return view('empresas.create', [
             'whitelabels' => $whitelabels
-        ];
+        ]);
     }
 }
