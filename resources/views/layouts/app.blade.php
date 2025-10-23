@@ -167,15 +167,15 @@
                             </div>
                             <div class="ml-3 text-left">
                                 <p class="text-sm font-medium" id="current-company-name">
-                                    @if(session('current_company'))
-                                        {{ session('current_company')->nome_fantasia ?? session('current_company')->razao_social }}
+                                    @if($currentCompany)
+                                        {{ $currentCompany->nome_fantasia ?? $currentCompany->razao_social }}
                                     @else
                                         Nenhuma empresa selecionada
                                     @endif
                                 </p>
                                 <p class="text-xs text-gray-400" id="current-company-type">
-                                    @if(session('current_company'))
-                                        {{ session('current_company')->tipo }}
+                                    @if($currentCompany)
+                                        {{ $currentCompany->tipo }}
                                     @endif
                                 </p>
                             </div>
@@ -183,36 +183,6 @@
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
 
-                    <!-- Company Dropdown -->
-                    <div id="company-dropdown" class="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-md shadow-lg py-1 z-50 hidden">
-                        <div class="px-4 py-2 text-xs text-gray-500 border-b">
-                            Trocar Empresa
-                        </div>
-                        @if(Auth::user()->empresas->count() > 0)
-                            @foreach(Auth::user()->empresas as $empresa)
-                                <a href="#"
-                                   onclick="switchCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo }}')"
-                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ session('current_company') && session('current_company')->id == $empresa->id ? 'bg-blue-50 text-blue-700' : '' }}">
-                                    <div class="flex items-center">
-                                        <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                                            <i class="fas fa-building text-xs"></i>
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">{{ $empresa->nome_fantasia ?? $empresa->razao_social }}</div>
-                                            <div class="text-xs text-gray-500">{{ $empresa->tipo }}</div>
-                                        </div>
-                                        @if(session('current_company') && session('current_company')->id == $empresa->id)
-                                            <i class="fas fa-check text-blue-600 ml-auto"></i>
-                                        @endif
-                                    </div>
-                                </a>
-                            @endforeach
-                        @else
-                            <div class="px-4 py-2 text-sm text-gray-500">
-                                Nenhuma empresa vinculada
-                            </div>
-                        @endif
-                    </div>
                 </div>
             </div>
 
@@ -285,6 +255,92 @@
         </div>
     </div>
 
+    <!-- Company Selection Modal -->
+    <div id="company-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Selecionar Empresa</h3>
+                    <button onclick="closeCompanyModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="space-y-3">
+                    @if($empresaPrincipal && $empresaPrincipal->empresasFilhas->count() > 0)
+                        <!-- Empresa Principal -->
+                        <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresaPrincipal->id ? 'bg-blue-50 border-blue-200' : '' }}"
+                             onclick="selectCompany('{{ $empresaPrincipal->id }}', '{{ $empresaPrincipal->nome_fantasia ?? $empresaPrincipal->razao_social }}', '{{ $empresaPrincipal->tipo }}')">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-building text-green-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-900">{{ $empresaPrincipal->nome_fantasia ?? $empresaPrincipal->razao_social }}</div>
+                                <div class="text-sm text-gray-500">{{ $empresaPrincipal->tipo }} - Principal</div>
+                            </div>
+                            @if($currentCompany && $currentCompany->id == $empresaPrincipal->id)
+                                <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Empresas Filhas -->
+                        @foreach($empresaPrincipal->empresasFilhas as $empresa)
+                            <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresa->id ? 'bg-blue-50 border-blue-200' : '' }}"
+                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo }}')">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-building text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900">{{ $empresa->nome_fantasia ?? $empresa->razao_social }}</div>
+                                    <div class="text-sm text-gray-500">{{ $empresa->tipo }}</div>
+                                </div>
+                                @if($currentCompany && $currentCompany->id == $empresa->id)
+                                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @elseif(Auth::user()->empresas->count() > 0)
+                        @foreach(Auth::user()->empresas as $empresa)
+                            <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresa->id ? 'bg-blue-50 border-blue-200' : '' }}"
+                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo }}')">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-building text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-900">{{ $empresa->nome_fantasia ?? $empresa->razao_social }}</div>
+                                    <div class="text-sm text-gray-500">{{ $empresa->tipo }}</div>
+                                </div>
+                                @if($currentCompany && $currentCompany->id == $empresa->id)
+                                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-building text-4xl mb-4"></i>
+                            <p>Nenhuma empresa vinculada</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex justify-end mt-6">
+                    <button onclick="closeCompanyModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Simple dropdown toggle
         document.addEventListener('DOMContentLoaded', function() {
@@ -314,75 +370,208 @@
             }
         }
 
-        // Company selector dropdown
+        // Company selector modal
         document.addEventListener('DOMContentLoaded', function() {
             const companySelector = document.getElementById('company-selector');
-            const companyDropdown = document.getElementById('company-dropdown');
 
-            if (companySelector && companyDropdown) {
+            if (companySelector) {
                 companySelector.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    companyDropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', function() {
-                    companyDropdown.classList.add('hidden');
+                    openCompanyModal();
                 });
             }
         });
 
-        // Switch company function
-        function switchCompany(companyId, companyName, companyType) {
-            // Show loading state
+        // Modal functions
+        function openCompanyModal() {
+            const modal = document.getElementById('company-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeCompanyModal() {
+            const modal = document.getElementById('company-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Select company function
+        window.selectCompany = function(companyId, companyName, companyType) {
+            // Show loading state on selector
             const selector = document.getElementById('company-selector');
             const originalContent = selector.innerHTML;
 
             selector.innerHTML = `
                 <div class="flex items-center">
-                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-spinner fa-spin text-sm"></i>
+                    <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center animate-pulse">
+                        <i class="fas fa-spinner fa-spin text-sm text-white"></i>
                     </div>
                     <div class="ml-3 text-left">
-                        <p class="text-sm font-medium">Trocando empresa...</p>
+                        <p class="text-sm font-medium text-blue-600">Trocando empresa...</p>
+                        <p class="text-xs text-gray-500">Aguarde um momento</p>
                     </div>
                 </div>
             `;
             selector.disabled = true;
 
+            // Show loading state on modal
+            const modal = document.getElementById('company-modal');
+            const modalContent = modal.querySelector('.mt-3');
+            const originalModalContent = modalContent.innerHTML;
+
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                        <i class="fas fa-spinner fa-spin text-3xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Trocando empresa...</h3>
+                    <p class="text-sm text-gray-500 text-center max-w-xs">Aguarde enquanto processamos sua solicitação</p>
+                    <div class="mt-4 w-48 bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full animate-pulse" style="width: 0%; animation: loading 2s ease-in-out infinite;"></div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes loading {
+                        0% { width: 0%; }
+                        50% { width: 70%; }
+                        100% { width: 100%; }
+                    }
+                </style>
+            `;
+
+            // Disable modal interactions
+            modal.style.pointerEvents = 'none';
+            modal.classList.add('opacity-75');
+
             // Make AJAX request to switch company
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            console.log('CSRF Token:', csrfToken ? csrfToken.getAttribute('content') : 'Not found');
+
+            if (!csrfToken) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Segurança',
+                    text: 'Token CSRF não encontrado. Recarregue a página e tente novamente.',
+                    confirmButtonText: 'Recarregar Página',
+                    confirmButtonColor: '#3b82f6'
+                }).then(() => {
+                    window.location.reload();
+                });
+                selector.innerHTML = originalContent;
+                selector.disabled = false;
+                return;
+            }
+
             fetch('/switch-company', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken.getAttribute('content')
                 },
                 body: JSON.stringify({
-                    company_id: companyId
+                    empresa_id: companyId
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (response.status === 419) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sessão Expirada',
+                        text: 'Sua sessão expirou. Recarregue a página e tente novamente.',
+                        confirmButtonText: 'Recarregar Página',
+                        confirmButtonColor: '#f59e0b',
+                        showCancelButton: true,
+                        cancelButtonText: 'Cancelar',
+                        cancelButtonColor: '#6b7280'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.reload();
+                        }
+                    });
+                    selector.innerHTML = originalContent;
+                    selector.disabled = false;
+                    // Restore modal content
+                    modalContent.innerHTML = originalModalContent;
+                    modal.style.pointerEvents = 'auto';
+                    modal.classList.remove('opacity-75');
+                    return;
+                }
+
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
                     // Update the display
-                    document.getElementById('current-company-name').textContent = companyName;
-                    document.getElementById('current-company-type').textContent = companyType;
+                    const nameElement = document.getElementById('current-company-name');
+                    const typeElement = document.getElementById('current-company-type');
+
+                    if (nameElement) {
+                        nameElement.textContent = companyName;
+                    }
+                    if (typeElement) {
+                        typeElement.textContent = companyType;
+                    }
 
                     // Reload the page to update all data
                     window.location.reload();
                 } else {
                     // Show error
-                    alert('Erro ao trocar empresa: ' + (data.message || 'Erro desconhecido'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao Trocar Empresa',
+                        text: data.message || 'Erro desconhecido ao trocar empresa.',
+                        confirmButtonText: 'Tentar Novamente',
+                        confirmButtonColor: '#ef4444',
+                        showCancelButton: true,
+                        cancelButtonText: 'Cancelar',
+                        cancelButtonColor: '#6b7280'
+                    });
                     selector.innerHTML = originalContent;
                     selector.disabled = false;
+                    // Restore modal content
+                    modalContent.innerHTML = originalModalContent;
+                    modal.style.pointerEvents = 'auto';
+                    modal.classList.remove('opacity-75');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Erro ao trocar empresa');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro de Conexão',
+                    text: 'Não foi possível trocar a empresa. Verifique sua conexão e tente novamente.',
+                    confirmButtonText: 'Tentar Novamente',
+                    confirmButtonColor: '#ef4444',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar',
+                    cancelButtonColor: '#6b7280'
+                });
                 selector.innerHTML = originalContent;
                 selector.disabled = false;
+                // Restore modal content
+                modalContent.innerHTML = originalModalContent;
+                modal.style.pointerEvents = 'auto';
+                modal.classList.remove('opacity-75');
             });
         }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('company-modal');
+            if (modal && !modal.classList.contains('hidden')) {
+                if (e.target === modal) {
+                    closeCompanyModal();
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
+

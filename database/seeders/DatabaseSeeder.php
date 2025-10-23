@@ -16,8 +16,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             WhitelabelSeeder::class,
-            UsuarioSeeder::class,
-            EmpresaSeeder::class,
         ]);
     }
 }

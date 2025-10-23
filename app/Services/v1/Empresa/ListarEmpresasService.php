@@ -3,13 +3,31 @@
 namespace App\Services\v1\Empresa;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Empresa;
 
 class ListarEmpresasService
 {
     public function execute(Request $request)
     {
-        $query = Empresa::with('whitelabel', 'contatos', 'enderecos');
+        $user = Auth::user();
+
+        // Buscar empresa principal do usuário
+        $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+        if ($empresaPrincipal) {
+            // Incluir empresa principal + empresas filhas
+            $query = Empresa::with('whitelabel', 'contatos', 'enderecos')
+                            ->where(function($q) use ($empresaPrincipal) {
+                                $q->where('id', $empresaPrincipal->id) // Empresa principal
+                                  ->orWhere('empresa_id', $empresaPrincipal->id); // Empresas filhas
+                            });
+        } else {
+            // Se não tem empresa principal, mostrar todas as empresas do usuário
+            $empresaIds = $user->empresas->pluck('id')->toArray();
+            $query = Empresa::with('whitelabel', 'contatos', 'enderecos')
+                            ->whereIn('id', $empresaIds);
+        }
 
         // Filtros
         if ($request->filled('nome_fantasia')) {
@@ -32,9 +50,6 @@ class ListarEmpresasService
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('whitelabel_id')) {
-            $query->where('whitelabel_id', $request->whitelabel_id);
-        }
 
         if ($request->filled('uf')) {
             $query->whereHas('enderecos', function($q) use ($request) {
@@ -54,7 +69,8 @@ class ListarEmpresasService
 
         return view('empresas.index', [
             'empresas' => $empresas,
-            'filtros' => $request->only(['nome_fantasia', 'razao_social', 'cnpj', 'tipo', 'status', 'whitelabel_id', 'uf']),
+            'empresaPrincipal' => $empresaPrincipal,
+            'filtros' => $request->only(['nome_fantasia', 'razao_social', 'cnpj', 'tipo', 'status', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection

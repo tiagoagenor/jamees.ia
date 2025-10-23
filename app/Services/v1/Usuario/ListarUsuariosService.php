@@ -3,13 +3,36 @@
 namespace App\Services\v1\Usuario;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
+use App\Models\Empresa;
 
 class ListarUsuariosService
 {
     public function execute(Request $request)
     {
-        $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones');
+        $user = Auth::user();
+
+        // Buscar empresa principal do usuário logado
+        $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+        if ($empresaPrincipal) {
+            // Filtrar usuários da empresa principal + empresas filhas
+            $empresaIds = [$empresaPrincipal->id];
+            $empresaIds = array_merge($empresaIds, $empresaPrincipal->empresasFilhas->pluck('id')->toArray());
+
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones')
+                            ->whereHas('empresas', function($q) use ($empresaIds) {
+                                $q->whereIn('empresa.id', $empresaIds);
+                            });
+        } else {
+            // Se não tem empresa principal, mostrar usuários das empresas do usuário logado
+            $empresaIds = $user->empresas->pluck('id')->toArray();
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones')
+                            ->whereHas('empresas', function($q) use ($empresaIds) {
+                                $q->whereIn('empresa.id', $empresaIds);
+                            });
+        }
 
         // Filtros
         if ($request->filled('nome')) {
@@ -51,9 +74,11 @@ class ListarUsuariosService
         }
 
         $usuarios = $query->paginate(15)->withQueryString();
+        $empresas = Empresa::all();
 
         return view('usuarios.index', [
             'usuarios' => $usuarios,
+            'empresas' => $empresas,
             'filtros' => $request->only(['nome', 'email', 'status', 'empresa_id', 'cpf', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,

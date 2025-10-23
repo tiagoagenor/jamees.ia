@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use App\Traits\HasUuid;
+use App\Enums\UsuarioStatusEnum;
 
 class Usuario extends Model implements Authenticatable
 {
@@ -35,6 +36,7 @@ class Usuario extends Model implements Authenticatable
     protected $casts = [
         'criado_em' => 'datetime',
         'atualizado_em' => 'datetime',
+        'status' => UsuarioStatusEnum::class,
     ];
 
     protected static function boot()

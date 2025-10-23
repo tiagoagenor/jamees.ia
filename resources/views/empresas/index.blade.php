@@ -22,7 +22,7 @@
     <div class="mb-6 bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
-            @if(request()->hasAny(['nome_fantasia', 'razao_social', 'cnpj', 'status', 'whitelabel_id', 'tipo']))
+            @if(request()->hasAny(['nome_fantasia', 'razao_social', 'cnpj', 'status', 'tipo']))
                 <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-500">Filtros ativos:</span>
                     @if(request('nome_fantasia'))
@@ -42,7 +42,7 @@
                     @endif
                     @if(request('status'))
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Status: {{ request('status') == '1' ? 'Ativo' : 'Inativo' }}
+                            Status: {{ request('status') ? \App\Enums\EmpresaStatusEnum::fromValue((int)request('status'))?->label() : 'Todos' }}
                         </span>
                     @endif
                     @if(request('tipo'))
@@ -94,22 +94,8 @@
                         name="status"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Todos</option>
-                    <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Ativo</option>
-                    <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inativo</option>
-                </select>
-            </div>
-
-            <!-- Whitelabel -->
-            <div>
-                <label for="whitelabel_id" class="block text-sm font-medium text-gray-700 mb-1">Whitelabel</label>
-                <select id="whitelabel_id"
-                        name="whitelabel_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                    <option value="">Todos</option>
-                    @foreach($whitelabels as $whitelabel)
-                        <option value="{{ $whitelabel->id }}" {{ request('whitelabel_id') == $whitelabel->id ? 'selected' : '' }}>
-                            {{ $whitelabel->nome }}
-                        </option>
+                    @foreach(\App\Enums\EmpresaStatusEnum::options() as $value => $label)
+                        <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
@@ -123,6 +109,43 @@
                     <option value="">Todos</option>
                     <option value="PJ" {{ request('tipo') == 'PJ' ? 'selected' : '' }}>Pessoa Jurídica</option>
                     <option value="PF" {{ request('tipo') == 'PF' ? 'selected' : '' }}>Pessoa Física</option>
+                </select>
+            </div>
+
+            <!-- UF -->
+            <div>
+                <label for="uf" class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                <select id="uf"
+                        name="uf"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <option value="">Todas</option>
+                    <option value="AC" {{ request('uf') == 'AC' ? 'selected' : '' }}>AC</option>
+                    <option value="AL" {{ request('uf') == 'AL' ? 'selected' : '' }}>AL</option>
+                    <option value="AP" {{ request('uf') == 'AP' ? 'selected' : '' }}>AP</option>
+                    <option value="AM" {{ request('uf') == 'AM' ? 'selected' : '' }}>AM</option>
+                    <option value="BA" {{ request('uf') == 'BA' ? 'selected' : '' }}>BA</option>
+                    <option value="CE" {{ request('uf') == 'CE' ? 'selected' : '' }}>CE</option>
+                    <option value="DF" {{ request('uf') == 'DF' ? 'selected' : '' }}>DF</option>
+                    <option value="ES" {{ request('uf') == 'ES' ? 'selected' : '' }}>ES</option>
+                    <option value="GO" {{ request('uf') == 'GO' ? 'selected' : '' }}>GO</option>
+                    <option value="MA" {{ request('uf') == 'MA' ? 'selected' : '' }}>MA</option>
+                    <option value="MT" {{ request('uf') == 'MT' ? 'selected' : '' }}>MT</option>
+                    <option value="MS" {{ request('uf') == 'MS' ? 'selected' : '' }}>MS</option>
+                    <option value="MG" {{ request('uf') == 'MG' ? 'selected' : '' }}>MG</option>
+                    <option value="PA" {{ request('uf') == 'PA' ? 'selected' : '' }}>PA</option>
+                    <option value="PB" {{ request('uf') == 'PB' ? 'selected' : '' }}>PB</option>
+                    <option value="PR" {{ request('uf') == 'PR' ? 'selected' : '' }}>PR</option>
+                    <option value="PE" {{ request('uf') == 'PE' ? 'selected' : '' }}>PE</option>
+                    <option value="PI" {{ request('uf') == 'PI' ? 'selected' : '' }}>PI</option>
+                    <option value="RJ" {{ request('uf') == 'RJ' ? 'selected' : '' }}>RJ</option>
+                    <option value="RN" {{ request('uf') == 'RN' ? 'selected' : '' }}>RN</option>
+                    <option value="RS" {{ request('uf') == 'RS' ? 'selected' : '' }}>RS</option>
+                    <option value="RO" {{ request('uf') == 'RO' ? 'selected' : '' }}>RO</option>
+                    <option value="RR" {{ request('uf') == 'RR' ? 'selected' : '' }}>RR</option>
+                    <option value="SC" {{ request('uf') == 'SC' ? 'selected' : '' }}>SC</option>
+                    <option value="SP" {{ request('uf') == 'SP' ? 'selected' : '' }}>SP</option>
+                    <option value="SE" {{ request('uf') == 'SE' ? 'selected' : '' }}>SE</option>
+                    <option value="TO" {{ request('uf') == 'TO' ? 'selected' : '' }}>TO</option>
                 </select>
             </div>
 
@@ -237,9 +260,15 @@
                                                 <div class="text-sm font-medium text-gray-900">
                                                     {{ $empresa->nome_fantasia }}
                                                 </div>
-                                                @if($empresa->principal)
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                @if($empresaPrincipal && $empresa->id == $empresaPrincipal->id)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-crown mr-1"></i>
                                                         Principal
+                                                    </span>
+                                                @elseif($empresaPrincipal && $empresa->empresa_id == $empresaPrincipal->id)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <i class="fas fa-building mr-1"></i>
+                                                        Filial
                                                     </span>
                                                 @endif
                                             </div>
@@ -257,15 +286,10 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($empresa->status)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Ativo
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Inativo
-                                            </span>
-                                        @endif
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $empresa->status->color() == 'green' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ $empresa->status->label() }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $empresa->criado_em ? $empresa->criado_em->format('d/m/Y H:i') : 'N/A' }}

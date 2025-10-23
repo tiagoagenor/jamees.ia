@@ -102,10 +102,9 @@
                                         <div class="w-32">
                                             <select name="telefones[{{ $index }}][tipo]"
                                                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                                <option value="celular" {{ old('telefones.'.$index.'.tipo', $telefone->tipo) == 'celular' ? 'selected' : '' }}>Celular</option>
-                                                <option value="residencial" {{ old('telefones.'.$index.'.tipo', $telefone->tipo) == 'residencial' ? 'selected' : '' }}>Residencial</option>
-                                                <option value="comercial" {{ old('telefones.'.$index.'.tipo', $telefone->tipo) == 'comercial' ? 'selected' : '' }}>Comercial</option>
-                                                <option value="whatsapp" {{ old('telefones.'.$index.'.tipo', $telefone->tipo) == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+                                                @foreach(\App\Enums\UsuarioTelefoneTipoEnum::options() as $value => $label)
+                                                    <option value="{{ $value }}" {{ old('telefones.'.$index.'.tipo', $telefone->tipo->value) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <button type="button"
@@ -127,10 +126,9 @@
                                     <div class="w-32">
                                         <select name="telefones[0][tipo]"
                                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                            <option value="celular" {{ old('telefones.0.tipo') == 'celular' ? 'selected' : '' }}>Celular</option>
-                                            <option value="residencial" {{ old('telefones.0.tipo') == 'residencial' ? 'selected' : '' }}>Residencial</option>
-                                            <option value="comercial" {{ old('telefones.0.tipo') == 'comercial' ? 'selected' : '' }}>Comercial</option>
-                                            <option value="whatsapp" {{ old('telefones.0.tipo') == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+                                            @foreach(\App\Enums\UsuarioTelefoneTipoEnum::options() as $value => $label)
+                                                <option value="{{ $value }}" {{ old('telefones.0.tipo') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <button type="button"
@@ -151,23 +149,40 @@
                         @enderror
                     </div>
 
-                    <!-- Empresa -->
+                    <!-- Empresas -->
                     <div>
-                        <label for="empresa_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            Empresa <span class="text-red-500">*</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Empresas <span class="text-red-500">*</span>
                         </label>
-                        <select id="empresa_id"
-                                name="empresa_id"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('empresa_id') border-red-500 @enderror"
-                                required>
-                            <option value="">Selecione uma empresa</option>
+                        <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
                             @foreach($empresas as $empresa)
-                                <option value="{{ $empresa->id }}" {{ old('empresa_id', $usuario->empresas->first()->id ?? '') == $empresa->id ? 'selected' : '' }}>
-                                    {{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}
-                                </option>
+                                <label class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                    <input type="checkbox"
+                                           name="empresas[]"
+                                           value="{{ $empresa->id }}"
+                                           {{ in_array($empresa->id, old('empresas', $usuario->empresas->pluck('id')->toArray())) ? 'checked' : '' }}
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <div class="flex items-center space-x-2">
+                                        @if($empresaPrincipal && $empresa->id == $empresaPrincipal->id)
+                                            <span class="text-yellow-600">👑</span>
+                                            <span class="text-sm font-medium text-gray-900">{{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}</span>
+                                            <span class="text-xs text-yellow-600 font-medium">(Principal)</span>
+                                        @elseif($empresaPrincipal && $empresa->empresa_id == $empresaPrincipal->id)
+                                            <span class="text-blue-600">🏢</span>
+                                            <span class="text-sm font-medium text-gray-900">{{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}</span>
+                                            <span class="text-xs text-blue-600 font-medium">(Filial)</span>
+                                        @else
+                                            <span class="text-gray-600">🏢</span>
+                                            <span class="text-sm font-medium text-gray-900">{{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}</span>
+                                        @endif
+                                    </div>
+                                </label>
                             @endforeach
-                        </select>
-                        @error('empresa_id')
+                        </div>
+                        @error('empresas')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        @error('empresas.*')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -180,8 +195,9 @@
                         <select id="status"
                                 name="status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="1" {{ old('status', $usuario->status) == 1 ? 'selected' : '' }}>Ativo</option>
-                            <option value="0" {{ old('status', $usuario->status) == 0 ? 'selected' : '' }}>Inativo</option>
+                            @foreach(\App\Enums\UsuarioStatusEnum::options() as $value => $label)
+                                <option value="{{ $value }}" {{ old('status', $usuario->status->value) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>

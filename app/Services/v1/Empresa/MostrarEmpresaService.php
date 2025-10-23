@@ -8,7 +8,7 @@ class MostrarEmpresaService
 {
     public function execute(Empresa $empresa)
     {
-        $empresa->load('whitelabel', 'contatos', 'enderecos');
+        $empresa->load('contatos', 'enderecos');
 
         return view('empresas.show', [
             'empresa' => $empresa

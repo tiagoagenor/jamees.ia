@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Empresa;
-use App\Models\UsuarioEmpresa;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -17,16 +16,14 @@ class CompanySwitchController extends Controller
     {
         try {
             $request->validate([
-                'company_id' => 'required|string|exists:empresa,id'
+                'empresa_id' => 'required|string|exists:empresa,id'
             ]);
 
             $user = Auth::user();
-            $companyId = $request->company_id;
+            $companyId = $request->empresa_id;
 
             // Check if user has access to this company
-            $userCompany = UsuarioEmpresa::where('usuario_id', $user->id)
-                ->where('empresa_id', $companyId)
-                ->first();
+            $userCompany = $user->empresas()->where('empresa.id', $companyId)->first();
 
             if (!$userCompany) {
                 return response()->json([
@@ -44,12 +41,20 @@ class CompanySwitchController extends Controller
                 ], 404);
             }
 
-            // Set the current company in session
-            session(['current_company' => $company]);
-            session(['current_company_id' => $company->id]);
+            // Set the current company in session and force save
+            session(['empresa_atual_id' => $company->id]);
+            session(['whitelabel_atual_id' => $company->whitelabel_id]);
+            session()->save(); // Force save to ensure persistence
 
             // Log the access
             $this->logAccess($user->id, $company->whitelabel_id, $company->id);
+
+            Log::info('Empresa alterada na sessão', [
+                'user_id' => $user->id,
+                'empresa_id' => $company->id,
+                'empresa_nome' => $company->nome_fantasia ?? $company->razao_social,
+                'whitelabel_id' => $company->whitelabel_id
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -75,17 +80,21 @@ class CompanySwitchController extends Controller
     private function logAccess($usuarioId, $whitelabelId, $empresaId)
     {
         try {
-            \App\Models\UltimaAcesso::create([
-                'id' => \Illuminate\Support\Str::uuid()->toString(),
-                'usuario_id' => $usuarioId,
-                'whitelabel_id' => $whitelabelId,
-                'empresa_id' => $empresaId,
-                'criado_em' => now(),
-                'atualizado_em' => now()
-            ]);
+            \App\Models\UltimaAcesso::updateOrCreate(
+                [
+                    'usuario_id' => $usuarioId,
+                    'whitelabel_id' => $whitelabelId,
+                    'empresa_id' => $empresaId,
+                ],
+                [
+                    'usuario_id' => $usuarioId,
+                    'whitelabel_id' => $whitelabelId,
+                    'empresa_id' => $empresaId,
+                ]
+            );
         } catch (\Exception $e) {
             // Log error but don't fail the request
-            \Log::error('Erro ao registrar acesso: ' . $e->getMessage());
+            Log::error('Erro ao registrar acesso: ' . $e->getMessage());
         }
     }
 }

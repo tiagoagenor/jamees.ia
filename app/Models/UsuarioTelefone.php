@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\HasUuid;
+use App\Enums\UsuarioTelefoneTipoEnum;
 
 class UsuarioTelefone extends Model
 {
@@ -29,6 +30,7 @@ class UsuarioTelefone extends Model
     protected $casts = [
         'criado_em' => 'datetime',
         'atualizado_em' => 'datetime',
+        'tipo' => UsuarioTelefoneTipoEnum::class,
     ];
 
     protected static function boot()

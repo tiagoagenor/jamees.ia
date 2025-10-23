@@ -37,7 +37,7 @@
                     @endif
                     @if(request('status'))
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Status: {{ request('status') == '1' ? 'Ativo' : 'Inativo' }}
+                            Status: {{ request('status') ? \App\Enums\UsuarioStatusEnum::fromValue((int)request('status'))?->label() : 'Todos' }}
                         </span>
                     @endif
                     @if(request('empresa_id'))
@@ -88,8 +88,9 @@
                         name="status"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Todos</option>
-                    <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Ativo</option>
-                    <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inativo</option>
+                    @foreach(\App\Enums\UsuarioStatusEnum::options() as $value => $label)
+                        <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -270,15 +271,10 @@
                                         @endforeach
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($usuario->status)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Ativo
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Inativo
-                                            </span>
-                                        @endif
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $usuario->status->color() == 'green' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ $usuario->status->label() }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $usuario->criado_em ? $usuario->criado_em->format('d/m/Y H:i') : 'N/A' }}

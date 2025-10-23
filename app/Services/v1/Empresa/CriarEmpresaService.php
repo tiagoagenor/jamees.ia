@@ -3,9 +3,12 @@
 namespace App\Services\v1\Empresa;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Empresa;
 use App\Models\EmpresaContato;
 use App\Models\EmpresaEndereco;
+use App\Enums\EmpresaStatusEnum;
+use App\Enums\UsuarioStatusEnum;
 use Illuminate\Support\Str;
 
 class CriarEmpresaService
@@ -13,10 +16,9 @@ class CriarEmpresaService
     public function execute(Request $request)
     {
         $request->validate([
-            'whitelabel_id' => 'required|exists:whitelabel,id',
             'nome_fantasia' => 'required|string|max:255',
-            'razao_social' => 'required|string|max:255',
-            'cnpj' => 'required|string|max:255',
+            'razao_social' => 'nullable|string|max:255',
+            'cnpj' => 'nullable|string|max:255',
             'tipo' => 'required|string|in:PJ,PF',
             'status' => 'nullable|integer',
             'principal' => 'nullable|integer',
@@ -46,14 +48,16 @@ class CriarEmpresaService
 
         try {
             // Criar empresa
+            $whitelabel = \App\Models\Whitelabel::first();
+
             $empresa = Empresa::create([
                 'id' => Str::uuid()->toString(),
-                'whitelabel_id' => $request->whitelabel_id,
+                'whitelabel_id' => $whitelabel->id,
                 'nome_fantasia' => $request->nome_fantasia,
                 'razao_social' => $request->razao_social,
                 'cnpj' => $request->cnpj,
                 'tipo' => $request->tipo,
-                'status' => $request->status ?? 1,
+                'status' => $request->status ?? EmpresaStatusEnum::ATIVA,
                 'principal' => $request->principal ?? 0,
                 'nome_referencia' => $request->nome_referencia,
                 'inscricao_estadual' => $request->inscricao_estadual,
@@ -103,6 +107,17 @@ class CriarEmpresaService
                         ]);
                     }
                 }
+            }
+
+            // Vincular usuário logado à nova empresa
+            $user = Auth::user();
+            if ($user) {
+                $user->empresas()->attach($empresa->id, [
+                    'principal' => 0, // Não é empresa principal
+                    'status' => UsuarioStatusEnum::ATIVO,
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ]);
             }
 
             return redirect()->route('empresas.index')

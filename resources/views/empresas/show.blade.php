@@ -172,23 +172,6 @@
 
         <!-- Sidebar -->
         <div class="space-y-6">
-            <!-- Whitelabel -->
-            <div class="bg-white shadow rounded-lg">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Whitelabel</h3>
-                </div>
-                <div class="px-6 py-4">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-tag text-indigo-600"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-900">{{ $empresa->whitelabel->nome }}</p>
-                            <p class="text-sm text-gray-500">Whitelabel</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Contatos -->
             @if($empresa->contatos->count() > 0)

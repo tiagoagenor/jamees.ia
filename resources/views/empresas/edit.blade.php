@@ -20,24 +20,6 @@
                 <h4 class="text-md font-medium text-gray-900 border-b border-gray-200 pb-2">Informações Básicas</h4>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Whitelabel -->
-                    <div>
-                        <label for="whitelabel_id" class="block text-sm font-medium text-gray-700 mb-1">Whitelabel *</label>
-                        <select id="whitelabel_id"
-                                name="whitelabel_id"
-                                required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="">Selecione um whitelabel</option>
-                            @foreach($whitelabels as $whitelabel)
-                                <option value="{{ $whitelabel->id }}" {{ old('whitelabel_id', $empresa->whitelabel_id) == $whitelabel->id ? 'selected' : '' }}>
-                                    {{ $whitelabel->nome }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('whitelabel_id')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
 
                     <!-- Tipo -->
                     <div>
@@ -71,12 +53,11 @@
 
                     <!-- Razão Social -->
                     <div>
-                        <label for="razao_social" class="block text-sm font-medium text-gray-700 mb-1">Razão Social *</label>
+                        <label for="razao_social" class="block text-sm font-medium text-gray-700 mb-1">Razão Social</label>
                         <input type="text"
                                id="razao_social"
                                name="razao_social"
                                value="{{ old('razao_social', $empresa->razao_social) }}"
-                               required
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         @error('razao_social')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -85,12 +66,11 @@
 
                     <!-- CNPJ -->
                     <div>
-                        <label for="cnpj" class="block text-sm font-medium text-gray-700 mb-1">CNPJ/CPF *</label>
+                        <label for="cnpj" class="block text-sm font-medium text-gray-700 mb-1">CNPJ/CPF</label>
                         <input type="text"
                                id="cnpj"
                                name="cnpj"
                                value="{{ old('cnpj', $empresa->cnpj) }}"
-                               required
                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         @error('cnpj')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -347,27 +327,15 @@
                         <select id="status"
                                 name="status"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="1" {{ old('status', $empresa->status) == '1' ? 'selected' : '' }}>Ativo</option>
-                            <option value="0" {{ old('status', $empresa->status) == '0' ? 'selected' : '' }}>Inativo</option>
+                            @foreach(\App\Enums\EmpresaStatusEnum::options() as $value => $label)
+                                <option value="{{ $value }}" {{ old('status', $empresa->status->value) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
                         </select>
                         @error('status')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <!-- Principal -->
-                    <div>
-                        <label for="principal" class="block text-sm font-medium text-gray-700 mb-1">Empresa Principal</label>
-                        <select id="principal"
-                                name="principal"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="0" {{ old('principal', $empresa->principal) == '0' ? 'selected' : '' }}>Não</option>
-                            <option value="1" {{ old('principal', $empresa->principal) == '1' ? 'selected' : '' }}>Sim</option>
-                        </select>
-                        @error('principal')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
                 </div>
             </div>
 

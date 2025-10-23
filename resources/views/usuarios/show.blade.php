@@ -232,7 +232,7 @@
                                             <p class="text-sm font-medium text-gray-900">
                                                 ({{ $telefone->ddd }}) {{ $telefone->numero }}
                                             </p>
-                                            <p class="text-xs text-gray-500 capitalize">{{ $telefone->tipo }}</p>
+                                            <p class="text-xs text-gray-500 capitalize">{{ $telefone->tipo->label() }}</p>
                                         </div>
                                     </div>
                                 </div>

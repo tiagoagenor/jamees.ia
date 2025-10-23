@@ -10,14 +10,13 @@ use App\Models\Usuario;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UsuarioTelefone;
+use App\Enums\UsuarioStatusEnum;
+use App\Enums\EmpresaStatusEnum;
+use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 
 class RegisterController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('throttle:60,1');
-    }
 
     public function register(Request $request)
     {
@@ -36,7 +35,7 @@ class RegisterController extends Controller
                 'nome' => $request->nome,
                 'email' => $request->email,
                 'senha' => Hash::make($request->senha),
-                'status' => 1,
+                'status' => UsuarioStatusEnum::ATIVO,
                 'criado_em' => now(),
                 'atualizado_em' => now(),
             ]);
@@ -49,7 +48,7 @@ class RegisterController extends Controller
                 'nome_fantasia' => $request->empresa_nome,
                 'razao_social' => $request->empresa_nome,
                 'tipo' => 'PJ',
-                'status' => 1,
+                'status' => EmpresaStatusEnum::ATIVA,
                 'principal' => 1,
                 'criado_em' => now(),
                 'atualizado_em' => now(),
@@ -58,7 +57,7 @@ class RegisterController extends Controller
             // Vincular usuário à empresa
             $usuario->empresas()->attach($empresa->id, [
                 'principal' => 1,
-                'status' => 1,
+                'status' => UsuarioStatusEnum::ATIVO,
                 'criado_em' => now(),
                 'atualizado_em' => now(),
             ]);
@@ -67,7 +66,7 @@ class RegisterController extends Controller
             UsuarioTelefone::create([
                 'id' => Str::uuid()->toString(),
                 'usuario_id' => $usuario->id,
-                'tipo' => 'celular',
+                'tipo' => UsuarioTelefoneTipoEnum::CELULAR,
                 'ddd' => substr($request->telefone, 0, 2),
                 'numero' => substr($request->telefone, 2),
                 'criado_em' => now(),

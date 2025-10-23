@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Empresa;
 use App\Models\EmpresaContato;
 use App\Models\EmpresaEndereco;
+use App\Enums\EmpresaStatus;
 use Illuminate\Support\Str;
 
 class AtualizarEmpresaService
@@ -13,13 +14,11 @@ class AtualizarEmpresaService
     public function execute(Request $request, Empresa $empresa)
     {
         $request->validate([
-            'whitelabel_id' => 'required|exists:whitelabel,id',
             'nome_fantasia' => 'required|string|max:255',
-            'razao_social' => 'required|string|max:255',
-            'cnpj' => 'required|string|max:255',
+            'razao_social' => 'nullable|string|max:255',
+            'cnpj' => 'nullable|string|max:255',
             'tipo' => 'required|string|in:PJ,PF',
             'status' => 'nullable|integer',
-            'principal' => 'nullable|integer',
             'nome_referencia' => 'nullable|string|max:255',
             'inscricao_estadual' => 'nullable|string|max:255',
             'inscricao_estadual_isenta' => 'nullable|string|max:255',
@@ -46,13 +45,11 @@ class AtualizarEmpresaService
 
         try {
             $empresa->update([
-                'whitelabel_id' => $request->whitelabel_id,
                 'nome_fantasia' => $request->nome_fantasia,
                 'razao_social' => $request->razao_social,
                 'cnpj' => $request->cnpj,
                 'tipo' => $request->tipo,
                 'status' => $request->status ?? $empresa->status,
-                'principal' => $request->principal ?? $empresa->principal,
                 'nome_referencia' => $request->nome_referencia,
                 'inscricao_estadual' => $request->inscricao_estadual,
                 'inscricao_estadual_isenta' => $request->inscricao_estadual_isenta,

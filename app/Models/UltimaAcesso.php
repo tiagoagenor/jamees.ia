@@ -10,6 +10,7 @@ class UltimaAcesso extends Model
     protected $table = 'ultima_acesso';
     protected $keyType = 'string';
     public $incrementing = false;
+    public $timestamps = false;
 
     protected $fillable = [
         'usuario_id',

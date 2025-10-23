@@ -8,6 +8,8 @@ use App\Models\Usuario;
 use App\Models\UsuarioTelefone;
 use App\Models\UsuarioGeral;
 use App\Models\UsuarioEndereco;
+use App\Enums\UsuarioStatusEnum;
+use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 
 class AtualizarUsuarioService
@@ -20,8 +22,9 @@ class AtualizarUsuarioService
             'senha' => 'nullable|string|min:6|confirmed',
             'telefones' => 'required|array|min:1',
             'telefones.*.numero' => 'required|string|max:20',
-            'telefones.*.tipo' => 'required|string|in:celular,residencial,comercial,whatsapp',
-            'empresa_id' => 'required|exists:empresa,id',
+            'telefones.*.tipo' => 'required|integer|in:1,2,3,4',
+            'empresas' => 'required|array|min:1',
+            'empresas.*' => 'required|exists:empresa,id',
             'status' => 'nullable|integer',
             // Campos pessoais
             'cpf' => 'nullable|string|max:255',
@@ -49,13 +52,17 @@ class AtualizarUsuarioService
                 'atualizado_em' => now(),
             ]);
 
-            // Atualizar vínculo com empresa
-            $usuario->empresas()->sync([$request->empresa_id => [
-                'principal' => 1,
-                'status' => 1,
-                'criado_em' => now(),
-                'atualizado_em' => now(),
-            ]]);
+            // Atualizar vínculos com empresas
+            $empresasData = [];
+            foreach ($request->empresas as $index => $empresaId) {
+                $empresasData[$empresaId] = [
+                    'principal' => $index === 0 ? 1 : 0, // Primeira empresa é principal
+                    'status' => UsuarioStatusEnum::ATIVO,
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ];
+            }
+            $usuario->empresas()->sync($empresasData);
 
             // Atualizar telefones
             $usuario->telefones()->delete(); // Remove todos os telefones existentes
@@ -67,7 +74,7 @@ class AtualizarUsuarioService
                 UsuarioTelefone::create([
                     'id' => Str::uuid()->toString(),
                     'usuario_id' => $usuario->id,
-                    'tipo' => $telefone['tipo'],
+                    'tipo' => UsuarioTelefoneTipoEnum::from($telefone['tipo']),
                     'ddd' => substr($numeroLimpo, 0, 2),
                     'numero' => substr($numeroLimpo, 2),
                     'criado_em' => now(),

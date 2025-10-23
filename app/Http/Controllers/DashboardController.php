@@ -15,16 +15,40 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Se não há empresa selecionada, selecionar a primeira disponível
-        if (!session('current_company') && $user->empresas->count() > 0) {
-            $firstCompany = $user->empresas->first();
-            session(['current_company' => $firstCompany]);
-            session(['current_company_id' => $firstCompany->id]);
+        // Buscar empresa atual da sessão
+        $currentCompany = null;
+        if (session('empresa_atual_id')) {
+            $currentCompany = Empresa::find(session('empresa_atual_id'));
         }
 
-        $currentCompany = session('current_company');
-        $currentWhitelabel = session('current_whitelabel');
-        $lastAccess = session('last_access');
+        // Se não há empresa selecionada, selecionar a primeira disponível
+        if (!$currentCompany && $user->empresas->count() > 0) {
+            // Primeiro, tentar encontrar empresa principal
+            $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+            if ($empresaPrincipal) {
+                $currentCompany = $empresaPrincipal;
+                session(['empresa_atual_id' => $empresaPrincipal->id]);
+                session(['whitelabel_atual_id' => $empresaPrincipal->whitelabel_id]);
+            } else {
+                // Se não existe empresa principal, pegar a primeira empresa da lista
+                $currentCompany = $user->empresas->first();
+                session(['empresa_atual_id' => $currentCompany->id]);
+                session(['whitelabel_atual_id' => $currentCompany->whitelabel_id]);
+            }
+        }
+
+        $currentWhitelabel = null;
+        if (session('whitelabel_atual_id')) {
+            $currentWhitelabel = Whitelabel::find(session('whitelabel_atual_id'));
+        }
+
+        $lastAccess = null;
+        if ($currentCompany) {
+            $lastAccess = UltimaAcesso::where('usuario_id', $user->id)
+                ->where('empresa_id', $currentCompany->id)
+                ->first();
+        }
 
         return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess'));
     }

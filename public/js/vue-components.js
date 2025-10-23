@@ -91,10 +91,10 @@ window.UsuariosCreate = {
                 <div class="w-32">
                     <select name="telefones[${this.telefoneIndex}][tipo]"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="celular">Celular</option>
-                        <option value="residencial">Residencial</option>
-                        <option value="comercial">Comercial</option>
-                        <option value="whatsapp">WhatsApp</option>
+                        <option value="1">Celular</option>
+                        <option value="2">Residencial</option>
+                        <option value="3">Comercial</option>
+                        <option value="4">WhatsApp</option>
                     </select>
                 </div>
                 <button type="button" class="remove-telefone px-3 py-2 text-red-600 hover:text-red-800">
@@ -256,10 +256,10 @@ window.UsuariosEdit = {
                 <div class="w-32">
                     <select name="telefones[${this.telefoneIndex}][tipo]"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="celular">Celular</option>
-                        <option value="residencial">Residencial</option>
-                        <option value="comercial">Comercial</option>
-                        <option value="whatsapp">WhatsApp</option>
+                        <option value="1">Celular</option>
+                        <option value="2">Residencial</option>
+                        <option value="3">Comercial</option>
+                        <option value="4">WhatsApp</option>
                     </select>
                 </div>
                 <button type="button" class="remove-telefone px-3 py-2 text-red-600 hover:text-red-800">
