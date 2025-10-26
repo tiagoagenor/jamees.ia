@@ -1,0 +1,215 @@
+@extends('layouts.app')
+
+@section('title', 'Nova DRE')
+
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-plus-circle text-blue-600 mr-3"></i>
+                    Nova DRE
+                </h1>
+                <p class="text-gray-600 mt-2">Crie uma nova estrutura para o demonstrativo de resultado</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('dre.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white shadow rounded-lg">
+        <form action="{{ route('dre.store') }}" method="POST" id="dreForm">
+            @csrf
+
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Informações da DRE</h3>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <!-- Nome -->
+                <div>
+                    <label for="nome" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tag text-blue-600 mr-1"></i>
+                        Nome *
+                    </label>
+                    <input type="text"
+                           id="nome"
+                           name="nome"
+                           value="{{ old('nome') }}"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('nome') border-red-500 @enderror"
+                           placeholder="Ex: Receita Bruta, Despesas Operacionais..."
+                           required>
+                    @error('nome')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Tipo -->
+                <div>
+                    <label for="tipo" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-list text-blue-600 mr-1"></i>
+                        Tipo *
+                    </label>
+                    <select id="tipo"
+                            name="tipo"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('tipo') border-red-500 @enderror"
+                            required>
+                        <option value="">Selecione o tipo</option>
+                        @foreach($tipos as $tipo)
+                            <option value="{{ $tipo->value }}"
+                                    {{ old('tipo') == $tipo->value ? 'selected' : '' }}
+                                    data-color="{{ $tipo->getColor() }}"
+                                    data-icon="{{ $tipo->getIcon() }}">
+                                {{ $tipo->getLabel() }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('tipo')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- DRE Pai -->
+                <div>
+                    <label for="dre_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-sitemap text-blue-600 mr-1"></i>
+                        DRE Pai (Opcional)
+                    </label>
+                    <select id="dre_id"
+                            name="dre_id"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('dre_id') border-red-500 @enderror">
+                        <option value="">Nenhuma (DRE Raiz)</option>
+                        @foreach($dresPai as $drePai)
+                            <option value="{{ $drePai->id }}"
+                                    {{ old('dre_id') == $drePai->id ? 'selected' : '' }}>
+                                {{ $drePai->nome }} ({{ $drePai->getTipoLabel() }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('dre_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    <p class="mt-2 text-sm text-gray-500">
+                        Deixe vazio para criar uma DRE raiz ou selecione uma DRE existente para criar um subitem.
+                    </p>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-toggle-on text-blue-600 mr-1"></i>
+                        Status
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio"
+                                   name="status"
+                                   value="1"
+                                   {{ old('status', '1') == '1' ? 'checked' : '' }}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                            <span class="ml-2 text-sm text-gray-700">Ativo</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio"
+                                   name="status"
+                                   value="0"
+                                   {{ old('status') == '0' ? 'checked' : '' }}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                            <span class="ml-2 text-sm text-gray-700">Inativo</span>
+                        </label>
+                    </div>
+                    @error('status')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                <a href="{{ route('dre.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-save mr-2"></i>
+                    Salvar DRE
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Validação do formulário
+document.getElementById('dreForm').addEventListener('submit', function(e) {
+    const nome = document.getElementById('nome').value.trim();
+    const tipo = document.getElementById('tipo').value;
+
+    if (!nome) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro!',
+            text: 'O nome é obrigatório.',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        return;
+    }
+
+    if (!tipo) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro!',
+            text: 'O tipo é obrigatório.',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        return;
+    }
+
+    // Mostrar loading
+    Swal.fire({
+        title: 'Salvando...',
+        text: 'Criando nova DRE',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+});
+
+// Exibir mensagens de sessão
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: '{{ session('success') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+@if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro!',
+        text: '{{ session('error') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+</script>
+@endsection

@@ -5,12 +5,13 @@ namespace App\Services\v1\Usuario;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Empresa;
+use App\Models\Grupo;
 
 class FormularioEditarUsuarioService
 {
     public function execute(Usuario $usuario)
     {
-        $usuario->load('empresas', 'geral', 'enderecos', 'telefones');
+        $usuario->load('empresas', 'geral', 'enderecos', 'telefones', 'grupos');
 
         $user = Auth::user();
 
@@ -29,10 +30,21 @@ class FormularioEditarUsuarioService
             $empresas = Empresa::whereIn('id', $empresaIds)->get();
         }
 
+        // Buscar grupos da empresa principal
+        $grupos = collect();
+        if ($empresaPrincipal) {
+            $grupos = Grupo::where('empresa_id', $empresaPrincipal->id)
+                ->where('ativo', true)
+                ->orderBy('administrativo', 'desc')
+                ->orderBy('nome')
+                ->get();
+        }
+
         return view('usuarios.edit', [
             'usuario' => $usuario,
             'empresas' => $empresas,
-            'empresaPrincipal' => $empresaPrincipal
+            'empresaPrincipal' => $empresaPrincipal,
+            'grupos' => $grupos
         ]);
     }
 }

@@ -86,6 +86,11 @@ class Empresa extends Model
         return $this->hasMany(Empresa::class, 'empresa_id');
     }
 
+    public function grupos(): HasMany
+    {
+        return $this->hasMany(Grupo::class, 'empresa_id');
+    }
+
     public function contatos(): HasMany
     {
         return $this->hasMany(EmpresaContato::class, 'empresa_id');
@@ -106,6 +111,38 @@ class Empresa extends Model
     public function ultimosAcessos(): HasMany
     {
         return $this->hasMany(UltimaAcesso::class, 'empresa_id');
+    }
+
+    public function planos(): HasMany
+    {
+        return $this->hasMany(EmpresaPlano::class, 'empresa_id');
+    }
+
+    public function planoAtual(): BelongsTo
+    {
+        return $this->belongsTo(EmpresaPlano::class, 'id', 'empresa_id')
+                    ->whereIn('status', [\App\Enums\PlanoStatusEnum::ATIVO, \App\Enums\PlanoStatusEnum::TESTE])
+                    ->where('data_fim', '>', now())
+                    ->orderBy('data_fim', 'desc');
+    }
+
+    public function isPlanoAtivo(): bool
+    {
+        $planoAtual = $this->planos()
+            ->whereIn('status', [\App\Enums\PlanoStatusEnum::ATIVO, \App\Enums\PlanoStatusEnum::TESTE])
+            ->where('data_fim', '>', now())
+            ->first();
+
+        return $planoAtual !== null;
+    }
+
+    public function getPlanoAtual()
+    {
+        return $this->planos()
+            ->whereIn('status', [\App\Enums\PlanoStatusEnum::ATIVO, \App\Enums\PlanoStatusEnum::TESTE])
+            ->where('data_fim', '>', now())
+            ->orderBy('data_fim', 'desc')
+            ->first();
     }
 
     /**

@@ -25,6 +25,8 @@ class CriarUsuarioService
             'telefones.*.tipo' => 'required|integer|in:1,2,3,4',
             'empresas' => 'required|array|min:1',
             'empresas.*' => 'required|exists:empresa,id',
+            'grupos' => 'required|array|min:1',
+            'grupos.*' => 'required|exists:grupos,id',
             'status' => 'nullable|integer',
             // Campos pessoais
             'cpf' => 'nullable|string|max:255',
@@ -64,6 +66,9 @@ class CriarUsuarioService
                     'atualizado_em' => now(),
                 ]);
             }
+
+            // Vincular usuário aos grupos
+            $usuario->grupos()->sync($request->grupos);
 
             // Adicionar telefones do usuário
             foreach ($request->telefones as $telefone) {

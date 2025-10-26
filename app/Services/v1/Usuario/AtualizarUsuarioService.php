@@ -25,6 +25,8 @@ class AtualizarUsuarioService
             'telefones.*.tipo' => 'required|integer|in:1,2,3,4',
             'empresas' => 'required|array|min:1',
             'empresas.*' => 'required|exists:empresa,id',
+            'grupos' => 'required|array|min:1',
+            'grupos.*' => 'required|exists:grupos,id',
             'status' => 'nullable|integer',
             // Campos pessoais
             'cpf' => 'nullable|string|max:255',
@@ -63,6 +65,9 @@ class AtualizarUsuarioService
                 ];
             }
             $usuario->empresas()->sync($empresasData);
+
+            // Atualizar grupos
+            $usuario->grupos()->sync($request->grupos);
 
             // Atualizar telefones
             $usuario->telefones()->delete(); // Remove todos os telefones existentes

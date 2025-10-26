@@ -13,6 +13,9 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-100">
+    <!-- Notificação de Plano -->
+    @include('components.plano-notification')
+
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="w-64 bg-gray-800 text-white flex flex-col">
@@ -43,25 +46,25 @@
                         </div>
                         <ul id="cadastro-submenu" class="ml-6 mt-1 space-y-1 hidden">
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
-                                    <i class="fas fa-user mr-3"></i>
+                                <a href="{{ route('clientes.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('clientes.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                    <i class="fas fa-user-tie mr-3"></i>
                                     Cliente
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('fornecedores.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('fornecedores.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-truck mr-3"></i>
                                     Fornecedor
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('usuarios.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('usuarios.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-id-badge mr-3"></i>
+                                <a href="{{ route('funcionarios.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('funcionarios.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                    <i class="fas fa-user mr-3"></i>
                                     Funcionário
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('transportadoras.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('transportadoras.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-shipping-fast mr-3"></i>
                                     Transportadora
                                 </a>
@@ -86,9 +89,9 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('dre.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('dre.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-chart-pie mr-3"></i>
-                                    DRE Gerencial
+                                    DRE
                                 </a>
                             </li>
                             <li>
@@ -123,29 +126,35 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('planos.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-crown mr-3"></i>
                                     Meu Plano
                                 </a>
                             </li>
+                            @if(\App\Helpers\PermissionHelper::can('usuarios', 'listar'))
                             <li>
                                 <a href="{{ route('usuarios.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('usuarios.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-user mr-3"></i>
                                     Usuário
                                 </a>
                             </li>
+                            @endif
+                            @if(\App\Helpers\PermissionHelper::can('grupos', 'listar'))
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('grupos.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('grupos.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-users-cog mr-3"></i>
                                     Grupo de Usuário
                                 </a>
                             </li>
+                            @endif
+                            @if(\App\Helpers\PermissionHelper::can('empresas', 'listar'))
                             <li>
                                 <a href="{{ route('empresas.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('empresas.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-building mr-3"></i>
                                     Empresa/Loja
                                 </a>
                             </li>
+                            @endif
                             <li>
                                 <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
                                     <i class="fas fa-envelope mr-3"></i>
@@ -249,6 +258,9 @@
             <!-- Page Content -->
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
                 <div class="container mx-auto px-6 py-8">
+                    <!-- Mensagem de Bloqueio por Plano -->
+                    @include('components.plano-blocked')
+
                     @yield('content')
                 </div>
             </main>

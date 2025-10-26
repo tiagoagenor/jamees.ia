@@ -10,6 +10,8 @@ use App\Models\Usuario;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UsuarioTelefone;
+use App\Models\Grupo;
+use App\Models\Permissao;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
@@ -29,6 +31,9 @@ class RegisterController extends Controller
         ]);
 
         try {
+            // Verificar se já existe um usuário principal
+            $usuarioPrincipalExistente = Usuario::where('principal', true)->first();
+
             // Criar usuário
             $usuario = Usuario::create([
                 'id' => Str::uuid()->toString(),
@@ -36,23 +41,29 @@ class RegisterController extends Controller
                 'email' => $request->email,
                 'senha' => Hash::make($request->senha),
                 'status' => UsuarioStatusEnum::ATIVO,
+                'principal' => !$usuarioPrincipalExistente, // Primeiro usuário é principal
                 'criado_em' => now(),
                 'atualizado_em' => now(),
             ]);
 
-            // Criar empresa
-            $whitelabel = Whitelabel::first(); // Usar o whitelabel principal
-            $empresa = Empresa::create([
-                'id' => Str::uuid()->toString(),
-                'whitelabel_id' => $whitelabel->id,
-                'nome_fantasia' => $request->empresa_nome,
-                'razao_social' => $request->empresa_nome,
-                'tipo' => 'PJ',
-                'status' => EmpresaStatusEnum::ATIVA,
-                'principal' => 1,
-                'criado_em' => now(),
-                'atualizado_em' => now(),
-            ]);
+            // Usar a empresa principal existente ou criar uma nova se não existir
+            $empresa = Empresa::where('principal', 1)->first();
+
+            if (!$empresa) {
+                // Se não há empresa principal, criar uma
+                $whitelabel = Whitelabel::first();
+                $empresa = Empresa::create([
+                    'id' => Str::uuid()->toString(),
+                    'whitelabel_id' => $whitelabel->id,
+                    'nome_fantasia' => $request->empresa_nome,
+                    'razao_social' => $request->empresa_nome,
+                    'tipo' => 'PJ',
+                    'status' => EmpresaStatusEnum::ATIVA,
+                    'principal' => 1,
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ]);
+            }
 
             // Vincular usuário à empresa
             $usuario->empresas()->attach($empresa->id, [
@@ -72,6 +83,29 @@ class RegisterController extends Controller
                 'criado_em' => now(),
                 'atualizado_em' => now(),
             ]);
+
+            // Criar grupo Administrativo para a empresa
+            $grupoAdmin = Grupo::create([
+                'id' => Str::uuid()->toString(),
+                'empresa_id' => $empresa->id,
+                'nome' => 'Administrativo',
+                'descricao' => 'Grupo com acesso total ao sistema',
+                'administrativo' => true,
+                'ativo' => true,
+                'criado_em' => now(),
+                'atualizado_em' => now(),
+            ]);
+
+            // Vincular todas as permissões ao grupo administrativo
+            $todasPermissoes = Permissao::ativas()->get();
+            $grupoAdmin->permissoes()->sync(
+                $todasPermissoes->mapWithKeys(function ($permissao) {
+                    return [$permissao->id => ['concedida' => true]];
+                })
+            );
+
+            // Vincular usuário ao grupo administrativo
+            $usuario->grupos()->sync([$grupoAdmin->id]);
 
             return response()->json([
                 'success' => true,
