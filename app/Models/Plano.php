@@ -70,4 +70,17 @@ class Plano extends Model
     {
         return $query->where('tipo', $tipo);
     }
+
+    public function scopeOrdenados($query)
+    {
+        return $query->orderByRaw("
+            CASE tipo
+                WHEN 'base' THEN 1
+                WHEN 'premium' THEN 2
+                WHEN 'master' THEN 3
+                WHEN 'personalizado' THEN 4
+                ELSE 5
+            END
+        ");
+    }
 }

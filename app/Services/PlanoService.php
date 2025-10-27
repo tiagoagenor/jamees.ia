@@ -123,13 +123,12 @@ class PlanoService
     /**
      * Obtém histórico de planos de uma empresa
      */
-    public function obterHistoricoPlanos(Empresa $empresa): array
+    public function obterHistoricoPlanos(Empresa $empresa)
     {
         return $empresa->planos()
             ->with('plano')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->toArray();
+            ->get();
     }
 
     /**

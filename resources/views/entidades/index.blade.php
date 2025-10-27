@@ -61,39 +61,170 @@
     </div>
 
     <!-- Filtros -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <form method="GET" class="flex flex-wrap gap-4 items-end">
-            <input type="hidden" name="tipo" value="{{ $tipo }}">
-
-            <div class="flex-1 min-w-64">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                <input type="text" id="search" name="search" value="{{ request('search') }}"
-                       placeholder="Nome, documento, email..."
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-filter text-blue-600 mr-2"></i>
+                    Filtros
+                </h3>
+                <div class="text-sm text-gray-600">
+                    <span class="font-medium">{{ $entidades->total() }}</span> {{ $tipo }}(s) encontrado(s)
+                    @if($filtroNome)
+                        <span class="text-blue-600">para "{{ $filtroNome }}"</span>
+                    @endif
+                    @if($entidades->total() > 0)
+                        <span class="text-gray-500">(página {{ $entidades->currentPage() }} de {{ $entidades->lastPage() }})</span>
+                    @endif
+                </div>
             </div>
 
-            <div class="min-w-32">
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select id="status" name="status" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                    <option value="">Todos</option>
-                    <option value="ativo" {{ request('status') == 'ativo' ? 'selected' : '' }}>Ativo</option>
-                    <option value="inativo" {{ request('status') == 'inativo' ? 'selected' : '' }}>Inativo</option>
-                </select>
-            </div>
+            <form method="GET" action="{{ route($routeName . '.index') }}" class="space-y-4">
+                <!-- Filtros Principais -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- Filtro por Nome -->
+                    <div class="space-y-2">
+                        <label for="nome" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-search text-gray-400 mr-1"></i>
+                            Nome/Razão Social
+                        </label>
+                        <input type="text"
+                               name="nome"
+                               id="nome"
+                               value="{{ $filtroNome }}"
+                               placeholder="Digite o nome ou razão social..."
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
 
-            <div class="flex space-x-2">
-                <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    <i class="fas fa-search mr-2"></i>Filtrar
-                </button>
-                <a href="{{ route($routeName . '.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
-                    <i class="fas fa-times mr-2"></i>Limpar
-                </a>
-            </div>
-        </form>
+                    <!-- Filtro por Documento -->
+                    <div class="space-y-2">
+                        <label for="documento" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-id-card text-gray-400 mr-1"></i>
+                            Documento
+                        </label>
+                        <input type="text"
+                               name="documento"
+                               id="documento"
+                               value="{{ $filtroDocumento }}"
+                               placeholder="Digite o documento..."
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Filtro por Email -->
+                    <div class="space-y-2">
+                        <label for="email" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-envelope text-gray-400 mr-1"></i>
+                            Email
+                        </label>
+                        <input type="text"
+                               name="email"
+                               id="email"
+                               value="{{ $filtroEmail }}"
+                               placeholder="Digite o email..."
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Filtro por Status -->
+                    <div class="space-y-2">
+                        <label for="status" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-toggle-on text-gray-400 mr-1"></i>
+                            Status
+                        </label>
+                        <select name="status" id="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="todos" {{ $filtroStatus === 'todos' ? 'selected' : '' }}>Todos os status</option>
+                            <option value="ativos" {{ $filtroStatus === 'ativos' ? 'selected' : '' }}>Apenas ativos</option>
+                            <option value="inativos" {{ $filtroStatus === 'inativos' ? 'selected' : '' }}>Apenas inativos</option>
+                        </select>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-cogs text-gray-400 mr-1"></i>
+                            Ações
+                        </label>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-search mr-2"></i>
+                                Filtrar
+                            </button>
+                            <a href="{{ route($routeName . '.index') }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-center">
+                                <i class="fas fa-times mr-2"></i>
+                                Limpar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros Ativos -->
+                @if($filtroNome || $filtroDocumento || $filtroEmail || $filtroStatus !== 'todos')
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-gray-700">Filtros ativos:</span>
+                            @if($filtroNome)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-search mr-1"></i>
+                                    Nome: "{{ $filtroNome }}"
+                                    <button type="button" onclick="limparFiltroNome()" class="ml-1 text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                            @if($filtroDocumento)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <i class="fas fa-id-card mr-1"></i>
+                                    Documento: "{{ $filtroDocumento }}"
+                                    <button type="button" onclick="limparFiltroDocumento()" class="ml-1 text-purple-600 hover:text-purple-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                            @if($filtroEmail)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-envelope mr-1"></i>
+                                    Email: "{{ $filtroEmail }}"
+                                    <button type="button" onclick="limparFiltroEmail()" class="ml-1 text-green-600 hover:text-green-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                            @if($filtroStatus !== 'todos')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                    <i class="fas fa-toggle-on mr-1"></i>
+                                    Status: {{ ucfirst($filtroStatus) }}
+                                    <button type="button" onclick="limparFiltroStatus()" class="ml-1 text-orange-600 hover:text-orange-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </form>
+        </div>
     </div>
 
     <!-- Lista de Entidades -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">
+                @switch($tipo)
+                    @case('cliente')
+                        Clientes
+                        @break
+                    @case('fornecedor')
+                        Fornecedores
+                        @break
+                    @case('funcionario')
+                        Funcionários
+                        @break
+                    @case('transportadora')
+                        Transportadoras
+                        @break
+                @endswitch
+            </h3>
+        </div>
+
         @if($entidades->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -141,20 +272,16 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <a href="{{ route($routeName . '.show', $entidade) }}" class="text-indigo-600 hover:text-indigo-900">
+                                        <a href="{{ route($routeName . '.show', $entidade) }}" class="text-blue-600 hover:text-blue-900">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route($routeName . '.edit', $entidade) }}" class="text-yellow-600 hover:text-yellow-900">
+                                        <a href="{{ route($routeName . '.edit', $entidade) }}" class="text-indigo-600 hover:text-indigo-900">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form method="POST" action="{{ route($routeName . '.toggle-status', $entidade) }}" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="text-{{ $entidade->isAtivo() ? 'red' : 'green' }}-600 hover:text-{{ $entidade->isAtivo() ? 'red' : 'green' }}-900">
-                                                <i class="fas fa-{{ $entidade->isAtivo() ? 'ban' : 'check' }}"></i>
-                                            </button>
-                                        </form>
-                                        <button type="button" onclick="confirmarExclusao('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', '{{ $routeName }}')" class="text-red-600 hover:text-red-900">
+                                        <button onclick="toggleStatus('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', {{ $entidade->status ? 'true' : 'false' }}, '{{ $routeName }}')" class="text-yellow-600 hover:text-yellow-900">
+                                            <i class="fas fa-{{ $entidade->isAtivo() ? 'ban' : 'check' }}"></i>
+                                        </button>
+                                        <button onclick="confirmarExclusao('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', '{{ $routeName }}')" class="text-red-600 hover:text-red-900">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -166,29 +293,129 @@
             </div>
 
             <!-- Paginação -->
-            <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                {{ $entidades->appends(request()->query())->links() }}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Mostrando {{ $entidades->firstItem() }} até {{ $entidades->lastItem() }} de {{ $entidades->total() }} resultados
+                    </div>
+                    <div class="flex space-x-1">
+                        {{-- Previous Page Link --}}
+                        @if ($entidades->onFirstPage())
+                            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        @else
+                            <a href="{{ $entidades->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        {{-- Pagination Elements --}}
+                        @foreach ($entidades->getUrlRange(1, $entidades->lastPage()) as $page => $url)
+                            @if ($page == $entidades->currentPage())
+                                <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
+                            @else
+                                <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                            @endif
+                        @endforeach
+
+                        {{-- Next Page Link --}}
+                        @if ($entidades->hasMorePages())
+                            <a href="{{ $entidades->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        @else
+                            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
             </div>
         @else
-            <div class="text-center py-12">
+            <div class="p-12 text-center">
                 <i class="fas fa-inbox text-gray-400 text-6xl mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} encontrado</h3>
-                <p class="text-gray-500 mb-6">Comece criando seu primeiro {{ $tipo }}.</p>
-                <a href="{{ route($routeName . '.create') }}"
-                   class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    <i class="fas fa-plus mr-2"></i>Novo {{ ucfirst($tipo) }}
-                </a>
+                @if($filtroNome)
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} encontrado</h3>
+                    <p class="text-gray-600 mb-6">
+                        Não foram encontrados {{ $tipo }}s com o nome "{{ $filtroNome }}".
+                        @if($filtroDocumento)
+                            Tente buscar apenas por documento.
+                        @endif
+                        @if($filtroEmail)
+                            Tente buscar apenas por email.
+                        @endif
+                        @if($filtroStatus !== 'todos')
+                            @if($filtroStatus === 'ativos')
+                                Tente buscar apenas por {{ $tipo }}s ativos.
+                            @else
+                                Tente buscar apenas por {{ $tipo }}s inativos.
+                            @endif
+                        @endif
+                    </p>
+                @elseif($filtroDocumento)
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} encontrado</h3>
+                    <p class="text-gray-600 mb-6">Não foram encontrados {{ $tipo }}s com o documento "{{ $filtroDocumento }}".</p>
+                @elseif($filtroEmail)
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} encontrado</h3>
+                    <p class="text-gray-600 mb-6">Não foram encontrados {{ $tipo }}s com o email "{{ $filtroEmail }}".</p>
+                @elseif($filtroStatus === 'ativos')
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} ativo encontrado</h3>
+                    <p class="text-gray-600 mb-6">Não há {{ $tipo }}s ativos no momento.</p>
+                @elseif($filtroStatus === 'inativos')
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} inativo encontrado</h3>
+                    <p class="text-gray-600 mb-6">Não há {{ $tipo }}s inativos no momento.</p>
+                @else
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum {{ $tipo }} encontrado</h3>
+                    <p class="text-gray-600 mb-6">Comece criando seu primeiro {{ $tipo }}.</p>
+                @endif
+                <div class="flex justify-center space-x-3">
+                    <a href="{{ route($routeName . '.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-plus mr-2"></i>
+                        Novo {{ ucfirst($tipo) }}
+                    </a>
+                    @if($filtroNome || $filtroDocumento || $filtroEmail || $filtroStatus !== 'todos')
+                        <a href="{{ route($routeName . '.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-times mr-2"></i>
+                            Limpar Filtros
+                        </a>
+                    @endif
+                </div>
             </div>
         @endif
     </div>
 </div>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-// Função para confirmar exclusão com SweetAlert2
+// Exibir mensagens de sessão
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: '{{ session('success') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+@if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro!',
+        text: '{{ session('error') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+// Confirmar exclusão
 function confirmarExclusao(entidadeId, nomeEntidade, routeName) {
     Swal.fire({
-        title: 'Tem certeza?',
-        text: `Deseja realmente excluir "${nomeEntidade}"?`,
+        title: 'Confirmar Exclusão',
+        text: `Tem certeza que deseja excluir "${nomeEntidade}"?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -198,49 +425,91 @@ function confirmarExclusao(entidadeId, nomeEntidade, routeName) {
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
-            // Criar formulário dinâmico para exclusão
+            // Criar formulário para exclusão
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `/${routeName}/${entidadeId}`;
 
-            // Adicionar token CSRF
             const csrfToken = document.createElement('input');
             csrfToken.type = 'hidden';
             csrfToken.name = '_token';
             csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
 
-            // Adicionar método DELETE
             const methodField = document.createElement('input');
             methodField.type = 'hidden';
             methodField.name = '_method';
             methodField.value = 'DELETE';
-            form.appendChild(methodField);
 
-            // Adicionar ao DOM e submeter
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
             document.body.appendChild(form);
             form.submit();
         }
     });
 }
 
-// Função para mostrar mensagens de sucesso/erro
-@if(session('success'))
-    Swal.fire({
-        title: 'Sucesso!',
-        text: '{{ session('success') }}',
-        icon: 'success',
-        confirmButtonText: 'OK'
-    });
-@endif
+// Toggle status
+function toggleStatus(entidadeId, nomeEntidade, statusAtual, routeName) {
+    const action = statusAtual ? 'inativar' : 'ativar';
+    const icon = statusAtual ? 'warning' : 'success';
+    const confirmColor = statusAtual ? '#d33' : '#28a745';
 
-@if(session('error'))
     Swal.fire({
-        title: 'Erro!',
-        text: '{{ session('error') }}',
-        icon: 'error',
-        confirmButtonText: 'OK'
+        title: `Confirmar ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+        text: `Tem certeza que deseja ${action} "${nomeEntidade}"?`,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonColor: confirmColor,
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: `Sim, ${action}!`,
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/${routeName}/${entidadeId}/toggle-status`;
+
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'PATCH';
+
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
+        }
     });
-@endif
+}
+
+// Limpar filtro de nome
+function limparFiltroNome() {
+    document.getElementById('nome').value = '';
+    document.querySelector('form').submit();
+}
+
+// Limpar filtro de documento
+function limparFiltroDocumento() {
+    document.getElementById('documento').value = '';
+    document.querySelector('form').submit();
+}
+
+// Limpar filtro de email
+function limparFiltroEmail() {
+    document.getElementById('email').value = '';
+    document.querySelector('form').submit();
+}
+
+// Limpar filtro de status
+function limparFiltroStatus() {
+    document.getElementById('status').value = 'todos';
+    document.querySelector('form').submit();
+}
 </script>
 @endsection

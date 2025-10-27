@@ -13,12 +13,31 @@ class GrupoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $grupos = Grupo::daEmpresaPrincipal()
-            ->with('permissoes')
-            ->paginate(15);
-        return view('grupos.index', compact('grupos'));
+        $query = Grupo::daEmpresaPrincipal()->with('permissoes');
+
+        // Filtro por nome
+        $filtroNome = $request->get('nome');
+        if ($filtroNome) {
+            $query->where('nome', 'like', "%{$filtroNome}%");
+        }
+
+        // Filtro por tipo
+        $filtroTipo = $request->get('tipo', 'todos');
+        if ($filtroTipo !== 'todos') {
+            $query->where('administrativo', $filtroTipo === 'administrativo');
+        }
+
+        // Filtro por status
+        $filtroStatus = $request->get('status', 'todos');
+        if ($filtroStatus !== 'todos') {
+            $query->where('ativo', $filtroStatus === 'ativos');
+        }
+
+        $grupos = $query->paginate(15);
+
+        return view('grupos.index', compact('grupos', 'filtroNome', 'filtroTipo', 'filtroStatus'));
     }
 
     /**

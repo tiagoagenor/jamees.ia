@@ -49,6 +49,55 @@ class PermissaoSeeder extends Seeder
 
             // Módulo: Trocar Empresa (funcionalidade existente)
             ['modulo' => 'empresa', 'acao' => 'trocar', 'nome' => 'Trocar empresa', 'descricao' => 'Alterar empresa ativa na sessão'],
+
+            // Módulo: Entidades (clientes, fornecedores, funcionários, transportadoras)
+            ['modulo' => 'entidades', 'acao' => 'listar', 'nome' => 'Listar entidades', 'descricao' => 'Visualizar lista de entidades (clientes, fornecedores, funcionários, transportadoras)'],
+            ['modulo' => 'entidades', 'acao' => 'criar', 'nome' => 'Criar entidade', 'descricao' => 'Adicionar novas entidades'],
+            ['modulo' => 'entidades', 'acao' => 'editar', 'nome' => 'Editar entidade', 'descricao' => 'Modificar dados de entidades'],
+            ['modulo' => 'entidades', 'acao' => 'visualizar', 'nome' => 'Visualizar entidade', 'descricao' => 'Ver detalhes de entidades'],
+            ['modulo' => 'entidades', 'acao' => 'deletar', 'nome' => 'Deletar entidade', 'descricao' => 'Remover entidades do sistema'],
+
+            // Módulo: DRE (Demonstrativo de Resultado do Exercício)
+            ['modulo' => 'dre', 'acao' => 'listar', 'nome' => 'Listar DRE', 'descricao' => 'Visualizar lista de itens DRE'],
+            ['modulo' => 'dre', 'acao' => 'criar', 'nome' => 'Criar DRE', 'descricao' => 'Adicionar novos itens DRE'],
+            ['modulo' => 'dre', 'acao' => 'editar', 'nome' => 'Editar DRE', 'descricao' => 'Modificar dados de itens DRE'],
+            ['modulo' => 'dre', 'acao' => 'visualizar', 'nome' => 'Visualizar DRE', 'descricao' => 'Ver detalhes de itens DRE'],
+            ['modulo' => 'dre', 'acao' => 'deletar', 'nome' => 'Deletar DRE', 'descricao' => 'Remover itens DRE do sistema'],
+
+            // Módulo: Contas Bancárias
+            ['modulo' => 'contas-bancarias', 'acao' => 'listar', 'nome' => 'Listar contas bancárias', 'descricao' => 'Visualizar lista de contas bancárias'],
+            ['modulo' => 'contas-bancarias', 'acao' => 'criar', 'nome' => 'Criar conta bancária', 'descricao' => 'Adicionar novas contas bancárias'],
+            ['modulo' => 'contas-bancarias', 'acao' => 'editar', 'nome' => 'Editar conta bancária', 'descricao' => 'Modificar dados de contas bancárias'],
+            ['modulo' => 'contas-bancarias', 'acao' => 'visualizar', 'nome' => 'Visualizar conta bancária', 'descricao' => 'Ver detalhes de contas bancárias'],
+            ['modulo' => 'contas-bancarias', 'acao' => 'deletar', 'nome' => 'Deletar conta bancária', 'descricao' => 'Remover contas bancárias do sistema'],
+
+            // Módulo: Formas de Pagamento
+            ['modulo' => 'formas-pagamento', 'acao' => 'listar', 'nome' => 'Listar formas de pagamento', 'descricao' => 'Visualizar lista de formas de pagamento'],
+            ['modulo' => 'formas-pagamento', 'acao' => 'criar', 'nome' => 'Criar forma de pagamento', 'descricao' => 'Adicionar novas formas de pagamento'],
+            ['modulo' => 'formas-pagamento', 'acao' => 'editar', 'nome' => 'Editar forma de pagamento', 'descricao' => 'Modificar dados de formas de pagamento'],
+            ['modulo' => 'formas-pagamento', 'acao' => 'visualizar', 'nome' => 'Visualizar forma de pagamento', 'descricao' => 'Ver detalhes de formas de pagamento'],
+            ['modulo' => 'formas-pagamento', 'acao' => 'deletar', 'nome' => 'Deletar forma de pagamento', 'descricao' => 'Remover formas de pagamento do sistema'],
+
+            // Módulo: Plano de Conta
+            ['modulo' => 'plano-conta', 'acao' => 'listar', 'nome' => 'Listar plano de contas', 'descricao' => 'Visualizar lista de plano de contas'],
+            ['modulo' => 'plano-conta', 'acao' => 'criar', 'nome' => 'Criar plano de conta', 'descricao' => 'Adicionar novos plano de contas'],
+            ['modulo' => 'plano-conta', 'acao' => 'editar', 'nome' => 'Editar plano de conta', 'descricao' => 'Modificar dados de plano de contas'],
+            ['modulo' => 'plano-conta', 'acao' => 'visualizar', 'nome' => 'Visualizar plano de conta', 'descricao' => 'Ver detalhes de plano de contas'],
+            ['modulo' => 'plano-conta', 'acao' => 'deletar', 'nome' => 'Deletar plano de conta', 'descricao' => 'Remover plano de contas do sistema'],
+
+            // Módulo: Central de Custo
+            ['modulo' => 'central-custo', 'acao' => 'listar', 'nome' => 'Listar centros de custo', 'descricao' => 'Visualizar lista de centros de custo'],
+            ['modulo' => 'central-custo', 'acao' => 'criar', 'nome' => 'Criar centro de custo', 'descricao' => 'Adicionar novos centros de custo'],
+            ['modulo' => 'central-custo', 'acao' => 'editar', 'nome' => 'Editar centro de custo', 'descricao' => 'Modificar dados de centros de custo'],
+            ['modulo' => 'central-custo', 'acao' => 'visualizar', 'nome' => 'Visualizar centro de custo', 'descricao' => 'Ver detalhes de centros de custo'],
+            ['modulo' => 'central-custo', 'acao' => 'deletar', 'nome' => 'Deletar centro de custo', 'descricao' => 'Remover centros de custo do sistema'],
+
+            // Módulo: Movimentação Financeira
+            ['modulo' => 'movimentacao', 'acao' => 'listar', 'nome' => 'Listar movimentações', 'descricao' => 'Visualizar lista de movimentações financeiras'],
+            ['modulo' => 'movimentacao', 'acao' => 'criar', 'nome' => 'Criar movimentação', 'descricao' => 'Adicionar novas movimentações financeiras'],
+            ['modulo' => 'movimentacao', 'acao' => 'editar', 'nome' => 'Editar movimentação', 'descricao' => 'Modificar dados de movimentações financeiras'],
+            ['modulo' => 'movimentacao', 'acao' => 'visualizar', 'nome' => 'Visualizar movimentação', 'descricao' => 'Ver detalhes de movimentações financeiras'],
+            ['modulo' => 'movimentacao', 'acao' => 'deletar', 'nome' => 'Deletar movimentação', 'descricao' => 'Remover movimentações financeiras do sistema'],
         ];
 
         foreach ($permissoes as $permissao) {

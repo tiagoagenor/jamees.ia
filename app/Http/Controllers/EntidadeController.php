@@ -50,6 +50,11 @@ class EntidadeController extends Controller
      */
     private function indexByType(Request $request, EntidadeTipoEnum $tipoEnum, string $tipo)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'listar')) {
+            abort(403, 'Você não tem permissão para listar entidades.');
+        }
+
         $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
 
         if (!$empresaPrincipal) {
@@ -61,24 +66,33 @@ class EntidadeController extends Controller
             ->with(['contatos', 'enderecos']);
 
         // Filtros
-        if ($request->filled('search')) {
-            $search = $request->get('search');
-            $query->where(function($q) use ($search) {
-                $q->where('nome', 'like', "%{$search}%")
-                  ->orWhere('nome_fantasia', 'like', "%{$search}%")
-                  ->orWhere('razao_social', 'like', "%{$search}%")
-                  ->orWhere('documento', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+        $filtroNome = $request->get('nome');
+        if ($filtroNome) {
+            $query->where(function($q) use ($filtroNome) {
+                $q->where('nome', 'like', "%{$filtroNome}%")
+                  ->orWhere('nome_fantasia', 'like', "%{$filtroNome}%")
+                  ->orWhere('razao_social', 'like', "%{$filtroNome}%");
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->get('status') == 'ativo');
+        $filtroDocumento = $request->get('documento');
+        if ($filtroDocumento) {
+            $query->where('documento', 'like', "%{$filtroDocumento}%");
+        }
+
+        $filtroEmail = $request->get('email');
+        if ($filtroEmail) {
+            $query->where('email', 'like', "%{$filtroEmail}%");
+        }
+
+        $filtroStatus = $request->get('status', 'todos');
+        if ($filtroStatus !== 'todos') {
+            $query->where('status', $filtroStatus === 'ativos');
         }
 
         $entidades = $query->orderBy('nome', 'asc')->paginate(15);
 
-        return view('entidades.index', compact('entidades', 'tipo'));
+        return view('entidades.index', compact('entidades', 'tipo', 'filtroNome', 'filtroDocumento', 'filtroEmail', 'filtroStatus'));
     }
 
     /**
@@ -86,6 +100,11 @@ class EntidadeController extends Controller
      */
     public function createCliente()
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         $tipo = 'cliente';
         $tipoEnum = EntidadeTipoEnum::CLIENTE;
 
@@ -97,6 +116,11 @@ class EntidadeController extends Controller
      */
     public function createFornecedor()
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         $tipo = 'fornecedor';
         $tipoEnum = EntidadeTipoEnum::FORNECEDOR;
 
@@ -108,6 +132,11 @@ class EntidadeController extends Controller
      */
     public function createFuncionario()
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         $tipo = 'funcionario';
         $tipoEnum = EntidadeTipoEnum::FUNCIONARIO;
 
@@ -119,6 +148,11 @@ class EntidadeController extends Controller
      */
     public function createTransportadora()
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         $tipo = 'transportadora';
         $tipoEnum = EntidadeTipoEnum::TRANSPORTADORA;
 
@@ -130,6 +164,11 @@ class EntidadeController extends Controller
      */
     public function storeCliente(Request $request)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         return $this->storeByType($request, EntidadeTipoEnum::CLIENTE, 'cliente');
     }
 
@@ -138,6 +177,11 @@ class EntidadeController extends Controller
      */
     public function storeFornecedor(Request $request)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         return $this->storeByType($request, EntidadeTipoEnum::FORNECEDOR, 'fornecedor');
     }
 
@@ -146,6 +190,11 @@ class EntidadeController extends Controller
      */
     public function storeFuncionario(Request $request)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         return $this->storeByType($request, EntidadeTipoEnum::FUNCIONARIO, 'funcionario');
     }
 
@@ -154,6 +203,11 @@ class EntidadeController extends Controller
      */
     public function storeTransportadora(Request $request)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'criar')) {
+            abort(403, 'Você não tem permissão para criar entidades.');
+        }
+
         return $this->storeByType($request, EntidadeTipoEnum::TRANSPORTADORA, 'transportadora');
     }
 
@@ -257,6 +311,11 @@ class EntidadeController extends Controller
      */
     public function show(Entidade $entidade)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar entidades.');
+        }
+
         $entidade->load(['contatos', 'enderecos', 'empresa']);
 
         return view('entidades.show', compact('entidade'));
@@ -267,6 +326,11 @@ class EntidadeController extends Controller
      */
     public function edit(Entidade $entidade)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'editar')) {
+            abort(403, 'Você não tem permissão para editar entidades.');
+        }
+
         $entidade->load(['contatos', 'enderecos']);
         $tipo = strtolower($entidade->tipo_relacionamento->name);
 
@@ -278,6 +342,10 @@ class EntidadeController extends Controller
      */
     public function update(Request $request, Entidade $entidade)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'editar')) {
+            abort(403, 'Você não tem permissão para editar entidades.');
+        }
 
         $request->validate([
             'nome' => 'required|string|max:255',
@@ -349,6 +417,11 @@ class EntidadeController extends Controller
      */
     public function destroy(Entidade $entidade)
     {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('entidades', 'deletar')) {
+            abort(403, 'Você não tem permissão para deletar entidades.');
+        }
+
         $tipo = strtolower($entidade->tipo_relacionamento->name);
         $entidade->delete();
 

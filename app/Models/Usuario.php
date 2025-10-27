@@ -76,6 +76,26 @@ class Usuario extends Model implements Authenticatable
                     ->withPivot('principal', 'status', 'criado_em', 'atualizado_em');
     }
 
+    /**
+     * Obter a empresa principal do usuário
+     */
+    public function empresaPrincipal()
+    {
+        return $this->empresas()->wherePivot('principal', 1)->first();
+    }
+
+    /**
+     * Obter a empresa atual do usuário (sessão)
+     */
+    public function empresaAtual()
+    {
+        $empresaId = session('empresa_atual_id');
+        if ($empresaId) {
+            return $this->empresas()->where('empresa.id', $empresaId)->first();
+        }
+        return $this->empresaPrincipal();
+    }
+
     public function ultimosAcessos(): HasMany
     {
         return $this->hasMany(UltimaAcesso::class, 'usuario_id');

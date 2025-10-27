@@ -15,6 +15,8 @@ use App\Models\Permissao;
 use App\Models\Plano;
 use App\Services\PlanoService;
 use App\Services\Dre\CriarDreService;
+use App\Services\FormaPagamento\CriarFormasPagamentoService;
+use App\Services\PlanoConta\CriarPlanoContaService;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
@@ -120,6 +122,14 @@ class RegisterController extends Controller
         // Criar estrutura DRE padrão para a empresa
         $dreService = new CriarDreService();
         $dreService->criar($empresa->id);
+
+        // Criar formas de pagamento padrão para a empresa
+        $formasPagamentoService = new CriarFormasPagamentoService();
+        $formasPagamentoService->criar($empresa->id);
+
+        // Criar plano de contas padrão para a empresa
+        $planoContaService = new CriarPlanoContaService();
+        $planoContaService->criar($empresa->id);
 
         // Fazer login do usuário
         Auth::login($usuario);

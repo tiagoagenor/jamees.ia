@@ -20,12 +20,12 @@
         <!-- Sidebar -->
         <div class="w-64 bg-gray-800 text-white flex flex-col">
             <!-- Logo -->
-            <div class="p-4 border-b border-gray-700 text-center">
+            <div class="px-6 py-4 border-b border-gray-700 text-center">
                 <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: white;">JAMEES</span>
             </div>
 
             <!-- Menu -->
-            <nav class="flex-1 p-4">
+            <nav class="flex-1 px-6 py-4 overflow-y-auto">
                 <ul class="space-y-1">
                     <!-- Início -->
                     <li>
@@ -83,7 +83,7 @@
                         </div>
                         <ul id="financeiro-submenu" class="ml-6 mt-1 space-y-1 hidden">
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('dashboard.financeiro') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('dashboard.financeiro') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-chart-line mr-3"></i>
                                     Dashboard
                                 </a>
@@ -91,20 +91,55 @@
                             <li>
                                 <a href="{{ route('dre.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('dre.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-chart-pie mr-3"></i>
-                                    DRE
+                                    Gerenciar DRE
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('contas-a-pagar.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('contas-a-pagar.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-credit-card mr-3"></i>
                                     Contas a Pagar
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('contas-a-receber.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('contas-a-receber.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-money-bill-wave mr-3"></i>
                                     Contas a Receber
                                 </a>
+                            </li>
+                            <li>
+                                <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer" onclick="toggleSubmenu('opcoes-auxiliares')">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-cogs mr-3"></i>
+                                        Opções auxiliares
+                                    </div>
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="opcoes-auxiliares-arrow"></i>
+                                </div>
+                                <ul id="opcoes-auxiliares-submenu" class="ml-6 mt-1 space-y-1 hidden">
+                                    <li>
+                                        <a href="{{ route('conta-empresa.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('conta-empresa.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                            <i class="fas fa-university mr-3"></i>
+                                            Contas bancárias
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('forma-pagamento.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('forma-pagamento.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                            <i class="fas fa-credit-card mr-3"></i>
+                                            Formas de pagamento
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('plano-conta.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('plano-conta.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                            <i class="fas fa-list-alt mr-3"></i>
+                                            Plano de conta
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('centro-custo.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('centro-custo.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                            <i class="fas fa-building mr-3"></i>
+                                            Centro de custo
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
                     </li>
@@ -167,7 +202,7 @@
             </nav>
 
             <!-- Company Selector -->
-            <div class="p-4 border-t border-gray-700">
+            <div class="px-6 py-4 border-t border-gray-700">
                 <div class="relative">
                     <button id="company-selector" class="w-full flex items-center justify-between px-3 py-2 bg-gray-700 rounded-md text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <div class="flex items-center">
@@ -196,7 +231,7 @@
             </div>
 
             <!-- Logout Button -->
-            <div class="p-4 border-t border-gray-700">
+            <div class="px-6 py-4 border-t border-gray-700">
                 <a href="{{ route('logout') }}"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                    class="w-full flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200">
@@ -377,10 +412,47 @@
             const arrow = document.getElementById(menuId + '-arrow');
 
             if (submenu && arrow) {
-                submenu.classList.toggle('hidden');
-                arrow.classList.toggle('rotate-180');
+                const isHidden = submenu.classList.contains('hidden');
+
+                if (isHidden) {
+                    submenu.classList.remove('hidden');
+                    arrow.classList.add('rotate-180');
+                    // Save state to localStorage
+                    localStorage.setItem('menu_' + menuId + '_open', 'true');
+                } else {
+                    submenu.classList.add('hidden');
+                    arrow.classList.remove('rotate-180');
+                    // Save state to localStorage
+                    localStorage.setItem('menu_' + menuId + '_open', 'false');
+                }
             }
         }
+
+        // Initialize menu state - always start with menus closed
+        function initializeMenuState() {
+            // All available menu sections
+            const allMenus = ['cadastro', 'financeiro', 'opcoes-auxiliares', 'configuracoes'];
+
+            // Initialize all menus - always start closed
+            allMenus.forEach(menuId => {
+                const submenu = document.getElementById(menuId + '-submenu');
+                const arrow = document.getElementById(menuId + '-arrow');
+
+                if (submenu && arrow) {
+                    // Always start with menus closed
+                    submenu.classList.add('hidden');
+                    arrow.classList.remove('rotate-180');
+
+                    // Clear any saved state to ensure clean start
+                    localStorage.removeItem('menu_' + menuId + '_open');
+                }
+            });
+        }
+
+        // Initialize menu state when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMenuState();
+        });
 
         // Company selector modal
         document.addEventListener('DOMContentLoaded', function() {
@@ -584,6 +656,8 @@
         });
 
     </script>
+
+    @stack('scripts')
 </body>
 </html>
 

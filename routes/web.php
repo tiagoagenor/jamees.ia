@@ -143,6 +143,76 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::put('/dre/{dre}', [App\Http\Controllers\DreController::class, 'update'])->name('dre.update');
     Route::delete('/dre/{dre}', [App\Http\Controllers\DreController::class, 'destroy'])->name('dre.destroy');
     Route::patch('/dre/{dre}/toggle-status', [App\Http\Controllers\DreController::class, 'toggleStatus'])->name('dre.toggle-status');
+
+    // Rotas de Contas Bancárias
+    Route::get('/contas-bancarias', [App\Http\Controllers\ContaEmpresaController::class, 'index'])->name('conta-empresa.index');
+    Route::get('/contas-bancarias/create', [App\Http\Controllers\ContaEmpresaController::class, 'create'])->name('conta-empresa.create');
+    Route::post('/contas-bancarias', [App\Http\Controllers\ContaEmpresaController::class, 'store'])->name('conta-empresa.store');
+    Route::get('/contas-bancarias/{contaEmpresa}', [App\Http\Controllers\ContaEmpresaController::class, 'show'])->name('conta-empresa.show');
+    Route::get('/contas-bancarias/{contaEmpresa}/edit', [App\Http\Controllers\ContaEmpresaController::class, 'edit'])->name('conta-empresa.edit');
+    Route::put('/contas-bancarias/{contaEmpresa}', [App\Http\Controllers\ContaEmpresaController::class, 'update'])->name('conta-empresa.update');
+    Route::delete('/contas-bancarias/{contaEmpresa}', [App\Http\Controllers\ContaEmpresaController::class, 'destroy'])->name('conta-empresa.destroy');
+    Route::patch('/contas-bancarias/{contaEmpresa}/toggle-status', [App\Http\Controllers\ContaEmpresaController::class, 'toggleStatus'])->name('conta-empresa.toggle-status');
+
+    // Rotas de Formas de Pagamento
+    Route::get('/formas-pagamento', [App\Http\Controllers\FormaPagamentoController::class, 'index'])->name('forma-pagamento.index')->middleware('permission:formas-pagamento,listar');
+    Route::get('/formas-pagamento/create', [App\Http\Controllers\FormaPagamentoController::class, 'create'])->name('forma-pagamento.create')->middleware('permission:formas-pagamento,criar');
+    Route::post('/formas-pagamento', [App\Http\Controllers\FormaPagamentoController::class, 'store'])->name('forma-pagamento.store')->middleware('permission:formas-pagamento,criar');
+    Route::get('/formas-pagamento/{formaPagamento}', [App\Http\Controllers\FormaPagamentoController::class, 'show'])->name('forma-pagamento.show')->middleware('permission:formas-pagamento,visualizar');
+    Route::get('/formas-pagamento/{formaPagamento}/edit', [App\Http\Controllers\FormaPagamentoController::class, 'edit'])->name('forma-pagamento.edit')->middleware('permission:formas-pagamento,editar');
+    Route::put('/formas-pagamento/{formaPagamento}', [App\Http\Controllers\FormaPagamentoController::class, 'update'])->name('forma-pagamento.update')->middleware('permission:formas-pagamento,editar');
+    Route::delete('/formas-pagamento/{formaPagamento}', [App\Http\Controllers\FormaPagamentoController::class, 'destroy'])->name('forma-pagamento.destroy')->middleware('permission:formas-pagamento,deletar');
+    Route::patch('/formas-pagamento/{formaPagamento}/toggle-disponibilidade', [App\Http\Controllers\FormaPagamentoController::class, 'toggleDisponibilidade'])->name('forma-pagamento.toggle-disponibilidade')->middleware('permission:formas-pagamento,editar');
+
+    // Rotas de Plano de Conta
+    Route::get('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'index'])->name('plano-conta.index')->middleware('permission:plano-conta,listar');
+    Route::get('/plano-conta/create', [App\Http\Controllers\PlanoContaController::class, 'create'])->name('plano-conta.create')->middleware('permission:plano-conta,criar');
+    Route::post('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'store'])->name('plano-conta.store')->middleware('permission:plano-conta,criar');
+    Route::get('/plano-conta/{planoConta}', [App\Http\Controllers\PlanoContaController::class, 'show'])->name('plano-conta.show')->middleware('permission:plano-conta,visualizar');
+    Route::get('/plano-conta/{planoConta}/edit', [App\Http\Controllers\PlanoContaController::class, 'edit'])->name('plano-conta.edit')->middleware('permission:plano-conta,editar');
+    Route::put('/plano-conta/{planoConta}', [App\Http\Controllers\PlanoContaController::class, 'update'])->name('plano-conta.update')->middleware('permission:plano-conta,editar');
+    Route::delete('/plano-conta/{planoConta}', [App\Http\Controllers\PlanoContaController::class, 'destroy'])->name('plano-conta.destroy')->middleware('permission:plano-conta,deletar');
+
+    // Rotas de Centro de Custo
+    Route::get('/centro-custo', [App\Http\Controllers\CentroCustoController::class, 'index'])->name('centro-custo.index')->middleware('permission:central-custo,listar');
+    Route::get('/centro-custo/create', [App\Http\Controllers\CentroCustoController::class, 'create'])->name('centro-custo.create')->middleware('permission:central-custo,criar');
+    Route::post('/centro-custo', [App\Http\Controllers\CentroCustoController::class, 'store'])->name('centro-custo.store')->middleware('permission:central-custo,criar');
+    Route::get('/centro-custo/{centroCusto}', [App\Http\Controllers\CentroCustoController::class, 'show'])->name('centro-custo.show')->middleware('permission:central-custo,visualizar');
+    Route::get('/centro-custo/{centroCusto}/edit', [App\Http\Controllers\CentroCustoController::class, 'edit'])->name('centro-custo.edit')->middleware('permission:central-custo,editar');
+    Route::put('/centro-custo/{centroCusto}', [App\Http\Controllers\CentroCustoController::class, 'update'])->name('centro-custo.update')->middleware('permission:central-custo,editar');
+    Route::delete('/centro-custo/{centroCusto}', [App\Http\Controllers\CentroCustoController::class, 'destroy'])->name('centro-custo.destroy')->middleware('permission:central-custo,deletar');
+    Route::patch('/centro-custo/{centroCusto}/toggle-status', [App\Http\Controllers\CentroCustoController::class, 'toggleStatus'])->name('centro-custo.toggle-status')->middleware('permission:central-custo,editar');
+
+    // Dashboard Financeiro
+    Route::get('/dashboard-financeiro', [App\Http\Controllers\DashboardFinanceiroController::class, 'index'])->name('dashboard.financeiro')->middleware('permission:movimentacao,listar');
+
+    // Rotas de Movimentação Financeira - Contas a Pagar
+    Route::get('/contas-a-pagar', [App\Http\Controllers\MovimentacaoController::class, 'index'])->name('contas-a-pagar.index')->middleware('permission:movimentacao,listar')->defaults('tipo', 1);
+    Route::get('/contas-a-pagar/create', [App\Http\Controllers\MovimentacaoController::class, 'create'])->name('contas-a-pagar.create')->middleware('permission:movimentacao,criar')->defaults('tipo', 1);
+    Route::post('/contas-a-pagar', [App\Http\Controllers\MovimentacaoController::class, 'store'])->name('contas-a-pagar.store')->middleware('permission:movimentacao,criar')->defaults('tipo', 1);
+    Route::get('/contas-a-pagar/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'show'])->name('contas-a-pagar.show')->middleware('permission:movimentacao,visualizar')->defaults('tipo', 1);
+    Route::get('/contas-a-pagar/{movimentacao}/edit', [App\Http\Controllers\MovimentacaoController::class, 'edit'])->name('contas-a-pagar.edit')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+    Route::put('/contas-a-pagar/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'update'])->name('contas-a-pagar.update')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+    Route::delete('/contas-a-pagar/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'destroy'])->name('contas-a-pagar.destroy')->middleware('permission:movimentacao,deletar')->defaults('tipo', 1);
+    Route::patch('/contas-a-pagar/{movimentacao}/toggle-status', [App\Http\Controllers\MovimentacaoController::class, 'toggleStatus'])->name('contas-a-pagar.toggle-status')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+    Route::get('/contas-a-pagar/{movimentacao}/gerar-jwt-confirmacao', [App\Http\Controllers\MovimentacaoController::class, 'gerarJwtConfirmacao'])->name('contas-a-pagar.gerar-jwt-confirmacao')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+    Route::post('/contas-a-pagar/{movimentacao}/confirmar-pagamento', [App\Http\Controllers\MovimentacaoController::class, 'confirmarPagamento'])->name('contas-a-pagar.confirmar-pagamento')->defaults('tipo', 1);
+    Route::post('/contas-a-pagar/{movimentacao}/marcar-pendente', [App\Http\Controllers\MovimentacaoController::class, 'marcarPendente'])->name('contas-a-pagar.marcar-pendente')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+    Route::post('/contas-a-pagar/{movimentacao}/reativar', [App\Http\Controllers\MovimentacaoController::class, 'reativar'])->name('contas-a-pagar.reativar')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
+
+    // Rotas de Movimentação Financeira - Contas a Receber
+    Route::get('/contas-a-receber', [App\Http\Controllers\MovimentacaoController::class, 'index'])->name('contas-a-receber.index')->middleware('permission:movimentacao,listar')->defaults('tipo', 2);
+    Route::get('/contas-a-receber/create', [App\Http\Controllers\MovimentacaoController::class, 'create'])->name('contas-a-receber.create')->middleware('permission:movimentacao,criar')->defaults('tipo', 2);
+    Route::post('/contas-a-receber', [App\Http\Controllers\MovimentacaoController::class, 'store'])->name('contas-a-receber.store')->middleware('permission:movimentacao,criar')->defaults('tipo', 2);
+    Route::get('/contas-a-receber/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'show'])->name('contas-a-receber.show')->middleware('permission:movimentacao,visualizar')->defaults('tipo', 2);
+    Route::get('/contas-a-receber/{movimentacao}/edit', [App\Http\Controllers\MovimentacaoController::class, 'edit'])->name('contas-a-receber.edit')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+    Route::put('/contas-a-receber/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'update'])->name('contas-a-receber.update')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+    Route::delete('/contas-a-receber/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'destroy'])->name('contas-a-receber.destroy')->middleware('permission:movimentacao,deletar')->defaults('tipo', 2);
+    Route::patch('/contas-a-receber/{movimentacao}/toggle-status', [App\Http\Controllers\MovimentacaoController::class, 'toggleStatus'])->name('contas-a-receber.toggle-status')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+    Route::get('/contas-a-receber/{movimentacao}/gerar-jwt-confirmacao', [App\Http\Controllers\MovimentacaoController::class, 'gerarJwtConfirmacao'])->name('contas-a-receber.gerar-jwt-confirmacao')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+    Route::post('/contas-a-receber/{movimentacao}/confirmar-pagamento', [App\Http\Controllers\MovimentacaoController::class, 'confirmarPagamento'])->name('contas-a-receber.confirmar-pagamento')->defaults('tipo', 2);
+    Route::post('/contas-a-receber/{movimentacao}/marcar-pendente', [App\Http\Controllers\MovimentacaoController::class, 'marcarPendente'])->name('contas-a-receber.marcar-pendente')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+    Route::post('/contas-a-receber/{movimentacao}/reativar', [App\Http\Controllers\MovimentacaoController::class, 'reativar'])->name('contas-a-receber.reativar')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
 });
 
 require __DIR__.'/auth.php';

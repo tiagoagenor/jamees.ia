@@ -24,7 +24,7 @@ class PlanoController extends Controller
      */
     public function index()
     {
-        $planos = Plano::visiveis()->get();
+        $planos = Plano::visiveis()->ordenados()->get();
         $empresaPrincipal = $this->getEmpresaPrincipal();
         $planoAtual = $empresaPrincipal ? $this->planoService->obterPlanoAtual($empresaPrincipal) : null;
 

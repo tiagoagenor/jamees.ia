@@ -60,51 +60,36 @@
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">
-                                                {{ $plano['plano']['nome'] }}
+                                                {{ $plano->plano->nome }}
                                             </div>
                                             <div class="text-sm text-gray-500">
-                                                {{ $plano['plano']['descricao'] }}
+                                                {{ $plano->plano->descricao }}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="text-sm text-gray-900">{{ $plano['periodo'] }}</span>
+                                    <span class="text-sm text-gray-900">{{ $plano->periodo->getLabel() }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                        @if($plano['status'] === 'ativo') bg-green-100 text-green-800
-                                        @elseif($plano['status'] === 'teste') bg-blue-100 text-blue-800
-                                        @elseif($plano['status'] === 'expirado') bg-red-100 text-red-800
-                                        @elseif($plano['status'] === 'cancelado') bg-gray-100 text-gray-800
+                                        @if($plano->status->value === 'ativo') bg-green-100 text-green-800
+                                        @elseif($plano->status->value === 'teste') bg-blue-100 text-blue-800
+                                        @elseif($plano->status->value === 'expirado') bg-red-100 text-red-800
+                                        @elseif($plano->status->value === 'cancelado') bg-gray-100 text-gray-800
                                         @else bg-yellow-100 text-yellow-800
                                         @endif">
-                                        @switch($plano['status'])
-                                            @case('ativo')
-                                                Ativo
-                                                @break
-                                            @case('teste')
-                                                Período de Teste
-                                                @break
-                                            @case('expirado')
-                                                Expirado
-                                                @break
-                                            @case('cancelado')
-                                                Cancelado
-                                                @break
-                                            @default
-                                                {{ ucfirst($plano['status']) }}
-                                        @endswitch
+                                        {{ $plano->status->getLabel() }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($plano['valor_pago'])
+                                    @if($plano->valor_pago)
                                         <div class="text-sm text-gray-900">
-                                            R$ {{ number_format($plano['valor_pago'], 2, ',', '.') }}
+                                            R$ {{ number_format($plano->valor_pago, 2, ',', '.') }}
                                         </div>
-                                        @if($plano['desconto_aplicado'] > 0)
+                                        @if($plano->desconto_aplicado > 0)
                                             <div class="text-xs text-green-600">
-                                                {{ $plano['desconto_aplicado'] }}% desconto
+                                                {{ $plano->desconto_aplicado }}% desconto
                                             </div>
                                         @endif
                                     @else
@@ -113,12 +98,12 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ \Carbon\Carbon::parse($plano['data_inicio'])->format('d/m/Y') }} -
-                                        {{ \Carbon\Carbon::parse($plano['data_fim'])->format('d/m/Y') }}
+                                        {{ $plano->data_inicio->format('d/m/Y') }} -
+                                        {{ $plano->data_fim->format('d/m/Y') }}
                                     </div>
-                                    @if($plano['status'] === 'ativo' || $plano['status'] === 'teste')
+                                    @if($plano->status->value === 'ativo' || $plano->status->value === 'teste')
                                         @php
-                                            $diasRestantes = \Carbon\Carbon::parse($plano['data_fim'])->diffInDays(now(), false);
+                                            $diasRestantes = $plano->data_fim->diffInDays(now(), false);
                                         @endphp
                                         @if($diasRestantes > 0)
                                             <div class="text-xs text-gray-500">
@@ -133,7 +118,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
-                                        {{ \Carbon\Carbon::parse($plano['created_at'])->format('d/m/Y H:i') }}
+                                        {{ $plano->created_at->format('d/m/Y H:i') }}
                                     </div>
                                 </td>
                             </tr>
@@ -169,7 +154,7 @@
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">Valor Total Pago</h3>
                         <p class="text-2xl font-bold text-green-600">
-                            R$ {{ number_format(collect($historico)->where('valor_pago', '>', 0)->sum('valor_pago'), 2, ',', '.') }}
+                            R$ {{ number_format($historico->where('valor_pago', '>', 0)->sum('valor_pago'), 2, ',', '.') }}
                         </p>
                     </div>
                 </div>
@@ -185,7 +170,7 @@
                     <div class="ml-4">
                         <h3 class="text-lg font-medium text-gray-900">Desconto Total</h3>
                         <p class="text-2xl font-bold text-purple-600">
-                            {{ number_format(collect($historico)->avg('desconto_aplicado'), 1) }}%
+                            {{ number_format($historico->avg('desconto_aplicado'), 1) }}%
                         </p>
                     </div>
                 </div>

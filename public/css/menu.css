@@ -25,3 +25,28 @@
     background-color: rgba(55, 65, 81, 0.2);
     color: white;
 }
+
+/* Custom scrollbar for sidebar menu */
+nav.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.1);
+    border-radius: 3px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+}
+
+/* Firefox scrollbar styling */
+nav.overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) rgba(55, 65, 81, 0.1);
+}
