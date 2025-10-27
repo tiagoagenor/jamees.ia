@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+<div>
+    <div>
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
                 <div class="flex justify-between items-center mb-6">
@@ -52,30 +52,30 @@
                     </a>
                 </div>
 
-                <!-- Filtros Avançados -->
-                <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">
-                        <i class="fas fa-filter mr-2"></i>
-                        Filtros Avançados
-                    </h3>
+                <!-- Filtros -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            <i class="fas fa-filter text-blue-600 mr-2"></i>
+                            Filtros
+                        </h3>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">{{ $movimentacoes->count() }}</span> movimentação(ões) encontrada(s)
+                            @if($filtroDescricao)
+                                <span class="text-blue-600">para "{{ $filtroDescricao }}"</span>
+                            @endif
+                        </div>
+                    </div>
 
                     <form method="GET" action="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Situação -->
-                            <div class="bg-white rounded-md p-3 border border-gray-200">
-                                <label for="situacao" class="block text-sm font-medium text-gray-700 mb-2">Situação</label>
-                                <select name="situacao" id="situacao" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="todos" {{ $filtroSituacao === 'todos' ? 'selected' : '' }}>Todas</option>
-                                    <option value="1" {{ $filtroSituacao === '1' ? 'selected' : '' }}>Pendentes</option>
-                                    <option value="2" {{ $filtroSituacao === '2' ? 'selected' : '' }}>Pagas</option>
-                                    <option value="3" {{ $filtroSituacao === '3' ? 'selected' : '' }}>Vencidas</option>
-                                    <option value="4" {{ $filtroSituacao === '4' ? 'selected' : '' }}>Canceladas</option>
-                                </select>
-                            </div>
-
-                            <!-- Descrição -->
-                            <div class="bg-white rounded-md p-3 border border-gray-200">
-                                <label for="descricao" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <!-- Filtros Principais -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Filtro por Descrição -->
+                            <div class="space-y-2">
+                                <label for="descricao" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-search text-gray-400 mr-1"></i>
+                                    Descrição
+                                </label>
                                 <input type="text"
                                        name="descricao"
                                        id="descricao"
@@ -84,37 +84,66 @@
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
-                            <!-- Vencimento Início -->
-                            <div class="bg-white rounded-md p-3 border border-gray-200">
-                                <label for="vencimento_inicio" class="block text-sm font-medium text-gray-700 mb-2">Vencimento Início</label>
-                                <input type="date"
-                                       name="vencimento_inicio"
-                                       id="vencimento_inicio"
-                                       value="{{ $filtroVencimentoInicio }}"
-                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <!-- Filtro por Situação -->
+                            <div class="space-y-2">
+                                <label for="situacao" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-toggle-on text-gray-400 mr-1"></i>
+                                    Situação
+                                </label>
+                                <select name="situacao" id="situacao" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="todos" {{ $filtroSituacao === 'todos' ? 'selected' : '' }}>Todas as situações</option>
+                                    <option value="1" {{ $filtroSituacao === '1' ? 'selected' : '' }}>Pendentes</option>
+                                    <option value="2" {{ $filtroSituacao === '2' ? 'selected' : '' }}>Pagas</option>
+                                    <option value="3" {{ $filtroSituacao === '3' ? 'selected' : '' }}>Vencidas</option>
+                                    <option value="4" {{ $filtroSituacao === '4' ? 'selected' : '' }}>Canceladas</option>
+                                </select>
                             </div>
 
-                            <!-- Vencimento Fim -->
-                            <div class="bg-white rounded-md p-3 border border-gray-200">
-                                <label for="vencimento_fim" class="block text-sm font-medium text-gray-700 mb-2">Vencimento Fim</label>
-                                <input type="date"
-                                       name="vencimento_fim"
-                                       id="vencimento_fim"
-                                       value="{{ $filtroVencimentoFim }}"
-                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <!-- Botões de Ação -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-cogs text-gray-400 mr-1"></i>
+                                    Ações
+                                </label>
+                                <div class="flex space-x-2">
+                                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                        <i class="fas fa-search mr-2"></i>
+                                        Filtrar
+                                    </button>
+                                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-center">
+                                        <i class="fas fa-times mr-2"></i>
+                                        Limpar
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex space-x-3">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                                <i class="fas fa-search mr-2"></i>
-                                Filtrar
-                            </button>
-                            <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-                                <i class="fas fa-times mr-2"></i>
-                                Limpar
-                            </a>
-                        </div>
+                        <!-- Filtros Ativos -->
+                        @if($filtroDescricao || $filtroSituacao !== 'todos')
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-medium text-gray-700">Filtros ativos:</span>
+                                    @if($filtroDescricao)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-search mr-1"></i>
+                                            Descrição: "{{ $filtroDescricao }}"
+                                            <button type="button" onclick="limparFiltroDescricao()" class="ml-1 text-blue-600 hover:text-blue-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </span>
+                                    @endif
+                                    @if($filtroSituacao !== 'todos')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-toggle-on mr-1"></i>
+                                            Situação: {{ $filtroSituacao === '1' ? 'Pendentes' : ($filtroSituacao === '2' ? 'Pagas' : ($filtroSituacao === '3' ? 'Vencidas' : 'Canceladas')) }}
+                                            <button type="button" onclick="limparFiltroSituacao()" class="ml-1 text-green-600 hover:text-green-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
 
@@ -816,6 +845,17 @@ document.addEventListener('click', function(event) {
         fecharModalCancelarConfirmacao();
     }
 });
+
+// Funções para limpar filtros
+function limparFiltroDescricao() {
+    document.getElementById('descricao').value = '';
+    document.querySelector('form').submit();
+}
+
+function limparFiltroSituacao() {
+    document.getElementById('situacao').value = 'todos';
+    document.querySelector('form').submit();
+}
 </script>
 
 <!-- Modal de Cancelar Confirmação de Pagamento -->

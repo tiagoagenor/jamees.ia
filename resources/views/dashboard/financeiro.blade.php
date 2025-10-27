@@ -145,7 +145,7 @@
         </div>
 
         <!-- Saldo das Contas -->
-        <div class="lg:col-span-4 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="lg:col-span-4 bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">Saldo das Contas</h3>
                 <div class="text-lg font-bold {{ $saldoContas['saldo_total'] >= 0 ? 'text-green-600' : 'text-red-600' }}">
@@ -153,13 +153,25 @@
                 </div>
             </div>
 
-            <!-- Lista de contas -->
-            <div class="space-y-3">
+            <!-- Lista de contas com scroll -->
+            <div class="flex-1 overflow-y-auto max-h-80 space-y-3 pr-2">
                 @forelse($saldoContas['contas'] as $contaData)
                 <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
                     <div class="flex items-center">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                            <i class="fas fa-university text-blue-600 text-sm"></i>
+                        <div class="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                            @if($contaData['conta']->banco && $contaData['conta']->banco->imagem)
+                                <img src="{{ asset('img/bancos/' . $contaData['conta']->banco->imagem) }}"
+                                     alt="{{ $contaData['conta']->banco->nome_normalizado }}"
+                                     class="w-full h-full object-contain"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400" style="display: none;">
+                                    <i class="fas fa-university text-sm"></i>
+                                </div>
+                            @else
+                                <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                    <i class="fas fa-university text-sm"></i>
+                                </div>
+                            @endif
                         </div>
                         <div>
                             <div class="font-medium text-gray-900">{{ $contaData['conta']->nome }}</div>
