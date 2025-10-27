@@ -2,11 +2,21 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+// Landing page
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+
+// Demo page
+Route::get('/demo', function () {
+    return view('demo');
+})->name('demo');
+
+Route::get('/home', function () {
     if (Auth::check()) {
         $user = Auth::user();
         if ($user instanceof \App\Models\Usuario) {
