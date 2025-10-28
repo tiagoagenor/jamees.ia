@@ -18,17 +18,17 @@ class ContaEmpresaController extends Controller
      */
     public function index(Request $request)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Filtros
         $filtroStatus = $request->get('status', 'todos');
         $filtroNome = $request->get('nome', '');
 
-        $query = ContaEmpresa::daEmpresa($empresaPrincipal->id)
+        $query = ContaEmpresa::daEmpresa($empresaAtual->id)
             ->with('banco')
             ->orderBy('nome');
 
@@ -55,10 +55,10 @@ class ContaEmpresaController extends Controller
      */
     public function create()
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         $tipos = ContaTipoEnum::cases();
@@ -72,10 +72,10 @@ class ContaEmpresaController extends Controller
      */
     public function store(Request $request)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         $request->validate([
@@ -97,7 +97,7 @@ class ContaEmpresaController extends Controller
         ContaEmpresa::create([
             'id' => Str::uuid()->toString(),
             'banco_id' => $request->banco_id,
-            'empresa_id' => $empresaPrincipal->id,
+            'empresa_id' => $empresaAtual->id,
             'tipo' => ContaTipoEnum::from($request->tipo),
             'nome' => $request->nome,
             'saldo_inicial' => $request->saldo_inicial ?? 0,
@@ -115,9 +115,9 @@ class ContaEmpresaController extends Controller
      */
     public function show(ContaEmpresa $contaEmpresa)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal || $contaEmpresa->empresa_id !== $empresaPrincipal->id) {
+        if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
 
@@ -129,9 +129,9 @@ class ContaEmpresaController extends Controller
      */
     public function edit(ContaEmpresa $contaEmpresa)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal || $contaEmpresa->empresa_id !== $empresaPrincipal->id) {
+        if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
 
@@ -146,9 +146,9 @@ class ContaEmpresaController extends Controller
      */
     public function update(Request $request, ContaEmpresa $contaEmpresa)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal || $contaEmpresa->empresa_id !== $empresaPrincipal->id) {
+        if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
 
@@ -186,9 +186,9 @@ class ContaEmpresaController extends Controller
      */
     public function destroy(ContaEmpresa $contaEmpresa)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal || $contaEmpresa->empresa_id !== $empresaPrincipal->id) {
+        if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
 
@@ -203,9 +203,9 @@ class ContaEmpresaController extends Controller
      */
     public function toggleStatus(ContaEmpresa $contaEmpresa)
     {
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        if (!$empresaPrincipal || $contaEmpresa->empresa_id !== $empresaPrincipal->id) {
+        if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
 

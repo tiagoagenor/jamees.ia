@@ -30,9 +30,9 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para listar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Validar tipo
@@ -47,7 +47,7 @@ class MovimentacaoController extends Controller
         $filtroVencimentoInicio = $request->get('vencimento_inicio', '');
         $filtroVencimentoFim = $request->get('vencimento_fim', '');
 
-        $query = Movimentacao::daEmpresa($empresaPrincipal->id)
+        $query = Movimentacao::daEmpresa($empresaAtual->id)
             ->porTipo($tipoEnum)
             ->with(['planoConta', 'centroCusto', 'formaPagamento', 'contaEmpresa', 'entidade'])
             ->orderBy('vencimento', 'asc');
@@ -78,14 +78,14 @@ class MovimentacaoController extends Controller
         $movimentacoes = $query->paginate(15);
 
         // Calcular resumos para os cards
-        $resumo = $this->calcularResumos($empresaPrincipal->id, $tipoEnum);
+        $resumo = $this->calcularResumos($empresaAtual->id, $tipoEnum);
 
         $titulo = $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
 
         // Buscar dados para o modal
-        $formasPagamento = FormaPagamento::daEmpresa($empresaPrincipal->id)->disponiveis()->orderBy('nome')->get();
-        $contasBancarias = ContaEmpresa::daEmpresa($empresaPrincipal->id)->ativas()->orderBy('nome')->get();
+        $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
+        $contasBancarias = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
 
         return view('movimentacao.index', compact(
             'movimentacoes',
@@ -113,9 +113,9 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para criar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Validar tipo
@@ -125,11 +125,11 @@ class MovimentacaoController extends Controller
         }
 
         // Buscar dados para os selects
-        $planoContas = PlanoConta::daEmpresa($empresaPrincipal->id)->orderBy('nome')->get();
-        $centroCustos = CentroCusto::daEmpresa($empresaPrincipal->id)->ativos()->orderBy('nome')->get();
-        $formasPagamento = FormaPagamento::daEmpresa($empresaPrincipal->id)->disponiveis()->orderBy('nome')->get();
-        $contasEmpresa = ContaEmpresa::daEmpresa($empresaPrincipal->id)->ativas()->orderBy('nome')->get();
-        $entidades = Entidade::daEmpresa($empresaPrincipal->id)->ativos()->orderBy('nome')->get();
+        $planoContas = PlanoConta::daEmpresa($empresaAtual->id)->orderBy('nome')->get();
+        $centroCustos = CentroCusto::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
+        $contasEmpresa = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
+        $entidades = Entidade::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
 
         $titulo = 'Nova ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -156,9 +156,9 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para criar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Validar tipo
@@ -195,7 +195,7 @@ class MovimentacaoController extends Controller
 
             $movimentacao = Movimentacao::create([
                 'id' => Str::uuid(),
-                'empresa_id' => $empresaPrincipal->id,
+                'empresa_id' => $empresaAtual->id,
                 'plano_conta_id' => $request->plano_conta_id,
                 'centro_custo_id' => $request->centro_custo_id,
                 'forma_pagamento_id' => $request->forma_pagamento_id,
@@ -240,13 +240,13 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para visualizar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
-        // Verificar se a movimentação pertence à empresa
-        if ($movimentacao->empresa_id !== $empresaPrincipal->id) {
+        // Verificar se a movimentação pertence à empresa atual
+        if ($movimentacao->empresa_id !== $empresaAtual->id) {
             abort(403, 'Movimentação não encontrada.');
         }
 
@@ -271,13 +271,13 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para editar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Verificar se a movimentacao pertence à empresa
-        if ($movimentacao->empresa_id !== $empresaPrincipal->id) {
+        if ($movimentacao->empresa_id !== $empresaAtual->id) {
             abort(403, 'Movimentação não encontrada.');
         }
 
@@ -287,11 +287,11 @@ class MovimentacaoController extends Controller
         }
 
         // Buscar dados para os selects
-        $planoContas = PlanoConta::daEmpresa($empresaPrincipal->id)->orderBy('nome')->get();
-        $centroCustos = CentroCusto::daEmpresa($empresaPrincipal->id)->ativos()->orderBy('nome')->get();
-        $formasPagamento = FormaPagamento::daEmpresa($empresaPrincipal->id)->disponiveis()->orderBy('nome')->get();
-        $contasEmpresa = ContaEmpresa::daEmpresa($empresaPrincipal->id)->ativas()->orderBy('nome')->get();
-        $entidades = Entidade::daEmpresa($empresaPrincipal->id)->ativos()->orderBy('nome')->get();
+        $planoContas = PlanoConta::daEmpresa($empresaAtual->id)->orderBy('nome')->get();
+        $centroCustos = CentroCusto::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
+        $contasEmpresa = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
+        $entidades = Entidade::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
 
         $titulo = 'Editar ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -319,13 +319,13 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para editar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Verificar se a movimentacao pertence à empresa
-        if ($movimentacao->empresa_id !== $empresaPrincipal->id) {
+        if ($movimentacao->empresa_id !== $empresaAtual->id) {
             abort(403, 'Movimentação não encontrada.');
         }
 
@@ -404,13 +404,13 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para deletar movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Verificar se a movimentacao pertence à empresa
-        if ($movimentacao->empresa_id !== $empresaPrincipal->id) {
+        if ($movimentacao->empresa_id !== $empresaAtual->id) {
             abort(403, 'Movimentação não encontrada.');
         }
 
@@ -438,13 +438,13 @@ class MovimentacaoController extends Controller
             abort(403, 'Você não tem permissão para alterar status de movimentações.');
         }
 
-        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        if (!$empresaPrincipal) {
-            abort(403, 'Empresa principal não encontrada.');
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
         }
 
         // Verificar se a movimentacao pertence à empresa
-        if ($movimentacao->empresa_id !== $empresaPrincipal->id) {
+        if ($movimentacao->empresa_id !== $empresaAtual->id) {
             abort(403, 'Movimentação não encontrada.');
         }
 

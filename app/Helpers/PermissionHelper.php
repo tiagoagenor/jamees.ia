@@ -130,5 +130,32 @@ class PermissionHelper
         $empresaPrincipal = self::getEmpresaPrincipal();
         return $empresaPrincipal ? $empresaPrincipal->id : null;
     }
+
+    /**
+     * Retorna a empresa atual do usuário logado (da sessão)
+     */
+    public static function getEmpresaAtual()
+    {
+        if (!Auth::check()) {
+            return null;
+        }
+
+        $user = Auth::user();
+
+        if (!$user instanceof Usuario) {
+            return null;
+        }
+
+        return $user->empresaAtual();
+    }
+
+    /**
+     * Retorna o ID da empresa atual do usuário logado (da sessão)
+     */
+    public static function getEmpresaAtualId()
+    {
+        $empresaAtual = self::getEmpresaAtual();
+        return $empresaAtual ? $empresaAtual->id : null;
+    }
 }
 

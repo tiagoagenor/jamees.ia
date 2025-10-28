@@ -20,7 +20,7 @@
         <!-- Sidebar -->
         <div class="w-64 bg-gray-800 text-white flex flex-col">
             <!-- Logo -->
-            <div class="px-6 py-4 border-b border-gray-700 text-center">
+            <div class="px-6 py-4 border-b border-gray-700 text-center text-xl">
                 <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: white;">JAMEES</span>
             </div>
 

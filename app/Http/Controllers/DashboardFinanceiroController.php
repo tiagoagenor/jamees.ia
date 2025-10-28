@@ -21,7 +21,7 @@ class DashboardFinanceiroController extends Controller
         $empresaAtual = Auth::user()->empresaAtual();
 
         if (!$empresaAtual) {
-            abort(403, 'Usuário não possui empresa principal.');
+            abort(403, 'Usuário não possui empresa atual.');
         }
 
         // Dados das contas a pagar
