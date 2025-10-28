@@ -266,12 +266,14 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $usuario->email }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        @foreach($usuario->empresas as $empresa)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}
-                                            </span>
-                                        @endforeach
+                                    <td class="px-6 py-4 text-sm text-gray-900">
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($usuario->empresas as $empresa)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">
+                                                    {{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}
+                                                </span>
+                                            @endforeach
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

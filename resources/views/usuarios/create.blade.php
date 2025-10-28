@@ -82,6 +82,10 @@
                                            {{ in_array($empresa->id, old('empresas', [])) ? 'checked' : '' }}
                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                                     <div class="flex items-center space-x-2">
+                                        @php
+                                            $user = Auth::user();
+                                            $empresaPrincipal = $user->empresaPrincipal();
+                                        @endphp
                                         @if($empresaPrincipal && $empresa->id == $empresaPrincipal->id)
                                             <span class="text-yellow-600">👑</span>
                                             <span class="text-sm font-medium text-gray-900">{{ $empresa->nome_fantasia }}</span>

@@ -11,6 +11,7 @@ use App\Models\Entidade;
 use App\Models\FormaPagamento;
 use App\Models\Movimentacao;
 use App\Models\PlanoConta;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -217,6 +218,9 @@ class MovimentacaoController extends Controller
 
             DB::commit();
 
+            // Registrar no audit log
+            AuditService::logCreate($movimentacao, "Criada {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
+
             return redirect()
                 ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
                 ->with('success', 'Movimentação criada com sucesso!');
@@ -353,6 +357,9 @@ class MovimentacaoController extends Controller
         try {
             DB::beginTransaction();
 
+            // Salvar valores antigos para o audit log
+            $oldValues = $movimentacao->getAttributes();
+
             $valorTotal = $request->valor;
             if ($request->juros) {
                 $valorTotal += $request->juros;
@@ -380,6 +387,9 @@ class MovimentacaoController extends Controller
             ]);
 
             DB::commit();
+
+            // Registrar no audit log
+            AuditService::logUpdate($movimentacao, $oldValues, "Atualizada {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
 
             return redirect()
                 ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
@@ -415,6 +425,10 @@ class MovimentacaoController extends Controller
         }
 
         try {
+            // Registrar exclusão no audit log antes de deletar
+            $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
+            AuditService::logDelete($movimentacao, "Excluída {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
+
             $movimentacao->delete();
 
             return redirect()
@@ -453,6 +467,9 @@ class MovimentacaoController extends Controller
                 ? MovimentacaoSituacaoEnum::PAGA
                 : MovimentacaoSituacaoEnum::PENDENTE;
 
+            // Salvar valores antigos para o audit log
+            $oldValues = $movimentacao->getAttributes();
+
             $movimentacao->update([
                 'situacao' => $novaSituacao,
                 'data_compensacao' => $novaSituacao === MovimentacaoSituacaoEnum::PAGA ? now()->toDateString() : null,
@@ -460,6 +477,10 @@ class MovimentacaoController extends Controller
             ]);
 
             $status = $novaSituacao === MovimentacaoSituacaoEnum::PAGA ? 'paga' : 'pendente';
+
+            // Registrar mudança de status no audit log
+            $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
+            AuditService::logUpdate($movimentacao, $oldValues, "Status alterado para {$status}: {$movimentacao->descricao}");
 
             return redirect()
                 ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
@@ -670,6 +691,9 @@ class MovimentacaoController extends Controller
         try {
             DB::beginTransaction();
 
+            // Salvar valores antigos para o audit log
+            $oldValues = $movimentacao->getAttributes();
+
             $movimentacao->update([
                 'situacao' => MovimentacaoSituacaoEnum::PAGA,
                 'data_pagamento' => $request->data_compensacao,
@@ -684,6 +708,10 @@ class MovimentacaoController extends Controller
             ]);
 
             DB::commit();
+
+            // Registrar confirmação de pagamento no audit log
+            $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
+            AuditService::logUpdate($movimentacao, $oldValues, "Pagamento confirmado: {$movimentacao->descricao}");
 
             return response()->json([
                 'success' => true,
@@ -715,6 +743,9 @@ class MovimentacaoController extends Controller
         try {
             DB::beginTransaction();
 
+            // Salvar valores antigos para o audit log
+            $oldValues = $movimentacao->getAttributes();
+
             $movimentacao->update([
                 'situacao' => MovimentacaoSituacaoEnum::PENDENTE,
                 'data_pagamento' => null,
@@ -723,6 +754,10 @@ class MovimentacaoController extends Controller
             ]);
 
             DB::commit();
+
+            // Registrar marcação como pendente no audit log
+            $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
+            AuditService::logUpdate($movimentacao, $oldValues, "Marcada como pendente: {$movimentacao->descricao}");
 
             return response()->json([
                 'success' => true,
@@ -754,6 +789,9 @@ class MovimentacaoController extends Controller
         try {
             DB::beginTransaction();
 
+            // Salvar valores antigos para o audit log
+            $oldValues = $movimentacao->getAttributes();
+
             $movimentacao->update([
                 'situacao' => MovimentacaoSituacaoEnum::PENDENTE,
                 'observacoes_pagamento' => $request->observacoes ?? null,
@@ -761,6 +799,10 @@ class MovimentacaoController extends Controller
             ]);
 
             DB::commit();
+
+            // Registrar reativação no audit log
+            $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
+            AuditService::logUpdate($movimentacao, $oldValues, "Reativada: {$movimentacao->descricao}");
 
             return response()->json([
                 'success' => true,

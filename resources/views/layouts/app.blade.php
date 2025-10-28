@@ -160,6 +160,14 @@
                                     Geral
                                 </a>
                             </li>
+                            @if(\App\Helpers\PermissionHelper::can('audit', 'listar'))
+                            <li>
+                                <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('audit.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                    <i class="fas fa-history mr-3"></i>
+                                    Histórico de Alterações
+                                </a>
+                            </li>
+                            @endif
                             <li>
                                 <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('planos.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-crown mr-3"></i>

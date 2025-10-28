@@ -157,5 +157,49 @@ class PermissionHelper
         $empresaAtual = self::getEmpresaAtual();
         return $empresaAtual ? $empresaAtual->id : null;
     }
+
+    /**
+     * Retorna a empresa principal para verificação de plano
+     * Se o usuário está logado em uma filial, retorna a empresa principal
+     * Se está logado na empresa principal, retorna ela mesma
+     */
+    public static function getEmpresaPrincipalParaPlano()
+    {
+        if (!Auth::check()) {
+            return null;
+        }
+
+        $user = Auth::user();
+
+        if (!$user instanceof Usuario) {
+            return null;
+        }
+
+        // Obter empresa atual (da sessão)
+        $empresaAtual = $user->empresaAtual();
+
+        if (!$empresaAtual) {
+            return null;
+        }
+
+        // Se a empresa atual é a empresa principal do usuário, retorna ela
+        $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+        if ($empresaPrincipal && $empresaAtual->id === $empresaPrincipal->id) {
+            return $empresaPrincipal;
+        }
+
+        // Se não é a empresa principal, retorna a empresa principal do usuário
+        return $empresaPrincipal;
+    }
+
+    /**
+     * Retorna o ID da empresa principal para verificação de plano
+     */
+    public static function getEmpresaPrincipalParaPlanoId()
+    {
+        $empresaPrincipal = self::getEmpresaPrincipalParaPlano();
+        return $empresaPrincipal ? $empresaPrincipal->id : null;
+    }
 }
 

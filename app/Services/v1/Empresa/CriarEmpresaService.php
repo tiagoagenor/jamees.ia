@@ -10,6 +10,7 @@ use App\Models\EmpresaEndereco;
 use App\Enums\EmpresaStatusEnum;
 use App\Enums\UsuarioStatusEnum;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class CriarEmpresaService
 {
@@ -119,6 +120,9 @@ class CriarEmpresaService
                     'atualizado_em' => now(),
                 ]);
             }
+
+            // Registrar no audit log
+            AuditService::logCreate($empresa, "Criou empresa: {$empresa->nome_fantasia}");
 
             return redirect()->route('empresas.index')
                 ->with('success', 'Empresa criada com sucesso!');

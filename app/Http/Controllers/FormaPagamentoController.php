@@ -6,6 +6,7 @@ use App\Models\FormaPagamento;
 use App\Models\ContaEmpresa;
 use App\Enums\FormaPagamentoModalidadeEnum;
 use App\Helpers\PermissionHelper;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -109,7 +110,7 @@ class FormaPagamentoController extends Controller
             'permite_deletar' => 'boolean',
         ]);
 
-        FormaPagamento::create([
+        $formaPagamento = FormaPagamento::create([
             'id' => Str::uuid(),
             'empresa_id' => $empresaPrincipal->id,
             'conta_empresa_id' => $request->conta_empresa_id,
@@ -129,6 +130,9 @@ class FormaPagamentoController extends Controller
             'criado_em' => now(),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log
+        AuditService::logCreate($formaPagamento, "Criou forma de pagamento: {$formaPagamento->nome}");
 
         return redirect()->route('forma-pagamento.index')->with('success', 'Forma de pagamento criada com sucesso!');
     }
@@ -209,6 +213,9 @@ class FormaPagamentoController extends Controller
             'permite_deletar' => 'boolean',
         ]);
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $formaPagamento->getAttributes();
+
         $formaPagamento->update([
             'conta_empresa_id' => $request->conta_empresa_id,
             'nome' => $request->nome,
@@ -226,6 +233,11 @@ class FormaPagamentoController extends Controller
             'permite_deletar' => $request->boolean('permite_deletar'),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log apenas se houve mudanças
+        if ($formaPagamento->wasChanged()) {
+            AuditService::logUpdate($formaPagamento, $oldValues, "Atualizou forma de pagamento: {$formaPagamento->nome}");
+        }
 
         return redirect()->route('forma-pagamento.index')->with('success', 'Forma de pagamento atualizada com sucesso!');
     }
@@ -250,6 +262,9 @@ class FormaPagamentoController extends Controller
             return redirect()->back()->with('error', 'Esta forma de pagamento não pode ser excluída.');
         }
 
+        // Registrar no audit log antes da exclusão
+        AuditService::logDelete($formaPagamento, "Excluiu forma de pagamento: {$formaPagamento->nome}");
+
         $formaPagamento->delete();
 
         return redirect()->route('forma-pagamento.index')->with('success', 'Forma de pagamento excluída com sucesso!');
@@ -271,12 +286,18 @@ class FormaPagamentoController extends Controller
             abort(403, 'Acesso negado.');
         }
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $formaPagamento->getAttributes();
+
         $formaPagamento->update([
             'disponivel' => !$formaPagamento->disponivel,
             'atualizado_em' => now(),
         ]);
 
+        // Registrar no audit log
         $status = $formaPagamento->disponivel ? 'disponível' : 'indisponível';
+        AuditService::logUpdate($formaPagamento, $oldValues, "Alterou disponibilidade da forma de pagamento: {$formaPagamento->nome} - {$status}");
+
         return redirect()->back()->with('success', "Forma de pagamento marcada como {$status}!");
     }
 }

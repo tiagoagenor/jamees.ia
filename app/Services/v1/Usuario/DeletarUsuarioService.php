@@ -4,6 +4,7 @@ namespace App\Services\v1\Usuario;
 
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditService;
 
 class DeletarUsuarioService
 {
@@ -27,6 +28,9 @@ class DeletarUsuarioService
                 return redirect()->back()
                     ->with('error', $mensagem);
             }
+
+            // Registrar no audit log antes da exclusão
+            AuditService::logDelete($usuario, "Excluiu usuário: {$usuario->nome}");
 
             $usuario->delete();
 

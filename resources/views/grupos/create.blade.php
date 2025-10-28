@@ -80,9 +80,18 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($permissoes as $modulo => $permissoesModulo)
                                 <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                    <h4 class="font-medium text-gray-900 mb-3 capitalize">
-                                        {{ str_replace('_', ' ', $modulo) }}
-                                    </h4>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="font-medium text-gray-900 capitalize">
+                                            {{ str_replace('_', ' ', $modulo) }}
+                                        </h4>
+                                        <label class="flex items-center space-x-1 cursor-pointer">
+                                            <input type="checkbox"
+                                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded module-select-all"
+                                                   data-module="{{ $modulo }}"
+                                                   onchange="toggleModulePermissions('{{ $modulo }}', this)">
+                                            <span class="text-xs text-gray-600">Todos</span>
+                                        </label>
+                                    </div>
                                     <div class="space-y-2 max-h-48 overflow-y-auto">
                                         @foreach($permissoesModulo as $permissao)
                                             <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
@@ -90,7 +99,8 @@
                                                        name="permissoes[]"
                                                        value="{{ $permissao->id }}"
                                                        {{ in_array($permissao->id, old('permissoes', [])) ? 'checked' : '' }}
-                                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded permission-checkbox">
+                                                       class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded permission-checkbox module-{{ $modulo }}"
+                                                       onchange="updateModuleSelectAll('{{ $modulo }}')">
                                                 <span class="text-sm text-gray-700">{{ $permissao->nome }}</span>
                                             </label>
                                         @endforeach
@@ -123,13 +133,51 @@ function selectAllPermissions() {
     document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
         checkbox.checked = true;
     });
+    updateAllModuleSelectAll();
 }
 
 function deselectAllPermissions() {
     document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
         checkbox.checked = false;
     });
+    updateAllModuleSelectAll();
 }
+
+function toggleModulePermissions(moduleName, selectAllCheckbox) {
+    const isChecked = selectAllCheckbox.checked;
+    document.querySelectorAll(`.module-${moduleName}`).forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+}
+
+function updateModuleSelectAll(moduleName) {
+    const moduleCheckboxes = document.querySelectorAll(`.module-${moduleName}`);
+    const checkedModuleCheckboxes = document.querySelectorAll(`.module-${moduleName}:checked`);
+    const moduleSelectAllCheckbox = document.querySelector(`[data-module="${moduleName}"]`);
+
+    if (moduleCheckboxes.length === checkedModuleCheckboxes.length) {
+        moduleSelectAllCheckbox.checked = true;
+        moduleSelectAllCheckbox.indeterminate = false;
+    } else if (checkedModuleCheckboxes.length === 0) {
+        moduleSelectAllCheckbox.checked = false;
+        moduleSelectAllCheckbox.indeterminate = false;
+    } else {
+        moduleSelectAllCheckbox.checked = false;
+        moduleSelectAllCheckbox.indeterminate = true;
+    }
+}
+
+function updateAllModuleSelectAll() {
+    document.querySelectorAll('.module-select-all').forEach(selectAllCheckbox => {
+        const moduleName = selectAllCheckbox.getAttribute('data-module');
+        updateModuleSelectAll(moduleName);
+    });
+}
+
+// Inicializar estado dos checkboxes por módulo
+document.addEventListener('DOMContentLoaded', function() {
+    updateAllModuleSelectAll();
+});
 </script>
 @endsection
 

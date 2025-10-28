@@ -223,6 +223,13 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::post('/contas-a-receber/{movimentacao}/confirmar-pagamento', [App\Http\Controllers\MovimentacaoController::class, 'confirmarPagamento'])->name('contas-a-receber.confirmar-pagamento')->defaults('tipo', 2);
     Route::post('/contas-a-receber/{movimentacao}/marcar-pendente', [App\Http\Controllers\MovimentacaoController::class, 'marcarPendente'])->name('contas-a-receber.marcar-pendente')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
     Route::post('/contas-a-receber/{movimentacao}/reativar', [App\Http\Controllers\MovimentacaoController::class, 'reativar'])->name('contas-a-receber.reativar')->middleware('permission:movimentacao,editar')->defaults('tipo', 2);
+
+    // Rotas de Histórico de Alterações (Audit Log)
+    Route::get('/historico-alteracoes', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit.index')->middleware('permission:audit,listar');
+    Route::get('/historico-alteracoes/{auditLog}', [App\Http\Controllers\AuditLogController::class, 'show'])->name('audit.show')->middleware('permission:audit,visualizar');
+    Route::get('/historico-alteracoes/stats', [App\Http\Controllers\AuditLogController::class, 'stats'])->name('audit.stats')->middleware('permission:audit,visualizar');
+    Route::get('/historico-alteracoes/usuario/{userId}', [App\Http\Controllers\AuditLogController::class, 'byUser'])->name('audit.by-user')->middleware('permission:audit,listar');
+    Route::get('/historico-alteracoes/modelo/{modelType}/{modelId?}', [App\Http\Controllers\AuditLogController::class, 'byModel'])->name('audit.by-model')->middleware('permission:audit,listar');
 });
 
 require __DIR__.'/auth.php';

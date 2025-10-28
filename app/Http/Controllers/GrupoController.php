@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Grupo;
 use App\Models\Permissao;
 use App\Helpers\PermissionHelper;
+use App\Services\AuditService;
 
 class GrupoController extends Controller
 {
@@ -85,6 +86,9 @@ class GrupoController extends Controller
             );
         }
 
+        // Registrar no audit log
+        AuditService::logCreate($grupo, "Criou grupo: {$grupo->nome}");
+
         return redirect()->route('grupos.index')
             ->with('success', 'Grupo criado com sucesso!');
     }
@@ -134,6 +138,9 @@ class GrupoController extends Controller
             'permissoes.*' => 'exists:permissoes,id',
         ]);
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $grupo->getAttributes();
+
         $grupo->update([
             'nome' => $request->nome,
             'descricao' => $request->descricao,
@@ -147,6 +154,11 @@ class GrupoController extends Controller
             );
         } else {
             $grupo->permissoes()->detach();
+        }
+
+        // Registrar no audit log apenas se houve mudanças
+        if ($grupo->wasChanged()) {
+            AuditService::logUpdate($grupo, $oldValues, "Atualizou grupo: {$grupo->nome}");
         }
 
         return redirect()->route('grupos.index')
@@ -169,6 +181,9 @@ class GrupoController extends Controller
             return redirect()->back()
                 ->with('error', 'Não é possível deletar o grupo Administrativo.');
         }
+
+        // Registrar no audit log antes da exclusão
+        AuditService::logDelete($grupo, "Excluiu grupo: {$grupo->nome}");
 
         $grupo->delete();
 

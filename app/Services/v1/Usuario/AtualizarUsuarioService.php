@@ -11,6 +11,7 @@ use App\Models\UsuarioEndereco;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class AtualizarUsuarioService
 {
@@ -46,6 +47,9 @@ class AtualizarUsuarioService
         ]);
 
         try {
+            // Capturar valores antigos antes da atualização
+            $oldValues = $usuario->getAttributes();
+
             $usuario->update([
                 'nome' => $request->nome,
                 'email' => $request->email,
@@ -141,6 +145,11 @@ class AtualizarUsuarioService
                     'criado_em' => now(),
                     'atualizado_em' => now(),
                 ]);
+            }
+
+            // Registrar no audit log apenas se houve mudanças
+            if ($usuario->wasChanged()) {
+                AuditService::logUpdate($usuario, $oldValues, "Atualizou usuário: {$usuario->nome}");
             }
 
             return redirect()->route('usuarios.index')

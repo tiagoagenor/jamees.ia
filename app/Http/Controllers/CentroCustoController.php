@@ -7,6 +7,7 @@ use App\Helpers\PermissionHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class CentroCustoController extends Controller
 {
@@ -90,7 +91,7 @@ class CentroCustoController extends Controller
             'status' => 'required|integer|in:0,1',
         ]);
 
-        CentroCusto::create([
+        $centroCusto = CentroCusto::create([
             'id' => Str::uuid(),
             'empresa_id' => $empresaPrincipal->id,
             'nome' => $request->nome,
@@ -98,6 +99,9 @@ class CentroCustoController extends Controller
             'criado_em' => now(),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log
+        AuditService::logCreate($centroCusto, "Criou centro de custo: {$centroCusto->nome}");
 
         return redirect()->route('centro-custo.index')->with('success', 'Centro de custo criado com sucesso!');
     }
@@ -161,11 +165,19 @@ class CentroCustoController extends Controller
             'status' => 'required|integer|in:0,1',
         ]);
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $centroCusto->getAttributes();
+
         $centroCusto->update([
             'nome' => $request->nome,
             'status' => $request->status,
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log apenas se houve mudanças
+        if ($centroCusto->wasChanged()) {
+            AuditService::logUpdate($centroCusto, $oldValues, "Atualizou centro de custo: {$centroCusto->nome}");
+        }
 
         return redirect()->route('centro-custo.index')->with('success', 'Centro de custo atualizado com sucesso!');
     }
@@ -185,6 +197,9 @@ class CentroCustoController extends Controller
         if (!$empresaPrincipal || $centroCusto->empresa_id !== $empresaPrincipal->id) {
             abort(403, 'Acesso negado.');
         }
+
+        // Registrar no audit log antes da exclusão
+        AuditService::logDelete($centroCusto, "Excluiu centro de custo: {$centroCusto->nome}");
 
         $centroCusto->delete();
 
@@ -207,12 +222,19 @@ class CentroCustoController extends Controller
             abort(403, 'Acesso negado.');
         }
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $centroCusto->getAttributes();
+
         $centroCusto->update([
             'status' => $centroCusto->status === 1 ? 0 : 1,
             'atualizado_em' => now(),
         ]);
 
         $status = $centroCusto->status === 1 ? 'ativado' : 'inativado';
+
+        // Registrar no audit log
+        AuditService::logUpdate($centroCusto, $oldValues, "Alterou status do centro de custo: {$centroCusto->nome} - {$status}");
+
         return redirect()->back()->with('success', "Centro de custo {$status} com sucesso!");
     }
 }

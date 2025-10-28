@@ -6,6 +6,7 @@ use App\Models\PlanoConta;
 use App\Models\Dre;
 use App\Enums\PlanoContaMovimentacaoEnum;
 use App\Helpers\PermissionHelper;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -102,7 +103,7 @@ class PlanoContaController extends Controller
             'plano_conta_id' => 'nullable|uuid|exists:plano_conta,id,empresa_id,' . $empresaPrincipal->id,
         ]);
 
-        PlanoConta::create([
+        $planoConta = PlanoConta::create([
             'id' => Str::uuid(),
             'empresa_id' => $empresaPrincipal->id,
             'plano_conta_id' => $request->plano_conta_id,
@@ -114,6 +115,9 @@ class PlanoContaController extends Controller
             'criado_em' => now(),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log
+        AuditService::logCreate($planoConta, "Criou plano de conta: {$planoConta->nome}");
 
         return redirect()->route('plano-conta.index')->with('success', 'Plano de conta criado com sucesso!');
     }
@@ -187,6 +191,9 @@ class PlanoContaController extends Controller
             'plano_conta_id' => 'nullable|uuid|exists:plano_conta,id,empresa_id,' . $empresaPrincipal->id,
         ]);
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $planoConta->getAttributes();
+
         $planoConta->update([
             'plano_conta_id' => $request->plano_conta_id,
             'dre_id' => $request->dre_id,
@@ -196,6 +203,11 @@ class PlanoContaController extends Controller
             'ordem_filho' => $request->ordem_filho,
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log apenas se houve mudanças
+        if ($planoConta->wasChanged()) {
+            AuditService::logUpdate($planoConta, $oldValues, "Atualizou plano de conta: {$planoConta->nome}");
+        }
 
         return redirect()->route('plano-conta.index')->with('success', 'Plano de conta atualizado com sucesso!');
     }
@@ -220,6 +232,9 @@ class PlanoContaController extends Controller
         if ($planoConta->planoContasFilhos()->count() > 0) {
             return redirect()->back()->with('error', 'Não é possível excluir um plano de conta que possui subcontas.');
         }
+
+        // Registrar no audit log antes da exclusão
+        AuditService::logDelete($planoConta, "Excluiu plano de conta: {$planoConta->nome}");
 
         $planoConta->delete();
 

@@ -16,11 +16,9 @@ class ListarUsuariosService
         // Buscar empresa principal do usuário logado
         $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
 
-
         if ($empresaPrincipal) {
-            // Filtrar usuários da empresa principal + empresas filhas
-            $empresaIds = [$empresaPrincipal->id];
-            $empresaIds = array_merge($empresaIds, $empresaPrincipal->empresasFilhas->pluck('id')->toArray());
+            // Buscar todas as empresas do usuário logado (principal + outras)
+            $empresaIds = $user->empresas->pluck('id')->toArray();
 
             $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones', 'grupos')
                             ->whereHas('empresas', function($q) use ($empresaIds) {
@@ -76,18 +74,13 @@ class ListarUsuariosService
 
         $usuarios = $query->paginate(15)->withQueryString();
 
-        // Filtrar empresas para mostrar apenas as da empresa principal
-        if ($empresaPrincipal) {
-            $empresaIds = [$empresaPrincipal->id];
-            $empresaIds = array_merge($empresaIds, $empresaPrincipal->empresasFilhas->pluck('id')->toArray());
-            $empresas = Empresa::whereIn('id', $empresaIds)->get();
-        } else {
-            $empresas = $user->empresas;
-        }
+        // Filtrar empresas para mostrar apenas as do usuário logado
+        $empresas = $user->empresas;
 
         return view('usuarios.index', [
             'usuarios' => $usuarios,
             'empresas' => $empresas,
+            'empresaPrincipal' => $empresaPrincipal,
             'filtros' => $request->only(['nome', 'email', 'status', 'empresa_id', 'cpf', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,

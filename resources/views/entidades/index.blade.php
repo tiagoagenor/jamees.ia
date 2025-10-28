@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Entidades')
+@section('title', 'Clientes')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
@@ -295,40 +295,74 @@
             <!-- Paginação -->
             <div class="px-8 py-4 border-t border-gray-200">
                 <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-700">
-                        Mostrando {{ $entidades->firstItem() }} até {{ $entidades->lastItem() }} de {{ $entidades->total() }} resultados
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        @if($entidades->onFirstPage())
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-500 bg-gray-50 cursor-not-allowed">
+                                Anterior
+                            </span>
+                        @else
+                            <a href="{{ $entidades->previousPageUrl() }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Anterior
+                            </a>
+                        @endif
+
+                        @if($entidades->hasMorePages())
+                            <a href="{{ $entidades->nextPageUrl() }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Próximo
+                            </a>
+                        @else
+                            <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-500 bg-gray-50 cursor-not-allowed">
+                                Próximo
+                            </span>
+                        @endif
                     </div>
-                    <div class="flex space-x-1">
-                        {{-- Previous Page Link --}}
-                        @if ($entidades->onFirstPage())
-                            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                                <i class="fas fa-chevron-left"></i>
-                            </span>
-                        @else
-                            <a href="{{ $entidades->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        @endif
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Mostrando
+                                <span class="font-medium">{{ $entidades->firstItem() }}</span>
+                                até
+                                <span class="font-medium">{{ $entidades->lastItem() }}</span>
+                                de
+                                <span class="font-medium">{{ $entidades->total() }}</span>
+                                resultados
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                @if($entidades->onFirstPage())
+                                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                @else
+                                    <a href="{{ $entidades->previousPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                @endif
 
-                        {{-- Pagination Elements --}}
-                        @foreach ($entidades->getUrlRange(1, $entidades->lastPage()) as $page => $url)
-                            @if ($page == $entidades->currentPage())
-                                <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
-                            @else
-                                <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
-                            @endif
-                        @endforeach
+                                @foreach($entidades->getUrlRange(1, $entidades->lastPage()) as $page => $url)
+                                    @if($page == $entidades->currentPage())
+                                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
+                                            {{ $page }}
+                                        </span>
+                                    @else
+                                        <a href="{{ $url }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                            {{ $page }}
+                                        </a>
+                                    @endif
+                                @endforeach
 
-                        {{-- Next Page Link --}}
-                        @if ($entidades->hasMorePages())
-                            <a href="{{ $entidades->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        @else
-                            <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                                <i class="fas fa-chevron-right"></i>
-                            </span>
-                        @endif
+                                @if($entidades->hasMorePages())
+                                    <a href="{{ $entidades->nextPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                @else
+                                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-50 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                @endif
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ use App\Models\UsuarioEndereco;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class CriarUsuarioService
 {
@@ -118,6 +119,9 @@ class CriarUsuarioService
                     'atualizado_em' => now(),
                 ]);
             }
+
+            // Registrar no audit log
+            AuditService::logCreate($usuario, "Criou usuário: {$usuario->nome}");
 
             return redirect()->route('usuarios.index')
                 ->with('success', 'Usuário criado com sucesso!');

@@ -146,6 +146,77 @@ class Empresa extends Model
     }
 
     /**
+     * Obtém o plano da empresa principal para verificação de plano
+     * Se esta empresa é uma filial, busca o plano da empresa principal
+     * Se esta empresa é a principal, retorna o plano dela mesma
+     */
+    public function getPlanoEmpresaPrincipal()
+    {
+        // Se esta empresa tem empresa_id (é uma filial), buscar a empresa principal
+        if ($this->empresa_id) {
+            $empresaPrincipal = Empresa::find($this->empresa_id);
+            if ($empresaPrincipal) {
+                return $empresaPrincipal->getPlanoAtual();
+            }
+        }
+
+        // Se não tem empresa_id ou não encontrou a principal, retorna o plano desta empresa
+        return $this->getPlanoAtual();
+    }
+
+    /**
+     * Verifica se o plano da empresa principal está ativo
+     */
+    public function isPlanoEmpresaPrincipalAtivo(): bool
+    {
+        $plano = $this->getPlanoEmpresaPrincipal();
+        return $plano !== null && $plano->isAtivo();
+    }
+
+    /**
+     * Método estático para obter o plano da empresa principal do usuário logado
+     * Considera a empresa atual da sessão e retorna o plano da empresa principal
+     */
+    public static function getPlanoEmpresaPrincipalUsuarioLogado()
+    {
+        if (!Auth::check()) {
+            return null;
+        }
+
+        $user = Auth::user();
+
+        if (!$user instanceof \App\Models\Usuario) {
+            return null;
+        }
+
+        // Obter empresa atual (da sessão)
+        $empresaAtual = $user->empresaAtual();
+
+        if (!$empresaAtual) {
+            return null;
+        }
+
+        // Obter empresa principal do usuário
+        $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+        if (!$empresaPrincipal) {
+            return null;
+        }
+
+        // Retornar o plano da empresa principal
+        return $empresaPrincipal->getPlanoAtual();
+    }
+
+    /**
+     * Método estático para verificar se o plano da empresa principal está ativo
+     */
+    public static function isPlanoEmpresaPrincipalUsuarioLogadoAtivo(): bool
+    {
+        $plano = self::getPlanoEmpresaPrincipalUsuarioLogado();
+        return $plano !== null && $plano->isAtivo();
+    }
+
+    /**
      * Scope para filtrar empresas por empresa principal
      */
     public function scopeByEmpresaPrincipal($query, $empresaPrincipalId = null)

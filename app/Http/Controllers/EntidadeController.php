@@ -9,6 +9,7 @@ use App\Models\EntidadeContato;
 use App\Models\EntidadeEndereco;
 use App\Enums\EntidadeTipoEnum;
 use App\Helpers\PermissionHelper;
+use App\Services\AuditService;
 use Illuminate\Support\Str;
 
 class EntidadeController extends Controller
@@ -302,7 +303,10 @@ class EntidadeController extends Controller
             }
         }
 
-        return redirect()->route($tipo . 's.index')
+        // Registrar no audit log
+        AuditService::logCreate($entidade, "Criado {$tipo}: {$entidade->nome}");
+
+        return redirect()->route($this->getRouteName($tipo, 'index'))
             ->with('success', ucfirst($tipo) . ' criado com sucesso!');
     }
 
@@ -356,8 +360,11 @@ class EntidadeController extends Controller
             'tipo_pessoa' => 'required|in:1,2',
         ]);
 
-        // Atualizar entidade
-        $entidade->update([
+        // Salvar valores antigos para audit log
+        $oldValues = $entidade->getAttributes();
+
+        // Preparar novos valores
+        $newValues = [
             'nome' => $request->nome,
             'nome_fantasia' => $request->nome_fantasia,
             'razao_social' => $request->razao_social,
@@ -368,7 +375,25 @@ class EntidadeController extends Controller
             'site' => $request->site,
             'observacao' => $request->observacao,
             'tipo_pessoa' => $request->tipo_pessoa,
-        ]);
+        ];
+
+        // Verificar se houve alterações nos dados principais
+        $hasChanges = false;
+        foreach ($newValues as $key => $newValue) {
+            $oldValue = $oldValues[$key] ?? null;
+
+            // Normalizar valores vazios para comparação
+            $oldValueNormalized = $this->normalizeValue($oldValue);
+            $newValueNormalized = $this->normalizeValue($newValue);
+
+            if ($oldValueNormalized !== $newValueNormalized) {
+                $hasChanges = true;
+                break;
+            }
+        }
+
+        // Atualizar entidade
+        $entidade->update($newValues);
 
         // Atualizar contatos
         $entidade->contatos()->delete();
@@ -407,8 +432,13 @@ class EntidadeController extends Controller
             }
         }
 
+        // Registrar no audit log apenas se houve alterações
         $tipo = strtolower($entidade->tipo_relacionamento->name);
-        return redirect()->route($tipo . 's.index')
+        if ($hasChanges) {
+            AuditService::logUpdate($entidade, $oldValues, "Atualizado {$tipo}: {$entidade->nome}");
+        }
+
+        return redirect()->route($this->getRouteName($tipo, 'index'))
             ->with('success', ucfirst($tipo) . ' atualizado com sucesso!');
     }
 
@@ -423,9 +453,13 @@ class EntidadeController extends Controller
         }
 
         $tipo = strtolower($entidade->tipo_relacionamento->name);
+
+        // Registrar no audit log antes de deletar
+        AuditService::logDelete($entidade, "Excluído {$tipo}: {$entidade->nome}");
+
         $entidade->delete();
 
-        return redirect()->route($tipo . 's.index')
+        return redirect()->route($this->getRouteName($tipo, 'index'))
             ->with('success', ucfirst($tipo) . ' excluído com sucesso!');
     }
 
@@ -434,12 +468,33 @@ class EntidadeController extends Controller
      */
     public function toggleStatus(Entidade $entidade)
     {
+        $oldStatus = $entidade->status;
         $entidade->update(['status' => !$entidade->status]);
 
         $status = $entidade->status ? 'ativado' : 'desativado';
+        $tipo = strtolower($entidade->tipo_relacionamento->name);
+
+        // Registrar no audit log
+        AuditService::logUpdate($entidade, ['status' => $oldStatus], "Status alterado para {$status}: {$entidade->nome}");
 
         return redirect()->back()
-            ->with('success', ucfirst(strtolower($entidade->tipo_relacionamento->name)) . " {$status} com sucesso!");
+            ->with('success', ucfirst($tipo) . " {$status} com sucesso!");
+    }
+
+    /**
+     * Get correct route name for entity type
+     */
+    private function getRouteName(string $tipo, string $action): string
+    {
+        $pluralMap = [
+            'cliente' => 'clientes',
+            'fornecedor' => 'fornecedores',
+            'funcionario' => 'funcionarios',
+            'transportadora' => 'transportadoras',
+        ];
+
+        $plural = $pluralMap[$tipo] ?? $tipo . 's';
+        return $plural . '.' . $action;
     }
 
     /**
@@ -548,5 +603,17 @@ class EntidadeController extends Controller
         $endereco->delete();
 
         return redirect()->back()->with('success', 'Endereço excluído com sucesso!');
+    }
+
+    /**
+     * Normalizar valores para comparação (tratar valores vazios como null)
+     */
+    private function normalizeValue($value)
+    {
+        if ($value === null || $value === '' || $value === 'null') {
+            return null;
+        }
+
+        return $value;
     }
 }

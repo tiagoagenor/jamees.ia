@@ -7,6 +7,7 @@ use App\Models\Empresa;
 use App\Models\Banco;
 use App\Enums\ContaTipoEnum;
 use App\Helpers\PermissionHelper;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -94,7 +95,7 @@ class ContaEmpresaController extends Controller
             'saldo_inicial.min' => 'Saldo inicial não pode ser negativo.',
         ]);
 
-        ContaEmpresa::create([
+        $contaEmpresa = ContaEmpresa::create([
             'id' => Str::uuid()->toString(),
             'banco_id' => $request->banco_id,
             'empresa_id' => $empresaAtual->id,
@@ -105,6 +106,9 @@ class ContaEmpresaController extends Controller
             'criado_em' => now(),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log
+        AuditService::logCreate($contaEmpresa, "Criou conta bancária: {$contaEmpresa->nome}");
 
         return redirect()->route('conta-empresa.index')
             ->with('success', 'Conta bancária criada com sucesso!');
@@ -168,6 +172,9 @@ class ContaEmpresaController extends Controller
             'saldo_inicial.min' => 'Saldo inicial não pode ser negativo.',
         ]);
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $contaEmpresa->getAttributes();
+
         $contaEmpresa->update([
             'banco_id' => $request->banco_id,
             'tipo' => ContaTipoEnum::from($request->tipo),
@@ -176,6 +183,11 @@ class ContaEmpresaController extends Controller
             'status' => $request->boolean('status', true),
             'atualizado_em' => now(),
         ]);
+
+        // Registrar no audit log apenas se houve mudanças
+        if ($contaEmpresa->wasChanged()) {
+            AuditService::logUpdate($contaEmpresa, $oldValues, "Atualizou conta bancária: {$contaEmpresa->nome}");
+        }
 
         return redirect()->route('conta-empresa.index')
             ->with('success', 'Conta bancária atualizada com sucesso!');
@@ -191,6 +203,9 @@ class ContaEmpresaController extends Controller
         if (!$empresaAtual || $contaEmpresa->empresa_id !== $empresaAtual->id) {
             abort(403, 'Acesso negado.');
         }
+
+        // Registrar no audit log antes da exclusão
+        AuditService::logDelete($contaEmpresa, "Excluiu conta bancária: {$contaEmpresa->nome}");
 
         $contaEmpresa->delete();
 
@@ -209,9 +224,14 @@ class ContaEmpresaController extends Controller
             abort(403, 'Acesso negado.');
         }
 
+        // Capturar valores antigos antes da atualização
+        $oldValues = $contaEmpresa->getAttributes();
+
         $contaEmpresa->update(['status' => !$contaEmpresa->status]);
 
+        // Registrar no audit log
         $status = $contaEmpresa->status ? 'ativada' : 'desativada';
+        AuditService::logUpdate($contaEmpresa, $oldValues, "Alterou status da conta bancária: {$contaEmpresa->nome} - {$status}");
 
         return redirect()->back()
             ->with('success', "Conta bancária {$status} com sucesso!");
