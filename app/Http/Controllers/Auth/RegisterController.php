@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\Usuario;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
@@ -17,6 +18,7 @@ use App\Services\PlanoService;
 use App\Services\Dre\CriarDreService;
 use App\Services\FormaPagamento\CriarFormasPagamentoService;
 use App\Services\PlanoConta\CriarPlanoContaService;
+use App\Services\PHPMailerService;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
@@ -133,6 +135,22 @@ class RegisterController extends Controller
 
         // Fazer login do usuário
         Auth::login($usuario);
+
+        // Enviar email de boas-vindas
+        try {
+            $dadosUsuario = [
+                'userName' => $usuario->nome,
+                'userEmail' => $usuario->email,
+                'companyName' => $empresa->nome_fantasia,
+                'createdAt' => now()->format('d/m/Y H:i'),
+                'customMessage' => 'Bem-vindo ao Sistema JAMEES! Sua conta foi criada com sucesso e você já pode começar a usar todas as funcionalidades disponíveis.'
+            ];
+
+            PHPMailerService::sendWelcomeEmail($usuario->email, $dadosUsuario);
+        } catch (\Exception $e) {
+            // Log do erro mas não interrompe o fluxo de registro
+            Log::error('Erro ao enviar email de boas-vindas: ' . $e->getMessage());
+        }
 
         return redirect()->route('dashboard')->with('success', 'Usuário registrado com sucesso! Você tem 10 dias de teste gratuito.');
     }

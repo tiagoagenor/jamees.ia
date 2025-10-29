@@ -230,6 +230,20 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/historico-alteracoes/stats', [App\Http\Controllers\AuditLogController::class, 'stats'])->name('audit.stats')->middleware('permission:audit,visualizar');
     Route::get('/historico-alteracoes/usuario/{userId}', [App\Http\Controllers\AuditLogController::class, 'byUser'])->name('audit.by-user')->middleware('permission:audit,listar');
     Route::get('/historico-alteracoes/modelo/{modelType}/{modelId?}', [App\Http\Controllers\AuditLogController::class, 'byModel'])->name('audit.by-model')->middleware('permission:audit,listar');
+
+    // Rotas de Email SMTP
+    Route::get('/emails/test', [App\Http\Controllers\EmailController::class, 'test'])->name('emails.test');
+    Route::post('/emails/send-test', [App\Http\Controllers\EmailController::class, 'sendTest'])->name('emails.send-test');
+    Route::post('/emails/send-custom', [App\Http\Controllers\EmailController::class, 'sendCustom'])->name('emails.send-custom');
+    Route::post('/emails/test-connection', [App\Http\Controllers\EmailController::class, 'testConnection'])->name('emails.test-connection');
 });
+
+
+// Rotas de recuperação de senha
+Route::get('/recuperar-senha', [App\Http\Controllers\Auth\PasswordResetController::class, 'showForgotPasswordForm'])->name('forgot-password');
+Route::post('/recuperar-senha', [App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password', [App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [App\Http\Controllers\Auth\PasswordResetController::class, 'reset'])->name('password.update');
+Route::post('/password/check-token', [App\Http\Controllers\Auth\PasswordResetController::class, 'checkTokenStatus'])->name('password.check-token');
 
 require __DIR__.'/auth.php';

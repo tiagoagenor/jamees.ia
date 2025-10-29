@@ -199,6 +199,12 @@
                             </li>
                             @endif
                             <li>
+                                <a href="{{ route('emails.test') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('emails.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
+                                    <i class="fas fa-envelope mr-3"></i>
+                                    Teste de Email SMTP
+                                </a>
+                            </li>
+                            <li>
                                 <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
                                     <i class="fas fa-envelope mr-3"></i>
                                     Modelos de Emails

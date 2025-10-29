@@ -101,7 +101,7 @@
                 </div>
 
                 <div class="text-sm">
-                    <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                    <a href="{{ route('forgot-password') }}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                         Esqueceu a senha?
                     </a>
                 </div>
@@ -115,6 +115,7 @@
                 </button>
             </div>
         </form>
+
 
         <!-- Sign Up Link -->
         <div class="mt-5">
