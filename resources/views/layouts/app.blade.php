@@ -199,12 +199,6 @@
                             </li>
                             @endif
                             <li>
-                                <a href="{{ route('emails.test') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('emails.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-envelope mr-3"></i>
-                                    Teste de Email SMTP
-                                </a>
-                            </li>
-                            <li>
                                 <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
                                     <i class="fas fa-envelope mr-3"></i>
                                     Modelos de Emails
@@ -280,21 +274,26 @@
 
                         <!-- User Dropdown -->
                         <div class="relative">
-                            <button class="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
-                                <div class="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-user text-sm"></i>
+                            <button class="flex items-center text-gray-500 hover:text-gray-700 focus:outline-none group" onclick="toggleUserDropdown()">
+                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105">
+                                    <span class="text-white font-bold text-sm">{{ strtoupper(substr(Auth::user()->nome ?: 'Usuário', 0, 1)) }}</span>
                                 </div>
-                                <i class="fas fa-chevron-down ml-2 text-sm"></i>
+                                <i class="fas fa-chevron-down ml-2 text-sm group-hover:text-blue-600 transition-all duration-200" id="user-dropdown-arrow"></i>
                             </button>
 
                             <!-- Dropdown Menu -->
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                            <div id="user-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" style="display: none;">
+                                <a href="{{ route('meus-dados.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-edit mr-2"></i>
+                                    Meus Dados
+                                </a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfil</a>
                                 <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Configurações</a>
                                 <hr class="my-1">
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>
                                         Sair
                                     </button>
                                 </form>
@@ -669,6 +668,37 @@
             }
         });
 
+    </script>
+
+    <!-- User Dropdown JavaScript -->
+    <script>
+        function toggleUserDropdown() {
+            const menu = document.getElementById('user-dropdown-menu');
+            const arrow = document.getElementById('user-dropdown-arrow');
+
+            console.log('Toggle clicked, menu display:', menu.style.display);
+
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+                console.log('Menu opened');
+            } else {
+                menu.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+                console.log('Menu closed');
+            }
+        }
+
+        // Fechar dropdown quando clicar fora
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('user-dropdown-menu');
+            const button = event.target.closest('[onclick="toggleUserDropdown()"]');
+
+            if (!button && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+                document.getElementById('user-dropdown-arrow').style.transform = 'rotate(0deg)';
+            }
+        });
     </script>
 
     @stack('scripts')

@@ -231,11 +231,9 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/historico-alteracoes/usuario/{userId}', [App\Http\Controllers\AuditLogController::class, 'byUser'])->name('audit.by-user')->middleware('permission:audit,listar');
     Route::get('/historico-alteracoes/modelo/{modelType}/{modelId?}', [App\Http\Controllers\AuditLogController::class, 'byModel'])->name('audit.by-model')->middleware('permission:audit,listar');
 
-    // Rotas de Email SMTP
-    Route::get('/emails/test', [App\Http\Controllers\EmailController::class, 'test'])->name('emails.test');
-    Route::post('/emails/send-test', [App\Http\Controllers\EmailController::class, 'sendTest'])->name('emails.send-test');
-    Route::post('/emails/send-custom', [App\Http\Controllers\EmailController::class, 'sendCustom'])->name('emails.send-custom');
-    Route::post('/emails/test-connection', [App\Http\Controllers\EmailController::class, 'testConnection'])->name('emails.test-connection');
+    // Rotas de Meus Dados
+    Route::get('/meus-dados', [App\Http\Controllers\MeusDadosController::class, 'index'])->name('meus-dados.index');
+    Route::put('/meus-dados', [App\Http\Controllers\MeusDadosController::class, 'update'])->name('meus-dados.update');
 });
 
 

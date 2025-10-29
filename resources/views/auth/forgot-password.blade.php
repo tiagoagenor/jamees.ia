@@ -102,7 +102,7 @@
                 <button type="submit"
                         class="bg-blue-600 hover:bg-blue-700 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white transition">
                     <i class="fas fa-paper-plane mr-2"></i>
-                    Enviar Instruções de Recuperação
+                    Recuperar Senha
                 </button>
             </div>
         </form>
