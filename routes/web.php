@@ -234,6 +234,10 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rotas de Meus Dados
     Route::get('/meus-dados', [App\Http\Controllers\MeusDadosController::class, 'index'])->name('meus-dados.index');
     Route::put('/meus-dados', [App\Http\Controllers\MeusDadosController::class, 'update'])->name('meus-dados.update');
+
+    // Rotas de Configurações Gerais
+    Route::get('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'index'])->name('configuracoes.gerais.index');
+    Route::post('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'update'])->name('configuracoes.gerais.update');
 });
 
 

@@ -17,11 +17,20 @@
     @include('components.plano-notification')
 
     <div class="flex h-screen">
+        <!-- Overlay para mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
         <!-- Sidebar -->
-        <div class="w-64 bg-gray-800 text-white flex flex-col">
-            <!-- Logo -->
-            <div class="px-6 py-4 border-b border-gray-700 text-center text-xl">
-                <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: white;">JAMEES</span>
+        <div id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <!-- Logo e Botão Fechar (Mobile) -->
+            <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+                <div class="flex-1 text-center text-xl">
+                    <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: white;">JAMEES</span>
+                </div>
+                <!-- Botão fechar (apenas mobile) -->
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
 
             <!-- Menu -->
@@ -155,7 +164,7 @@
                         </div>
                         <ul id="configuracoes-submenu" class="ml-6 mt-1 space-y-1 hidden">
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
+                                <a href="{{ route('configuracoes.gerais.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('configuracoes.gerais.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
                                     <i class="fas fa-sliders-h mr-3"></i>
                                     Geral
                                 </a>
@@ -263,6 +272,10 @@
             <header class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between px-6 py-4">
                     <div class="flex items-center">
+                        <!-- Botão hambúrguer (apenas mobile) -->
+                        <button onclick="toggleSidebar()" class="md:hidden mr-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
                         <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
                     </div>
 
@@ -668,6 +681,46 @@
             }
         });
 
+    </script>
+
+    <!-- Sidebar Toggle JavaScript -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                // Abrir sidebar
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                // Fechar sidebar
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Fechar sidebar ao redimensionar para desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        });
+
+        // Fechar sidebar ao clicar em um link em mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarLinks = document.querySelectorAll('#sidebar a');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) {
+                        toggleSidebar();
+                    }
+                });
+            });
+        });
     </script>
 
     <!-- User Dropdown JavaScript -->
