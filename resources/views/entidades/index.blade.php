@@ -271,19 +271,54 @@
                                     </span>
                                 </td>
                                 <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="{{ route($routeName . '.show', $entidade) }}" class="text-blue-600 hover:text-blue-900">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route($routeName . '.edit', $entidade) }}" class="text-indigo-600 hover:text-indigo-900">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button onclick="toggleStatus('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', {{ $entidade->status ? 'true' : 'false' }}, '{{ $routeName }}')" class="text-yellow-600 hover:text-yellow-900">
-                                            <i class="fas fa-{{ $entidade->isAtivo() ? 'ban' : 'check' }}"></i>
-                                        </button>
-                                        <button onclick="confirmarExclusao('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', '{{ $routeName }}')" class="text-red-600 hover:text-red-900">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                    <div class="flex space-x-3">
+                                        <!-- Visualizar -->
+                                        <div class="relative group">
+                                            <a href="{{ route($routeName . '.show', $entidade) }}" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                                <i class="fas fa-eye"></i>
+                                                <span class="sr-only">Visualizar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Visualizar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Editar -->
+                                        <div class="relative group">
+                                            <a href="{{ route($routeName . '.edit', $entidade) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                <i class="fas fa-edit"></i>
+                                                <span class="sr-only">Editar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Editar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Ativar/Inativar -->
+                                        <div class="relative group">
+                                            <button onclick="toggleStatus('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', {{ $entidade->status ? 'true' : 'false' }}, '{{ $routeName }}')" class="text-purple-600 hover:text-purple-900 flex items-center">
+                                                <i class="fas fa-toggle-{{ $entidade->isAtivo() ? 'on' : 'off' }}"></i>
+                                                <span class="sr-only">{{ $entidade->isAtivo() ? 'Inativar' : 'Ativar' }}</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                {{ $entidade->isAtivo() ? 'Inativar' : 'Ativar' }}
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Excluir -->
+                                        <div class="relative group">
+                                            <button onclick="confirmarExclusao('{{ $entidade->id }}', '{{ $entidade->nome_completo }}', '{{ $routeName }}')" class="text-red-600 hover:text-red-900 flex items-center">
+                                                <i class="fas fa-trash"></i>
+                                                <span class="sr-only">Excluir</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Excluir
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

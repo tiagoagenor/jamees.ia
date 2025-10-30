@@ -59,25 +59,56 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <a href="{{ route('dre.show', $dre) }}" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                                    <i class="fas fa-eye mr-1"></i>
-                                    Ver
-                                </a>
-                                <a href="{{ route('dre.edit', $dre) }}" class="text-yellow-600 hover:text-yellow-900 text-sm font-medium">
-                                    <i class="fas fa-edit mr-1"></i>
-                                    Editar
-                                </a>
-                                <button onclick="confirmarToggleStatus('{{ $dre->id }}', '{{ $dre->nome }}', {{ $dre->isAtivo() ? 'true' : 'false' }})"
-                                        class="text-purple-600 hover:text-purple-900 text-sm font-medium">
-                                    <i class="fas fa-toggle-{{ $dre->isAtivo() ? 'on' : 'off' }} mr-1"></i>
-                                    {{ $dre->isAtivo() ? 'Desativar' : 'Ativar' }}
-                                </button>
-                                <button onclick="confirmarExclusao('{{ $dre->id }}', '{{ $dre->nome }}')"
-                                        class="text-red-600 hover:text-red-900 text-sm font-medium">
-                                    <i class="fas fa-trash mr-1"></i>
-                                    Excluir
-                                </button>
+                            <div class="flex items-center space-x-3">
+                                <!-- Visualizar -->
+                                <div class="relative group">
+                                    <a href="{{ route('dre.show', $dre) }}" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i class="fas fa-eye"></i>
+                                        <span class="sr-only">Visualizar</span>
+                                    </a>
+                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                        Visualizar
+                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Editar -->
+                                <div class="relative group">
+                                    <a href="{{ route('dre.edit', $dre) }}" class="text-yellow-600 hover:text-yellow-900 flex items-center">
+                                        <i class="fas fa-edit"></i>
+                                        <span class="sr-only">Editar</span>
+                                    </a>
+                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                        Editar
+                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Ativar/Desativar -->
+                                <div class="relative group">
+                                    <button onclick="confirmarToggleStatus('{{ $dre->id }}', '{{ $dre->nome }}', {{ $dre->isAtivo() ? 'true' : 'false' }})"
+                                            class="text-purple-600 hover:text-purple-900 flex items-center">
+                                        <i class="fas fa-toggle-{{ $dre->isAtivo() ? 'on' : 'off' }}"></i>
+                                        <span class="sr-only">{{ $dre->isAtivo() ? 'Desativar' : 'Ativar' }}</span>
+                                    </button>
+                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                        {{ $dre->isAtivo() ? 'Desativar' : 'Ativar' }}
+                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Excluir -->
+                                <div class="relative group">
+                                    <button onclick="confirmarExclusao('{{ $dre->id }}', '{{ $dre->nome }}')"
+                                            class="text-red-600 hover:text-red-900 flex items-center">
+                                        <i class="fas fa-trash"></i>
+                                        <span class="sr-only">Excluir</span>
+                                    </button>
+                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                        Excluir
+                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -101,13 +132,27 @@
                                                         {{ $child->getTipoLabel() }}
                                                     </span>
                                                 </div>
-                                                <div class="flex items-center space-x-2">
-                                                    <a href="{{ route('dre.show', $child) }}" class="text-blue-600 hover:text-blue-900 text-xs">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{{ route('dre.edit', $child) }}" class="text-yellow-600 hover:text-yellow-900 text-xs">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="relative group">
+                                                        <a href="{{ route('dre.show', $child) }}" class="text-blue-600 hover:text-blue-900 text-xs flex items-center">
+                                                            <i class="fas fa-eye"></i>
+                                                            <span class="sr-only">Visualizar</span>
+                                                        </a>
+                                                        <div class="absolute z-10 invisible inline-block px-2 py-1 text-[10px] font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                            Visualizar
+                                                            <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="relative group">
+                                                        <a href="{{ route('dre.edit', $child) }}" class="text-yellow-600 hover:text-yellow-900 text-xs flex items-center">
+                                                            <i class="fas fa-edit"></i>
+                                                            <span class="sr-only">Editar</span>
+                                                        </a>
+                                                        <div class="absolute z-10 invisible inline-block px-2 py-1 text-[10px] font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                            Editar
+                                                            <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endforeach
