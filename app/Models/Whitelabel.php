@@ -16,6 +16,7 @@ class Whitelabel extends Model
 
     protected $fillable = [
         'nome',
+        'dominio',
     ];
 
     public $timestamps = false;
@@ -47,5 +48,20 @@ class Whitelabel extends Model
     public function ultimosAcessos(): HasMany
     {
         return $this->hasMany(UltimaAcesso::class, 'whitelabel_id');
+    }
+
+    /**
+     * Resolve whitelabel by current host domain. If not found, return a record with dominio=null.
+     */
+    public static function resolveByRequestDomain(?string $host = null): ?self
+    {
+        $domain = $host ?: (request() ? request()->getHost() : null);
+        if ($domain) {
+            $found = static::where('dominio', $domain)->first();
+            if ($found) {
+                return $found;
+            }
+        }
+        return static::whereNull('dominio')->first() ?: static::first();
     }
 }

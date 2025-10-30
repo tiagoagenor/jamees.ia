@@ -63,7 +63,8 @@ class RegisterController extends Controller
 
         // Usar a empresa principal existente ou criar uma nova se não existir
             // Se não há empresa principal, criar uma
-            $whitelabel = Whitelabel::first();
+            // Selecionar whitelabel pelo domínio do host ou fallback para dominio NULL
+            $whitelabel = Whitelabel::resolveByRequestDomain();
             $empresa = Empresa::create([
                 'id' => Str::uuid()->toString(),
                 'whitelabel_id' => $whitelabel->id,
