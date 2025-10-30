@@ -177,9 +177,12 @@
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:p-6">
+    <!-- Lista de Empresas (design alinhado à página de Grupos) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Empresas</h3>
+        </div>
+        <div class="px-0 pt-0 pb-6">
             @if($empresas->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -350,7 +353,7 @@
                 </div>
 
                 <!-- Informações e Paginação -->
-                <div class="mt-6 flex items-center justify-between">
+                <div class="px-2 mt-6 flex items-center justify-between">
                     <div class="text-sm text-gray-700">
                         Mostrando {{ $empresas->firstItem() ?? 0 }} até {{ $empresas->lastItem() ?? 0 }} de {{ $empresas->total() }} resultados
                     </div>

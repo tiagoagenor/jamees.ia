@@ -185,9 +185,12 @@
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:p-6">
+    <!-- Lista de Usuários (design alinhado à página de Empresas/Grupos) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Usuários</h3>
+        </div>
+        <div class="px-0 pt-0 pb-6">
             @if($usuarios->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
