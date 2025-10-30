@@ -34,9 +34,7 @@ class PlanoContaController extends Controller
         $filtroNome = $request->get('nome', '');
 
         $query = PlanoConta::daEmpresa($empresaPrincipal->id)
-            ->with(['dre', 'planoContaPai', 'planoContasFilhos'])
-            ->orderBy('ordem_pai')
-            ->orderBy('ordem_filho');
+            ->with(['dre', 'planoContaPai', 'planoContasFilhos']);
 
         // Aplicar filtro de movimentação
         if ($filtroMovimentacao === 'debito') {
@@ -50,9 +48,31 @@ class PlanoContaController extends Controller
             $query->where('nome', 'LIKE', '%' . $filtroNome . '%');
         }
 
+        // Ordenação tri-state
+        $sortBy = $request->get('sort_by');
+        $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
+        $sortable = [
+            'codigo' => ['ordem_pai', 'ordem_filho'],
+            'nome' => 'nome',
+            'movimentacao' => 'movimentacao',
+            'dre' => 'dre_id',
+            'tipo' => 'plano_conta_id',
+        ];
+        if ($sortBy && isset($sortable[$sortBy]) && $sortDirection) {
+            $column = $sortable[$sortBy];
+            if (is_array($column)) {
+                foreach ($column as $col) { $query->orderBy($col, $sortDirection); }
+            } else {
+                $query->orderBy($column, $sortDirection);
+            }
+        } else {
+            // Ordem padrão hierárquica quando sem sort
+            $query->orderBy('ordem_pai')->orderBy('ordem_filho');
+        }
+
         $planoContas = $query->paginate(15);
 
-        return view('plano-conta.index', compact('planoContas', 'filtroMovimentacao', 'filtroNome'));
+        return view('plano-conta.index', compact('planoContas', 'filtroMovimentacao', 'filtroNome', 'sortBy', 'sortDirection'));
     }
 
     /**

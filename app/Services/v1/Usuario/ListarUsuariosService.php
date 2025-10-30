@@ -64,11 +64,12 @@ class ListarUsuariosService
             });
         }
 
-        // Ordenação
-        $sortBy = $request->get('sort_by', 'nome');
-        $sortDirection = $request->get('sort_direction', 'asc');
-
-        if (in_array($sortBy, ['nome', 'email', 'status', 'criado_em'])) {
+        // Ordenação tri-state: desc -> asc -> sem ordenação
+        $sortBy = $request->get('sort_by');
+        $sortDirectionParam = strtolower($request->get('sort_direction'));
+        $sortDirection = $sortDirectionParam === 'desc' ? 'desc' : ($sortDirectionParam === 'asc' ? 'asc' : null);
+        $sortable = ['nome', 'email', 'status', 'criado_em'];
+        if ($sortBy && in_array($sortBy, $sortable) && $sortDirection) {
             $query->orderBy($sortBy, $sortDirection);
         }
 

@@ -36,9 +36,23 @@ class GrupoController extends Controller
             $query->where('ativo', $filtroStatus === 'ativos');
         }
 
+        // Ordenação tri-state
+        $sortBy = $request->get('sort_by');
+        $sortDirectionParam = strtolower($request->get('sort_direction'));
+        $sortDirection = $sortDirectionParam === 'desc' ? 'desc' : ($sortDirectionParam === 'asc' ? 'asc' : null);
+        $sortable = [
+            'nome' => 'nome',
+            'descricao' => 'descricao',
+            'tipo' => 'administrativo',
+            'status' => 'ativo',
+        ];
+        if ($sortBy && isset($sortable[$sortBy]) && $sortDirection) {
+            $query->orderBy($sortable[$sortBy], $sortDirection);
+        }
+
         $grupos = $query->paginate(15);
 
-        return view('grupos.index', compact('grupos', 'filtroNome', 'filtroTipo', 'filtroStatus'));
+        return view('grupos.index', compact('grupos', 'filtroNome', 'filtroTipo', 'filtroStatus', 'sortBy', 'sortDirection'));
     }
 
     /**

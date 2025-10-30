@@ -31,8 +31,7 @@ class CentroCustoController extends Controller
         $filtroStatus = $request->get('status', 'todos');
         $filtroNome = $request->get('nome', '');
 
-        $query = CentroCusto::daEmpresa($empresaPrincipal->id)
-            ->orderBy('nome');
+        $query = CentroCusto::daEmpresa($empresaPrincipal->id);
 
         // Aplicar filtro de status
         if ($filtroStatus === 'ativos') {
@@ -46,9 +45,21 @@ class CentroCustoController extends Controller
             $query->where('nome', 'LIKE', '%' . $filtroNome . '%');
         }
 
+        // Ordenação tri-state
+        $sortBy = $request->get('sort_by');
+        $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
+        $sortable = [
+            'nome' => 'nome',
+            'status' => 'status',
+            'criado_em' => 'criado_em',
+        ];
+        if ($sortBy && isset($sortable[$sortBy]) && $sortDirection) {
+            $query->orderBy($sortable[$sortBy], $sortDirection);
+        }
+
         $centroCustos = $query->paginate(15);
 
-        return view('centro-custo.index', compact('centroCustos', 'filtroStatus', 'filtroNome'));
+        return view('centro-custo.index', compact('centroCustos', 'filtroStatus', 'filtroNome', 'sortBy', 'sortDirection'));
     }
 
     /**

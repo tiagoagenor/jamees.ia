@@ -50,8 +50,7 @@ class MovimentacaoController extends Controller
 
         $query = Movimentacao::daEmpresa($empresaAtual->id)
             ->porTipo($tipoEnum)
-            ->with(['planoConta', 'centroCusto', 'formaPagamento', 'contaEmpresa', 'entidade'])
-            ->orderBy('vencimento', 'asc');
+            ->with(['planoConta', 'centroCusto', 'formaPagamento', 'contaEmpresa', 'entidade']);
 
         // Aplicar filtro do card clicável
         $this->aplicarFiltroCard($query, $filtroCard);
@@ -74,6 +73,21 @@ class MovimentacaoController extends Controller
 
         if (!empty($filtroVencimentoFim)) {
             $query->where('vencimento', '<=', $filtroVencimentoFim);
+        }
+
+        // Ordenação tri-state
+        $sortBy = $request->get('sort_by');
+        $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
+        $sortable = [
+            'descricao' => 'descricao',
+            'entidade' => 'entidade_id',
+            'pagamento' => 'forma_pagamento_id',
+            'vencimento' => 'vencimento',
+            'situacao' => 'situacao',
+            'valor' => 'valor_total',
+        ];
+        if ($sortBy && isset($sortable[$sortBy]) && $sortDirection) {
+            $query->orderBy($sortable[$sortBy], $sortDirection);
         }
 
         $movimentacoes = $query->paginate(15);
@@ -100,7 +114,9 @@ class MovimentacaoController extends Controller
             'filtroVencimentoInicio',
             'filtroVencimentoFim',
             'formasPagamento',
-            'contasBancarias'
+            'contasBancarias',
+            'sortBy',
+            'sortDirection'
         ));
     }
 

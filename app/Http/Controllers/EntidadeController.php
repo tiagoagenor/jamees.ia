@@ -91,9 +91,35 @@ class EntidadeController extends Controller
             $query->where('status', $filtroStatus === 'ativos');
         }
 
-        $entidades = $query->orderBy('nome', 'asc')->paginate(15);
+        // Ordenação (tri-state: desc -> asc -> sem ordenação)
+        $sortBy = $request->get('sort_by');
+        $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
+        $sortable = [
+            'nome' => 'nome',
+            'documento' => 'documento',
+            'email' => 'email',
+            'status' => 'status',
+            'criado_em' => 'criado_em',
+        ];
+        if ($sortBy && isset($sortable[$sortBy]) && $sortDirection) {
+            $query->orderBy($sortable[$sortBy], $sortDirection);
+        }
 
-        return view('entidades.index', compact('entidades', 'tipo', 'filtroNome', 'filtroDocumento', 'filtroEmail', 'filtroStatus'));
+        $entidades = $query->paginate(15);
+        if ($sortBy && $sortDirection) {
+            $entidades->appends([
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection,
+            ]);
+        }
+        $entidades->appends([
+            'nome' => $filtroNome,
+            'documento' => $filtroDocumento,
+            'email' => $filtroEmail,
+            'status' => $filtroStatus,
+        ]);
+
+        return view('entidades.index', compact('entidades', 'tipo', 'filtroNome', 'filtroDocumento', 'filtroEmail', 'filtroStatus', 'sortBy', 'sortDirection'));
     }
 
     /**

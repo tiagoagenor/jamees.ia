@@ -147,35 +147,130 @@
                     </form>
                 </div>
 
-                <!-- Resumo -->
-                <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                    <div class="text-sm text-gray-600">
-                        <span class="font-medium">{{ $movimentacoes->total() }}</span> {{ strtolower($titulo) }} encontrada(s)
-                        @if($filtroDescricao)
-                            <span class="text-blue-600">para "{{ $filtroDescricao }}"</span>
-                        @endif
-                        @if($movimentacoes->total() > 0)
-                            <span class="ml-4">
-                                Total: <span class="font-bold text-{{ $tipoCor }}-600">R$ {{ number_format($movimentacoes->sum('valor_total'), 2, ',', '.') }}</span>
-                            </span>
-                        @endif
-                    </div>
-                </div>
+
 
                 <!-- Tabela -->
                 @if($movimentacoes->count() > 0)
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entidade</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagamento</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Vencimento</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Situação</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                </tr>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'descricao';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'descricao'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Descrição</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'entidade';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'entidade'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Entidade</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'pagamento';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'pagamento'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Pagamento</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'vencimento';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'vencimento'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Data Vencimento</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'situacao';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'situacao'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Situação</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'valor';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'valor'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                        <span>Valor</span>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @else
+                                            <i class="fas fa-sort text-gray-400"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($movimentacoes as $movimentacao)

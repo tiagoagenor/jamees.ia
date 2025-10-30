@@ -194,22 +194,38 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'nome', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'nome';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'nome'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Nome</span>
-                                        @if(request('sort_by') == 'nome')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
                                     </a>
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'email', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'email';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'email'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Email</span>
-                                        @if(request('sort_by') == 'email')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
@@ -219,11 +235,19 @@
                                     Empresas
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'status';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'status'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Status</span>
-                                        @if(request('sort_by') == 'status')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
@@ -233,11 +257,19 @@
                                     Tipo
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'criado_em', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'criado_em';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'criado_em'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Criado em</span>
-                                        @if(request('sort_by') == 'criado_em')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif

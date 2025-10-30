@@ -230,11 +230,83 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
-                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'nome';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'nome'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Nome</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'documento';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'documento'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Documento</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'email';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'email'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Email</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'status';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'status'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Status</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
