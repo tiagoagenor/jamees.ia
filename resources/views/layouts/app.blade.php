@@ -21,60 +21,61 @@
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
         <!-- Sidebar -->
-        <div id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-gray-800 text-white flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white text-slate-700 border-r border-gray-200 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <!-- Logo e Botão Fechar (Mobile) -->
-            <div class="px-6 py-4 border-b border-gray-700 flex items-center justify-between">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div class="flex-1 text-center text-xl">
-                    <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: white;">JAMEES</span>
+                    <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: #1E40AF;">JAMEES</span>
                 </div>
                 <!-- Botão fechar (apenas mobile) -->
-                <button onclick="toggleSidebar()" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
 
             <!-- Menu -->
             <nav class="flex-1 px-6 py-4 overflow-y-auto">
+                <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Menu</p>
                 <ul class="space-y-1">
                     <!-- Início -->
                     <li>
-                        <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }}">
-                            <i class="fas fa-home mr-3"></i>
+                        <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 rounded-xl text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                            <i class="fas fa-home mr-3 {{ request()->routeIs('dashboard') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                             Início
                         </a>
                     </li>
 
                     <!-- Cadastro -->
                     <li>
-                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer" onclick="toggleSubmenu('cadastro')">
+                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('cadastro')">
                             <div class="flex items-center">
-                                <i class="fas fa-user-plus mr-3"></i>
+                                <i class="fas fa-user-plus mr-3 text-slate-400"></i>
                                 Cadastro
                             </div>
-                            <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="cadastro-arrow"></i>
+                            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="cadastro-arrow"></i>
                         </div>
-                        <ul id="cadastro-submenu" class="ml-6 mt-1 space-y-1 hidden">
+                        <ul id="cadastro-submenu" class="ml-4 mt-2 space-y-1 hidden">
                             <li>
-                                <a href="{{ route('clientes.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('clientes.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-user-tie mr-3"></i>
+                                <a href="{{ route('clientes.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('clientes.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-user-tie mr-3 {{ request()->routeIs('clientes.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Cliente
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('fornecedores.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('fornecedores.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-truck mr-3"></i>
+                                <a href="{{ route('fornecedores.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('fornecedores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-truck mr-3 {{ request()->routeIs('fornecedores.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Fornecedor
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('funcionarios.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('funcionarios.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-user mr-3"></i>
+                                <a href="{{ route('funcionarios.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('funcionarios.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-user mr-3 {{ request()->routeIs('funcionarios.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Funcionário
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('transportadoras.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('transportadoras.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-shipping-fast mr-3"></i>
+                                <a href="{{ route('transportadoras.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('transportadoras.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-shipping-fast mr-3 {{ request()->routeIs('transportadoras.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Transportadora
                                 </a>
                             </li>
@@ -83,68 +84,68 @@
 
                     <!-- Financeiro -->
                     <li>
-                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer" onclick="toggleSubmenu('financeiro')">
+                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('financeiro')">
                             <div class="flex items-center">
-                                <i class="fas fa-dollar-sign mr-3"></i>
+                                <i class="fas fa-dollar-sign mr-3 text-slate-400"></i>
                                 Financeiro
                             </div>
-                            <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="financeiro-arrow"></i>
+                            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="financeiro-arrow"></i>
                         </div>
-                        <ul id="financeiro-submenu" class="ml-6 mt-1 space-y-1 hidden">
+                        <ul id="financeiro-submenu" class="ml-4 mt-2 space-y-1 hidden">
                             <li>
-                                <a href="{{ route('dashboard.financeiro') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('dashboard.financeiro') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-chart-line mr-3"></i>
+                                <a href="{{ route('dashboard.financeiro') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('dashboard.financeiro') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-chart-line mr-3 {{ request()->routeIs('dashboard.financeiro') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
                                     Dashboard
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('dre.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('dre.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-chart-pie mr-3"></i>
+                                <a href="{{ route('dre.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('dre.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-chart-pie mr-3 {{ request()->routeIs('dre.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
                                     Gerenciar DRE
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('contas-a-pagar.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('contas-a-pagar.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-credit-card mr-3"></i>
+                                <a href="{{ route('contas-a-pagar.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('contas-a-pagar.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-credit-card mr-3 {{ request()->routeIs('contas-a-pagar.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
                                     Contas a Pagar
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('contas-a-receber.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('contas-a-receber.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-money-bill-wave mr-3"></i>
+                                <a href="{{ route('contas-a-receber.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('contas-a-receber.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-money-bill-wave mr-3 {{ request()->routeIs('contas-a-receber.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
                                     Contas a Receber
                                 </a>
                             </li>
                             <li>
-                                <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-700 hover:text-white cursor-pointer" onclick="toggleSubmenu('opcoes-auxiliares')">
+                                    <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-500 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('opcoes-auxiliares')">
                                     <div class="flex items-center">
-                                        <i class="fas fa-cogs mr-3"></i>
+                                            <i class="fas fa-cogs mr-3 text-slate-400"></i>
                                         Opções auxiliares
                                     </div>
-                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="opcoes-auxiliares-arrow"></i>
+                                        <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="opcoes-auxiliares-arrow"></i>
                                 </div>
-                                <ul id="opcoes-auxiliares-submenu" class="ml-6 mt-1 space-y-1 hidden">
+                                <ul id="opcoes-auxiliares-submenu" class="ml-4 mt-2 space-y-1 hidden">
                                     <li>
-                                        <a href="{{ route('conta-empresa.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('conta-empresa.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                            <i class="fas fa-university mr-3"></i>
+                                        <a href="{{ route('conta-empresa.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('conta-empresa.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                            <i class="fas fa-university mr-3 {{ request()->routeIs('conta-empresa.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                             Contas bancárias
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('forma-pagamento.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('forma-pagamento.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                            <i class="fas fa-credit-card mr-3"></i>
+                                        <a href="{{ route('forma-pagamento.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('forma-pagamento.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                            <i class="fas fa-credit-card mr-3 {{ request()->routeIs('forma-pagamento.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                             Formas de pagamento
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('plano-conta.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('plano-conta.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                            <i class="fas fa-list-alt mr-3"></i>
+                                        <a href="{{ route('plano-conta.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('plano-conta.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                            <i class="fas fa-list-alt mr-3 {{ request()->routeIs('plano-conta.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                             Plano de conta
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="{{ route('centro-custo.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('centro-custo.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                            <i class="fas fa-building mr-3"></i>
+                                        <a href="{{ route('centro-custo.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('centro-custo.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                            <i class="fas fa-building mr-3 {{ request()->routeIs('centro-custo.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                             Centro de custo
                                         </a>
                                     </li>
@@ -155,61 +156,61 @@
 
                     <!-- Configurações -->
                     <li>
-                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white cursor-pointer" onclick="toggleSubmenu('configuracoes')">
+                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('configuracoes')">
                             <div class="flex items-center">
-                                <i class="fas fa-cog mr-3"></i>
+                                <i class="fas fa-cog mr-3 text-slate-400"></i>
                                 Configurações
                             </div>
-                            <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="configuracoes-arrow"></i>
+                            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="configuracoes-arrow"></i>
                         </div>
-                        <ul id="configuracoes-submenu" class="ml-6 mt-1 space-y-1 hidden">
+                        <ul id="configuracoes-submenu" class="ml-4 mt-2 space-y-1 hidden">
                             <li>
-                                <a href="{{ route('configuracoes.gerais.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('configuracoes.gerais.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-sliders-h mr-3"></i>
+                                <a href="{{ route('configuracoes.gerais.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('configuracoes.gerais.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-sliders-h mr-3 {{ request()->routeIs('configuracoes.gerais.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Geral
                                 </a>
                             </li>
                             @if(\App\Helpers\PermissionHelper::can('audit', 'listar'))
                             <li>
-                                <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('audit.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-history mr-3"></i>
+                                <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('audit.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-history mr-3 {{ request()->routeIs('audit.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Histórico de Alterações
                                 </a>
                             </li>
                             @endif
                             <li>
-                                <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('planos.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-crown mr-3"></i>
+                                <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('planos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-crown mr-3 {{ request()->routeIs('planos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Meu Plano
                                 </a>
                             </li>
                             @if(\App\Helpers\PermissionHelper::can('usuarios', 'listar'))
                             <li>
-                                <a href="{{ route('usuarios.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('usuarios.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-user mr-3"></i>
+                                <a href="{{ route('usuarios.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('usuarios.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-user mr-3 {{ request()->routeIs('usuarios.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Usuário
                                 </a>
                             </li>
                             @endif
                             @if(\App\Helpers\PermissionHelper::can('grupos', 'listar'))
                             <li>
-                                <a href="{{ route('grupos.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('grupos.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-users-cog mr-3"></i>
+                                <a href="{{ route('grupos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('grupos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-users-cog mr-3 {{ request()->routeIs('grupos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Grupo de Usuário
                                 </a>
                             </li>
                             @endif
                             @if(\App\Helpers\PermissionHelper::can('empresas', 'listar'))
                             <li>
-                                <a href="{{ route('empresas.index') }}" class="flex items-center px-3 py-2 rounded-md text-sm {{ request()->routeIs('empresas.*') ? 'text-white bg-gray-600' : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                                    <i class="fas fa-building mr-3"></i>
+                                <a href="{{ route('empresas.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('empresas.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-building mr-3 {{ request()->routeIs('empresas.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Empresa/Loja
                                 </a>
                             </li>
                             @endif
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-md text-sm text-gray-400 hover:bg-gray-700 hover:text-white">
-                                    <i class="fas fa-envelope mr-3"></i>
+                                <a href="#" class="flex items-center px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-gray-50 hover:text-slate-900">
+                                    <i class="fas fa-envelope mr-3 text-slate-400"></i>
                                     Modelos de Emails
                                 </a>
                             </li>
@@ -219,11 +220,11 @@
             </nav>
 
             <!-- Company Selector -->
-            <div class="px-6 py-4 border-t border-gray-700">
+            <div class="px-6 py-4 border-t border-gray-200">
                 <div class="relative">
-                    <button id="company-selector" class="w-full flex items-center justify-between px-3 py-2 bg-gray-700 rounded-md text-sm font-medium text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="company-selector" class="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-slate-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400">
                         <div class="flex items-center">
-                            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
                                 <i class="fas fa-building text-sm"></i>
                             </div>
                             <div class="ml-3 text-left">
@@ -234,30 +235,30 @@
                                         Nenhuma empresa selecionada
                                     @endif
                                 </p>
-                                <p class="text-xs text-gray-400" id="current-company-type">
+                                <p class="text-xs text-slate-400" id="current-company-type">
                                     @if($currentCompany)
                                         {{ $currentCompany->tipo }}
                                     @endif
                                 </p>
                             </div>
                         </div>
-                        <i class="fas fa-chevron-down text-xs"></i>
+                        <i class="fas fa-chevron-down text-xs text-slate-400"></i>
                     </button>
 
                 </div>
             </div>
 
             <!-- Logout Button -->
-            <div class="px-6 py-4 border-t border-gray-700">
+            <div class="px-6 py-4 border-t border-gray-200">
                 <a href="{{ route('logout') }}"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                   class="w-full flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200">
-                    <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                   class="w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors duration-200">
+                    <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">
                         <i class="fas fa-sign-out-alt text-sm"></i>
                     </div>
                     <div class="ml-3">
                         <p class="text-sm font-medium">Sair do Sistema</p>
-                        <p class="text-xs text-gray-400">{{ Auth::user()->nome }}</p>
+                        <p class="text-xs text-slate-400">{{ Auth::user()->nome }}</p>
                     </div>
                 </a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
