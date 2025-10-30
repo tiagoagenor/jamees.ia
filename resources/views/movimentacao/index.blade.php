@@ -59,12 +59,11 @@
                             <i class="fas fa-filter text-blue-600 mr-2"></i>
                             Filtros
                         </h3>
-                        <div class="text-sm text-gray-600">
-                            <span class="font-medium">{{ $movimentacoes->count() }}</span> movimentação(ões) encontrada(s)
-                            @if($filtroDescricao)
-                                <span class="text-blue-600">para "{{ $filtroDescricao }}"</span>
-                            @endif
-                        </div>
+                        @if($filtroDescricao)
+                            <div class="text-sm text-gray-600">
+                                <span class="text-blue-600">Filtro: "{{ $filtroDescricao }}"</span>
+                            </div>
+                        @endif
                     </div>
 
                     <form method="GET" action="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="space-y-4">
