@@ -118,122 +118,216 @@
         </div>
     </div>
 
-    <!-- Contas List -->
+    <!-- Contas Tabela (alinhado ao Centro de Custo) -->
     <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">Contas Bancárias</h3>
         </div>
 
         @if($contas->count() > 0)
-            <div class="divide-y divide-gray-200">
-                @foreach($contas as $conta)
-                    <div class="p-6">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-shrink-0">
-                                    @if($conta->banco && $conta->banco->imagem)
-                                        <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                            <img src="{{ asset('img/bancos/' . $conta->banco->imagem) }}"
-                                                 alt="{{ $conta->banco->nome_normalizado }}"
-                                                 class="w-full h-full object-contain"
-                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400" style="display: none;">
-                                                <i class="fas fa-university text-xl"></i>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banco</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'nome';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'nome'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Nome</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'status';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'status'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Status</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo inicial</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'criado_em';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'criado_em'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Criado em</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($contas as $conta)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex items-center">
+                                        @if($conta->banco && $conta->banco->imagem)
+                                            <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                                                <img src="{{ asset('img/bancos/' . $conta->banco->imagem) }}" alt="{{ $conta->banco->nome_normalizado }}" class="w-full h-full object-contain"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="w-full h-full hidden items-center justify-center text-gray-400">
+                                                    <i class="fas fa-university"></i>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="w-10 h-10 rounded flex items-center justify-center @if($conta->isCorrente()) bg-blue-100 text-blue-600 @elseif($conta->isPoupanca()) bg-green-100 text-green-600 @elseif($conta->isInvestimento()) bg-purple-100 text-purple-600 @elseif($conta->isCartaoCredito()) bg-red-100 text-red-600 @else bg-orange-100 text-orange-600 @endif">
+                                                <i class="{{ $conta->getTipoIcon() }}"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $conta->nome }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {{ $conta->isAtiva() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        <i class="{{ $conta->isAtiva() ? 'fas fa-check-circle' : 'fas fa-times-circle' }} mr-1"></i>
+                                        {{ $conta->isAtiva() ? 'Ativa' : 'Inativa' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $conta->getSaldoInicialFormatado() }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $conta->criado_em ? \Illuminate\Support\Carbon::parse($conta->criado_em)->format('d/m/Y H:i') : '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-3">
+                                        <!-- Visualizar -->
+                                        <div class="relative group">
+                                            <a href="{{ route('conta-empresa.show', $conta) }}" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                                <i class="fas fa-eye"></i>
+                                                <span class="sr-only">Visualizar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Visualizar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
                                             </div>
                                         </div>
-                                    @else
-                                        <div class="w-12 h-12 rounded-lg flex items-center justify-center
-                                            @if($conta->isCorrente()) bg-blue-100 text-blue-600
-                                            @elseif($conta->isPoupanca()) bg-green-100 text-green-600
-                                            @elseif($conta->isInvestimento()) bg-purple-100 text-purple-600
-                                            @elseif($conta->isCartaoCredito()) bg-red-100 text-red-600
-                                            @else bg-orange-100 text-orange-600 @endif">
-                                            <i class="{{ $conta->getTipoIcon() }}"></i>
+
+                                        <!-- Editar -->
+                                        <div class="relative group">
+                                            <a href="{{ route('conta-empresa.edit', $conta) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                <i class="fas fa-edit"></i>
+                                                <span class="sr-only">Editar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Editar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
                                         </div>
-                                    @endif
-                                </div>
-                                <div>
-                                    <h4 class="text-lg font-medium text-gray-900">{{ $conta->nome }}</h4>
-                                    <div class="flex items-center space-x-2 mt-1">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            @if($conta->isCorrente()) bg-blue-100 text-blue-800
-                                            @elseif($conta->isPoupanca()) bg-green-100 text-green-800
-                                            @elseif($conta->isInvestimento()) bg-purple-100 text-purple-800
-                                            @elseif($conta->isCartaoCredito()) bg-red-100 text-red-800
-                                            @else bg-orange-100 text-orange-800 @endif">
-                                            {{ $conta->getTipoLabel() }}
-                                        </span>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                            {{ $conta->isAtiva() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            {{ $conta->isAtiva() ? 'Ativa' : 'Inativa' }}
-                                        </span>
-                                    </div>
-                                    <p class="text-sm text-gray-600 mt-1">
-                                        @if($conta->banco)
-                                            {{ $conta->banco->nome_normalizado }} ({{ $conta->banco->numero_banco }})
-                                        @else
-                                            Banco não encontrado
-                                        @endif
-                                    </p>
-                                    <p class="text-sm text-gray-600">
-                                        Saldo inicial: {{ $conta->getSaldoInicialFormatado() }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <!-- Visualizar -->
-                                <div class="relative group">
-                                    <a href="{{ route('conta-empresa.show', $conta) }}" class="text-blue-600 hover:text-blue-900 flex items-center">
-                                        <i class="fas fa-eye"></i>
-                                        <span class="sr-only">Visualizar</span>
-                                    </a>
-                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                        Visualizar
-                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
-                                    </div>
-                                </div>
 
-                                <!-- Editar -->
-                                <div class="relative group">
-                                    <a href="{{ route('conta-empresa.edit', $conta) }}" class="text-yellow-600 hover:text-yellow-900 flex items-center">
-                                        <i class="fas fa-edit"></i>
-                                        <span class="sr-only">Editar</span>
-                                    </a>
-                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                        Editar
-                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
-                                    </div>
-                                </div>
+                                        <!-- Ativar/Inativar -->
+                                        <div class="relative group">
+                                            <button onclick="confirmarToggleStatus('{{ $conta->id }}', '{{ $conta->nome }}', {{ $conta->isAtiva() ? 'true' : 'false' }})" class="text-purple-600 hover:text-purple-900 flex items-center">
+                                                <i class="fas fa-toggle-{{ $conta->isAtiva() ? 'on' : 'off' }}"></i>
+                                                <span class="sr-only">{{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                {{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
 
-                                <!-- Ativar/Desativar -->
-                                <div class="relative group">
-                                    <button onclick="confirmarToggleStatus('{{ $conta->id }}', '{{ $conta->nome }}', {{ $conta->isAtiva() ? 'true' : 'false' }})"
-                                            class="text-purple-600 hover:text-purple-900 flex items-center">
-                                        <i class="fas fa-toggle-{{ $conta->isAtiva() ? 'on' : 'off' }}"></i>
-                                        <span class="sr-only">{{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}</span>
-                                    </button>
-                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                        {{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}
-                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                        <!-- Excluir -->
+                                        <div class="relative group">
+                                            <button onclick="confirmarExclusao('{{ $conta->id }}', '{{ $conta->nome }}')" class="text-red-600 hover:text-red-900 flex items-center">
+                                                <i class="fas fa-trash"></i>
+                                                <span class="sr-only">Excluir</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Excluir
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-                                <!-- Excluir -->
-                                <div class="relative group">
-                                    <button onclick="confirmarExclusao('{{ $conta->id }}', '{{ $conta->nome }}')"
-                                            class="text-red-600 hover:text-red-900 flex items-center">
-                                        <i class="fas fa-trash"></i>
-                                        <span class="sr-only">Excluir</span>
-                                    </button>
-                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                        Excluir
-                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Paginação -->
+            <div class="px-6 py-4 border-t border-gray-200">
+                @if($contas instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Mostrando {{ $contas->firstItem() }} até {{ $contas->lastItem() }} de {{ $contas->total() }} resultados
+                        </div>
+                        <div class="flex space-x-1">
+                            @if ($contas->onFirstPage())
+                                <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            @else
+                                <a href="{{ $contas->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            @endif
+
+                            @foreach ($contas->getUrlRange(1, $contas->lastPage()) as $page => $url)
+                                @if ($page == $contas->currentPage())
+                                    <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            @if ($contas->hasMorePages())
+                                <a href="{{ $contas->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            @endif
                         </div>
                     </div>
-                @endforeach
+                @else
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Mostrando {{ $contas->count() }} resultado(s)
+                        </div>
+                    </div>
+                @endif
             </div>
         @else
             <div class="p-12 text-center">

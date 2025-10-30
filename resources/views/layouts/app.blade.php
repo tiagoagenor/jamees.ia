@@ -27,7 +27,7 @@
             <!-- Logo e Botão Fechar (Mobile) -->
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div class="flex-1 text-center text-xl">
-                    <span style="font-family: 'Roboto'; font-size: 28px; font-weight: bold; font-style: italic; color: #1E40AF;">JAMEES</span>
+                    <span id="brand-logo" style="font-family: 'Roboto'; font-weight: bold; font-style: italic; color: #1E40AF;">JAMEES</span>
                 </div>
                 <!-- Botão fechar (apenas mobile) -->
                 <button onclick="toggleSidebar()" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
@@ -277,6 +277,10 @@
                     <div class="flex items-center">
                         <!-- Botão hambúrguer (apenas mobile) -->
                         <button onclick="toggleSidebar()" class="md:hidden mr-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <!-- Botão compactar/expandir (desktop) -->
+                        <button onclick="toggleSidebarCompact()" class="hidden md:inline-flex mr-3 text-gray-500 hover:text-gray-700 focus:outline-none" title="Alternar menu compacto">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
                         <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
@@ -688,6 +692,38 @@
 
     <!-- Sidebar Toggle JavaScript -->
     <script>
+        // Sidebar compacto (desktop): mostra apenas ícones
+        function applyCompactSidebar(compact) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar) return;
+
+            if (compact) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                document.body.classList.add('sidebar-compact');
+                if (overlay) overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                document.body.classList.remove('sidebar-compact');
+            }
+        }
+
+        function toggleSidebarCompact() {
+            const isCompact = document.body.classList.contains('sidebar-compact');
+            applyCompactSidebar(!isCompact);
+            try { localStorage.setItem('sidebar_compact', !isCompact ? '1' : '0'); } catch(e) {}
+        }
+
+        // Sempre iniciar com menu expandido (com texto) ao entrar no sistema
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                applyCompactSidebar(false);
+                localStorage.setItem('sidebar_compact', '0');
+            } catch(e) {}
+        });
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -724,7 +760,120 @@
                 });
             });
         });
+
+        // Manter submenus abertos no modo compacto ao mover o mouse
+        document.addEventListener('DOMContentLoaded', function() {
+            function setupCompactHoverMenus() {
+                if (!document.body.classList.contains('sidebar-compact')) return;
+
+                const items = document.querySelectorAll('#sidebar li');
+                items.forEach(li => {
+                    const submenu = li.querySelector("[id$='-submenu']");
+                    if (!submenu) return;
+
+                    let closeTimer = null;
+
+                    function open() {
+                        if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+                        li.classList.add('submenu-open');
+                        submenu.style.display = 'block';
+                    }
+
+                    function scheduleClose() {
+                        closeTimer = setTimeout(() => {
+                            li.classList.remove('submenu-open');
+                            submenu.style.display = 'none';
+                        }, 120);
+                    }
+
+                    li.addEventListener('mouseenter', open);
+                    li.addEventListener('mouseleave', scheduleClose);
+                    submenu.addEventListener('mouseenter', open);
+                    submenu.addEventListener('mouseleave', scheduleClose);
+                });
+            }
+
+            setupCompactHoverMenus();
+
+            // Reconfigurar ao alternar modo compacto
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'sidebar_compact') {
+                    setTimeout(setupCompactHoverMenus, 50);
+                }
+            });
+        });
     </script>
+
+    <!-- Estilos do modo compacto da sidebar -->
+    <style>
+        /* Tamanho da marca (logo JAMEES): 28px expandido, 14px no compacto */
+        #brand-logo { font-size: 28px; }
+        .sidebar-compact #brand-logo { font-size: 14px !important; }
+
+        /* Reduz a sidebar e esconde textos mantendo ícones visíveis */
+        .sidebar-compact #sidebar { width: 5rem; }
+        .sidebar-compact #sidebar { overflow: visible; }
+        .sidebar-compact #sidebar nav { overflow: visible !important; }
+        .sidebar-compact #sidebar .px-6 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .sidebar-compact #sidebar .ml-4 { margin-left: 0; }
+        .sidebar-compact #sidebar nav ul li a,
+        .sidebar-compact #sidebar div[onclick^="toggleSubmenu"] {
+            justify-content: center;
+        }
+        .sidebar-compact #sidebar nav ul li a i,
+        .sidebar-compact #sidebar div[onclick^="toggleSubmenu"] i {
+            margin-right: 0 !important;
+        }
+        /* Truque para esconder texto sem alterar ícones */
+        .sidebar-compact #sidebar nav ul li a { font-size: 0; }
+        .sidebar-compact #sidebar nav ul li a i { font-size: 1rem; }
+        .sidebar-compact #sidebar div[onclick^="toggleSubmenu"] { font-size: 0; }
+        .sidebar-compact #sidebar div[onclick^="toggleSubmenu"] i { font-size: 1rem; }
+
+        /* Esconder setas/chevrons no modo compacto */
+        .sidebar-compact #sidebar [id$='-arrow'] { display: none; }
+
+        /* Flyout de submenu no modo compacto (mostrar ao passar o mouse) */
+        .sidebar-compact #sidebar li { position: relative; }
+        .sidebar-compact #sidebar [id$='-submenu'] {
+            display: none !important;
+            position: absolute;
+            top: 0;
+            left: calc(5rem - 1px); /* encosta no menu, sem gap */
+            background: #ffffff;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0; /* sem borda arredondada */
+            min-width: 12rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding: 0; /* sem padding extra para reduzir área morta */
+        }
+        .sidebar-compact #sidebar li:hover > [id$='-submenu'] {
+            display: block !important;
+        }
+        /* Manter aberto quando o mouse entra no flyout (não perder foco) */
+        .sidebar-compact #sidebar [id$='-submenu']:hover { display: block !important; }
+        /* Submenu de segundo nível (abre ao lado do primeiro) */
+        .sidebar-compact #sidebar [id$='-submenu'] li { position: relative; }
+        .sidebar-compact #sidebar [id$='-submenu'] [id$='-submenu'] {
+            left: calc(100% - 1px); /* encosta sem gap */
+            top: 0;
+        }
+
+        /* Textos devem aparecer dentro dos flyouts mesmo em modo compacto */
+        .sidebar-compact #sidebar [id$='-submenu'] a { font-size: 0.875rem; } /* 14px */
+        .sidebar-compact #sidebar [id$='-submenu'] div[onclick^="toggleSubmenu"] { font-size: 0.875rem; }
+        .sidebar-compact #sidebar [id$='-submenu'] i { margin-right: 0.75rem !important; }
+
+        /* Compactar cabeçalho/logo da sidebar (reduzir, não ocultar) */
+        .sidebar-compact #sidebar .text-xl { font-size: 0.875rem; line-height: 1.25rem; }
+
+        /* Compactar seletor de empresa e botão de sair (mostrar só ícones) */
+        .sidebar-compact #sidebar #company-selector { font-size: 0; padding-left: 0.5rem; padding-right: 0.5rem; }
+        .sidebar-compact #sidebar #company-selector i { font-size: 1rem; }
+        .sidebar-compact #sidebar .border-t .w-8.h-8 { margin: 0 auto; }
+        .sidebar-compact #sidebar .border-t .ml-3 { display: none; }
+    </style>
 
     <!-- User Dropdown JavaScript -->
     <script>

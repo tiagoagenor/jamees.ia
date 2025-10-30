@@ -346,40 +346,48 @@
 
                     <!-- Paginação -->
                     <div class="mt-6">
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-700">
-                                Mostrando {{ $movimentacoes->firstItem() }} até {{ $movimentacoes->lastItem() }} de {{ $movimentacoes->total() }} resultados
-                            </div>
-                            <div class="flex space-x-1">
-                                @if ($movimentacoes->onFirstPage())
-                                    <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                @else
-                                    <a href="{{ $movimentacoes->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
-                                @endif
-
-                                @foreach ($movimentacoes->getUrlRange(1, $movimentacoes->lastPage()) as $page => $url)
-                                    @if ($page == $movimentacoes->currentPage())
-                                        <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
+                        @if($movimentacoes instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Mostrando {{ $movimentacoes->firstItem() }} até {{ $movimentacoes->lastItem() }} de {{ $movimentacoes->total() }} resultados
+                                </div>
+                                <div class="flex space-x-1">
+                                    @if ($movimentacoes->onFirstPage())
+                                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </span>
                                     @else
-                                        <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                        <a href="{{ $movimentacoes->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
                                     @endif
-                                @endforeach
 
-                                @if ($movimentacoes->hasMorePages())
-                                    <a href="{{ $movimentacoes->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                @else
-                                    <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </span>
-                                @endif
+                                    @foreach ($movimentacoes->getUrlRange(1, $movimentacoes->lastPage()) as $page => $url)
+                                        @if ($page == $movimentacoes->currentPage())
+                                            <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+
+                                    @if ($movimentacoes->hasMorePages())
+                                        <a href="{{ $movimentacoes->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    @else
+                                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Mostrando {{ $movimentacoes->count() }} resultado(s)
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @else
                     <div class="text-center py-12">
