@@ -95,9 +95,15 @@
                         </div>
                         <ul id="loteamento-submenu" class="ml-4 mt-2 space-y-1 hidden">
                             <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors duration-200">
-                                    <i class="fas fa-map-marked-alt mr-3 text-slate-400"></i>
-                                    Mapa
+                                <a href="{{ route('empreendimentos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('empreendimentos.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-building mr-3 {{ request()->routeIs('empreendimentos.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
+                                    Empreendimentos
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('lote-status.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('lote-status.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-tags mr-3 {{ request()->routeIs('lote-status.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
+                                    Status
                                 </a>
                             </li>
                         </ul>

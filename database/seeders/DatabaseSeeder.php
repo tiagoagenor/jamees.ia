@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PlanoSeeder::class,
             GrupoSeeder::class,
             UsuarioGrupoSeeder::class,
+            LoteStatusSeeder::class,
         ]);
     }
 }

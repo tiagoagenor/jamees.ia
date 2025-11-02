@@ -239,6 +239,31 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'index'])->name('configuracoes.gerais.index');
     Route::post('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'update'])->name('configuracoes.gerais.update');
 
+    // Loteamento - Empreendimentos
+    Route::resource('empreendimentos', App\Http\Controllers\EmpreendimentoController::class);
+    Route::get('/empreendimentos/{empreendimento}/mapa', [App\Http\Controllers\EmpreendimentoController::class, 'mapa'])->name('empreendimentos.mapa');
+
+    // Loteamento - Status de Lotes
+    Route::resource('lote-status', App\Http\Controllers\LoteStatusController::class);
+
+    // Loteamento - Quadras (dentro do empreendimento)
+    Route::get('/empreendimentos/{empreendimento}/quadras', [App\Http\Controllers\QuadraController::class, 'index'])->name('quadras.index');
+    Route::post('/empreendimentos/{empreendimento}/quadras', [App\Http\Controllers\QuadraController::class, 'store'])->name('quadras.store');
+    Route::delete('/quadras/{quadra}', [App\Http\Controllers\QuadraController::class, 'destroy'])->name('quadras.destroy');
+
+    // Loteamento - Lotes (dentro do empreendimento)
+    Route::get('/empreendimentos/{empreendimento}/lotes', [App\Http\Controllers\LoteController::class, 'index'])->name('lotes.index');
+    Route::get('/empreendimentos/{empreendimento}/lotes/create', [App\Http\Controllers\LoteController::class, 'create'])->name('lotes.create');
+    Route::post('/empreendimentos/{empreendimento}/lotes', [App\Http\Controllers\LoteController::class, 'store'])->name('lotes.store');
+    Route::get('/empreendimentos/{empreendimento}/lotes/import', [App\Http\Controllers\LoteController::class, 'import'])->name('lotes.import');
+    Route::get('/empreendimentos/{empreendimento}/lotes/download-exemplo-csv', [App\Http\Controllers\LoteController::class, 'downloadExemploCsv'])->name('lotes.download-exemplo-csv');
+    Route::post('/empreendimentos/{empreendimento}/lotes/import-csv', [App\Http\Controllers\LoteController::class, 'importCsv'])->name('lotes.import-csv');
+    Route::delete('/empreendimentos/{empreendimento}/lotes/destroy-massa', [App\Http\Controllers\LoteController::class, 'destroyMassa'])->name('lotes.destroy-massa');
+    Route::get('/lotes/{lote}', [App\Http\Controllers\LoteController::class, 'show'])->name('lotes.show');
+    Route::get('/lotes/{lote}/edit', [App\Http\Controllers\LoteController::class, 'edit'])->name('lotes.edit');
+    Route::put('/lotes/{lote}', [App\Http\Controllers\LoteController::class, 'update'])->name('lotes.update');
+    Route::delete('/lotes/{lote}', [App\Http\Controllers\LoteController::class, 'destroy'])->name('lotes.destroy');
+
 });
 
 
