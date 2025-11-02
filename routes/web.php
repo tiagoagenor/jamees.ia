@@ -238,6 +238,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rotas de Configurações Gerais
     Route::get('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'index'])->name('configuracoes.gerais.index');
     Route::post('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'update'])->name('configuracoes.gerais.update');
+
 });
 
 

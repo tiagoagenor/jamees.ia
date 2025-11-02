@@ -84,6 +84,25 @@
                         </ul>
                     </li>
 
+                    <!-- Loteamento -->
+                    <li>
+                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('loteamento')">
+                            <div class="flex items-center">
+                                <i class="fas fa-map mr-3 text-slate-400"></i>
+                                Loteamento
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="loteamento-arrow"></i>
+                        </div>
+                        <ul id="loteamento-submenu" class="ml-4 mt-2 space-y-1 hidden">
+                            <li>
+                                <a href="#" class="flex items-center px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors duration-200">
+                                    <i class="fas fa-map-marked-alt mr-3 text-slate-400"></i>
+                                    Mapa
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     <!-- Financeiro -->
                     <li>
                         <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('financeiro')">
