@@ -28,6 +28,7 @@ class Lote extends Model
         'm2_tipo',
         'valor',
         'observacao',
+        'posicao_pino',
     ];
 
     public $timestamps = false;
@@ -42,6 +43,7 @@ class Lote extends Model
         'valor_m2' => 'float',
         'm2' => 'float',
         'valor' => 'float',
+        'posicao_pino' => 'array',
     ];
 
     protected static function boot()

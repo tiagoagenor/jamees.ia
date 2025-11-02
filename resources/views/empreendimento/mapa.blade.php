@@ -88,6 +88,12 @@
         border: 1px solid #e2e8f0;
     }
 
+    .section-no-bg {
+        background: transparent;
+        border: none;
+        padding: 20px 0;
+    }
+
     .section-title {
         font-size: 14px;
         font-weight: 600;
@@ -157,41 +163,36 @@
         color: #1e40af;
     }
 
-    .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
         margin-bottom: 16px;
     }
 
-    .stat-card {
-        background: white;
-        border-radius: 8px;
-        padding: 16px;
-        text-align: center;
-        border: 1px solid #e2e8f0;
+    .stats-table tbody tr {
+        border-bottom: 1px solid #e2e8f0;
     }
 
-    .stat-number {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 4px;
+    .stats-table tbody tr:last-child {
+        border-bottom: none;
     }
 
-    .stat-label {
-        font-size: 11px;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .stats-table td {
+        padding: 12px 0;
+    }
+
+    .stats-table .stat-label {
+        font-size: 13px;
+        color: #475569;
         font-weight: 500;
+        text-align: left;
     }
 
-    .stat-card.available .stat-number {
-        color: #10b981;
-    }
-
-    .stat-card.sold .stat-number {
-        color: #ef4444;
+    .stats-table .stat-number {
+        font-size: 18px;
+        font-weight: 700;
+        text-align: right;
+        color: #1e293b;
     }
 
     .controls-section {
@@ -390,29 +391,6 @@
         position: relative;
         cursor: grab;
         overflow: hidden;
-    }
-
-    /* LEGENDA DISCRETA NO TOPO */
-    .top-legend {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        display: flex;
-        gap: 20px;
-        font-size: 13px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.1);
-        z-index: 20;
-    }
-
-    .legend-item-small {
-        display: flex;
-        align-items: center;
-        gap: 6px;
     }
 
     .legend-dot {
@@ -690,14 +668,25 @@
     }
 
     .btn-primary {
-        background: #10b981;
+        background: #3b82f6;
         color: white;
         flex: 1;
     }
 
-    .btn-primary:hover {
-        background: #059669;
+    .btn-primary:hover:not(:disabled) {
+        background: #2563eb;
         transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+        background: #cbd5e1;
+        color: #94a3b8;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .btn-primary.active {
+        background: #3b82f6;
     }
 
     .btn-danger {
@@ -790,9 +779,6 @@
             width: 300px;
         }
 
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
 
@@ -808,7 +794,7 @@
         </div>
 
         <!-- Seção Ativar Modo -->
-        <div class="section">
+        <div class="section section-no-bg">
             <h3 class="section-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -831,31 +817,8 @@
             </div>
         </div>
 
-        <!-- Estatísticas -->
-        <div class="section">
-            <h3 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 19c-5 0-9-4-9-9s4-9 9-9 9 4 9 9-4 9-9 9z"></path>
-                    <path d="M9 9h.01"></path>
-                    <path d="M15 15h.01"></path>
-                </svg>
-                Estatísticas
-            </h3>
-
-            <div class="stats-grid">
-                <div class="stat-card available">
-                    <div class="stat-number" id="availableCount">0</div>
-                    <div class="stat-label">À Venda</div>
-                </div>
-                <div class="stat-card sold">
-                    <div class="stat-number" id="soldCount">0</div>
-                    <div class="stat-label">Vendidos</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Controles -->
-        <div class="section">
+        <div class="section section-no-bg">
             <h3 class="section-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -901,17 +864,6 @@
                      draggable="false">
             </div>
 
-            <!-- LEGENDA DISCRETA NO TOPO -->
-            <div class="top-legend">
-                <div class="legend-item-small">
-                    <div class="legend-dot available"></div>
-                    <span>À Venda</span>
-                </div>
-                <div class="legend-item-small">
-                    <div class="legend-dot sold"></div>
-                    <span>Vendido</span>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -934,25 +886,45 @@
                 </button>
             </div>
             <div class="modal-content">
-                <p style="text-align: center; color: #6b7280; margin-bottom: 24px;">
-                    Escolha se este lote está à venda ou já foi vendido:
+                <p style="text-align: center; color: #6b7280; margin-bottom: 16px;">
+                    Selecione o lote e o tipo:
                 </p>
 
-                <div class="type-select-buttons">
-                    <button class="type-btn available" onclick="confirmPin('available')">
-                        <div class="type-dot"></div>
-                        <span>À Venda</span>
-                    </button>
-
-                    <button class="type-btn sold" onclick="confirmPin('sold')">
-                        <div class="type-dot"></div>
-                        <span>Vendido</span>
-                    </button>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                        Selecionar Lote *
+                    </label>
+                    <select id="selectLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="">Selecione um lote...</option>
+                    </select>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Apenas lotes sem pino serão exibidos</p>
                 </div>
 
-                <button class="btn btn-secondary" style="width: 100%;" onclick="cancelPin()">
-                    Cancelar
-                </button>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                        Tipo do Lote
+                    </label>
+                    <div class="type-select-buttons">
+                        <button type="button" class="type-btn available" onclick="selectPinType('available')">
+                            <div class="type-dot"></div>
+                            <span>À Venda</span>
+                        </button>
+
+                        <button type="button" class="type-btn sold" onclick="selectPinType('sold')">
+                            <div class="type-dot"></div>
+                            <span>Vendido</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="confirmPinWithLote()" id="confirmPinBtn" disabled>
+                        Confirmar
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="cancelPin()">
+                        Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1042,6 +1014,9 @@
     const PIN_OFFSET_X = 0; // Offset horizontal para novos pinos (em pixels)
     const PIN_OFFSET_Y = 6; // Offset vertical para novos pinos (em pixels)
 
+    // Lotes carregados do banco de dados
+    const lotesFromDatabase = @json($lotes ?? []);
+
     // Tamanho fixo da imagem (independente do monitor)
     const FIXED_IMAGE_WIDTH = 1200; // Largura fixa em pixels
     const FIXED_IMAGE_HEIGHT = 800; // Altura fixa em pixels
@@ -1049,74 +1024,104 @@
     // ========================================
     // VARIÁVEIS GLOBAIS
     // ========================================
-    let pins = [
-        // Pinos iniciais simulando dados do banco - agora com coordenadas percentuais
-        {
-            id: 1,
-            x: 15, // Porcentagem da largura da imagem
-            y: 20, // Porcentagem da altura da imagem
-            type: 'available',
-            data: {
-                title: "Lote 001 - Quadra A",
-                price: "R$ 125.000",
-                area: "450m²",
-                status: "Disponível",
-                description: "Lote de esquina com excelente localização, próximo à área de lazer central."
+    // let pins = [
+    //     // Pinos iniciais simulando dados do banco - agora com coordenadas percentuais
+    //     {
+    //         id: 1,
+    //         x: 15, // Porcentagem da largura da imagem
+    //         y: 20, // Porcentagem da altura da imagem
+    //         type: 'available',
+    //         data: {
+    //             title: "Lote 001 - Quadra A",
+    //             price: "R$ 125.000",
+    //             area: "450m²",
+    //             status: "Disponível",
+    //             description: "Lote de esquina com excelente localização, próximo à área de lazer central."
+    //         }
+    //     },
+    //     {
+    //         id: 2,
+    //         x: 25,
+    //         y: 25,
+    //         type: 'sold',
+    //         data: {
+    //             title: "Lote 002 - Quadra A",
+    //             price: "R$ 118.000",
+    //             area: "420m²",
+    //             status: "Vendido",
+    //             description: "Lote vendido em março/2024. Vista privilegiada para área verde."
+    //         }
+    //     },
+    //     {
+    //         id: 3,
+    //         x: 35,
+    //         y: 30,
+    //         type: 'available',
+    //         data: {
+    //             title: "Lote 003 - Quadra B",
+    //             price: "R$ 135.000",
+    //             area: "480m²",
+    //             status: "Disponível",
+    //             description: "Lote premium com maior área útil, ideal para projetos maiores."
+    //         }
+    //     },
+    //     {
+    //         id: 4,
+    //         x: 20,
+    //         y: 45,
+    //         type: 'sold',
+    //         data: {
+    //             title: "Lote 004 - Quadra B",
+    //             price: "R$ 110.000",
+    //             area: "400m²",
+    //             status: "Vendido",
+    //             description: "Lote vendido em janeiro/2024. Localização estratégica."
+    //         }
+    //     },
+    //     {
+    //         id: 5,
+    //         x: 42,
+    //         y: 22,
+    //         type: 'available',
+    //         data: {
+    //             title: "Lote 005 - Quadra C",
+    //             price: "R$ 140.000",
+    //             area: "500m²",
+    //             status: "Disponível",
+    //             description: "O maior lote disponível, perfeito para construção de casa grande."
+    //         }
+    //     }
+    // ];
+
+    let pins = [];
+
+    // Carregar pinos dos lotes do banco de dados
+    if (lotesFromDatabase && lotesFromDatabase.length > 0) {
+        lotesFromDatabase.forEach((lote, index) => {
+            if (lote.posicao_pino && lote.posicao_pino.x !== null && lote.posicao_pino.y !== null) {
+                // Determinar tipo baseado no status
+                let pinType = 'available';
+                if (lote.status && lote.status.tipo == 2) { // Vendido
+                    pinType = 'sold';
+                }
+
+                pins.push({
+                    id: `lote_${lote.id}`,
+                    lote_id: lote.id,
+                    x: parseFloat(lote.posicao_pino.x),
+                    y: parseFloat(lote.posicao_pino.y),
+                    type: pinType,
+                    data: {
+                        title: lote.nome || `Lote ${index + 1}`,
+                        price: lote.valor ? `R$ ${parseFloat(lote.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Não informado',
+                        area: lote.m2 ? `${lote.m2}m²` : 'Não informado',
+                        status: lote.status ? lote.status.nome : 'Não definido',
+                        description: lote.observacao || 'Lote cadastrado no sistema.'
+                    }
+                });
             }
-        },
-        {
-            id: 2,
-            x: 25,
-            y: 25,
-            type: 'sold',
-            data: {
-                title: "Lote 002 - Quadra A",
-                price: "R$ 118.000",
-                area: "420m²",
-                status: "Vendido",
-                description: "Lote vendido em março/2024. Vista privilegiada para área verde."
-            }
-        },
-        {
-            id: 3,
-            x: 35,
-            y: 30,
-            type: 'available',
-            data: {
-                title: "Lote 003 - Quadra B",
-                price: "R$ 135.000",
-                area: "480m²",
-                status: "Disponível",
-                description: "Lote premium com maior área útil, ideal para projetos maiores."
-            }
-        },
-        {
-            id: 4,
-            x: 20,
-            y: 45,
-            type: 'sold',
-            data: {
-                title: "Lote 004 - Quadra B",
-                price: "R$ 110.000",
-                area: "400m²",
-                status: "Vendido",
-                description: "Lote vendido em janeiro/2024. Localização estratégica."
-            }
-        },
-        {
-            id: 5,
-            x: 42,
-            y: 22,
-            type: 'available',
-            data: {
-                title: "Lote 005 - Quadra C",
-                price: "R$ 140.000",
-                area: "500m²",
-                status: "Disponível",
-                description: "O maior lote disponível, perfeito para construção de casa grande."
-            }
-        }
-    ];
+        });
+    }
 
     // Variáveis de controle
     let scale = INITIAL_ZOOM / 100; // Converte porcentagem para decimal
@@ -1127,6 +1132,8 @@
     let pendingPin = null;
     let currentPinForModal = null;
     let nextPinId = 6; // Próximo ID para novos pinos
+    let selectedPinType = null; // Tipo selecionado no modal
+    let selectedLoteId = null; // Lote selecionado no modal
 
     // Dados dos lotes
     const lotData = {
@@ -1157,8 +1164,6 @@
     const zoomInBtn = document.getElementById('zoomInBtn');
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomLevel = document.getElementById('zoomLevel');
-    const availableCount = document.getElementById('availableCount');
-    const soldCount = document.getElementById('soldCount');
     const typeModal = document.getElementById('typeModal');
     const detailModal = document.getElementById('detailModal');
 
@@ -1186,57 +1191,75 @@
     }
 
     // Função para salvar dados dos pinos
-    function savePinsData() {
-        const timestamp = new Date().toISOString();
-        const pinsData = {
-            timestamp: timestamp,
-            totalPins: pins.length,
-            availablePins: pins.filter(pin => pin.type === 'available').length,
-            soldPins: pins.filter(pin => pin.type === 'sold').length,
-            pins: pins,
-            config: {
-                pinSize: PIN_SIZE,
-                initialZoom: INITIAL_ZOOM,
-                currentZoom: Math.round(scale * 100),
-                pinOffsetX: PIN_OFFSET_X,
-                pinOffsetY: PIN_OFFSET_Y
-            }
-        };
+    async function savePinsData() {
+        // Preparar dados para envio ao backend
+        const pinsToSave = pins
+            .filter(pin => pin.lote_id) // Apenas pinos que têm lote_id (vinculados a lotes)
+            .map(pin => ({
+                lote_id: pin.lote_id,
+                x: pin.x,
+                y: pin.y
+            }));
 
+        if (pinsToSave.length === 0) {
+            showSaveNotification('Nenhum pino vinculado a lote para salvar.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ route("empreendimentos.salvar-posicoes-pinos", $empreendimento->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    pinos: pinsToSave
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showSaveNotification('Posições dos pinos salvas com sucesso!', 'success');
+                console.log('✅ Posições salvas:', pinsToSave);
+            } else {
+                showSaveNotification(data.error || 'Erro ao salvar posições dos pinos.', 'error');
+                console.error('❌ Erro:', data);
+            }
+        } catch (error) {
+            showSaveNotification('Erro ao conectar com o servidor.', 'error');
+            console.error('❌ Erro de rede:', error);
+        }
+
+        // Log detalhado para debug
+        const timestamp = new Date().toISOString();
         console.log('='.repeat(60));
-        console.log('🎯 DADOS DOS PINOS PARA SALVAR NO BANCO');
+        console.log('🎯 DADOS DOS PINOS');
         console.log('='.repeat(60));
         console.log('📅 Data/Hora:', timestamp);
-        console.log('📊 Total de Pinos:', pinsData.totalPins);
-        console.log('🟢 Disponíveis:', pinsData.availablePins);
-        console.log('🔴 Vendidos:', pinsData.soldPins);
+        console.log('📊 Total de Pinos:', pins.length);
+        console.log('💾 Pinos para salvar:', pinsToSave.length);
         console.log('🔧 Zoom Inicial:', INITIAL_ZOOM + '%');
         console.log('🔍 Zoom Atual:', Math.round(scale * 100) + '%');
-        console.log('📐 Offset X:', PIN_OFFSET_X + 'px');
-        console.log('📐 Offset Y:', PIN_OFFSET_Y + 'px');
-        console.log('='.repeat(60));
-        console.log('📦 DADOS COMPLETOS (JSON):');
-        console.log(JSON.stringify(pinsData, null, 2));
-        console.log('='.repeat(60));
-        console.log('📍 APENAS POSIÇÕES DOS PINOS:');
-        pins.forEach((pin, index) => {
-            console.log(`Pino ${index + 1}:`, {
-                id: pin.id,
-                x: pin.x.toFixed(2) + '% da largura',
-                y: pin.y.toFixed(2) + '% da altura',
-                type: pin.type,
-                title: pin.data.title
-            });
-        });
         console.log('='.repeat(60));
 
-        // Mostrar notificação visual
-        showSaveNotification();
-
-        return pinsData;
+        return { pins: pinsToSave };
     }
 
-    function showSaveNotification() {
+    function showSaveNotification(message = null, type = 'success') {
+        const messages = {
+            success: message || `✅ Dados salvos com sucesso! Zoom: ${Math.round(scale * 100)}%`,
+            warning: message || '⚠️ Atenção: Verifique os dados.',
+            error: message || '❌ Erro ao salvar dados.'
+        };
+
+        const colors = {
+            success: 'linear-gradient(135deg, #10b981, #059669)',
+            warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            error: 'linear-gradient(135deg, #ef4444, #dc2626)'
+        };
+
         // Criar notificação temporária
         const notification = document.createElement('div');
         notification.innerHTML = `
@@ -1244,16 +1267,16 @@
                 position: fixed;
                 top: 20px;
                 right: 20px;
-                background: linear-gradient(135deg, #10b981, #059669);
+                background: ${colors[type]};
                 color: white;
                 padding: 16px 20px;
                 border-radius: 10px;
-                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
                 z-index: 1000;
                 animation: slideIn 0.3s ease-out;
                 font-weight: 500;
             ">
-                ✅ Dados salvos no console! Zoom: ${Math.round(scale * 100)}%
+                ${messages[type]}
             </div>
         `;
 
@@ -1316,14 +1339,6 @@
         zoomLevel.textContent = zoomPercentage + '%';
     }
 
-    function updateCounters() {
-        const available = pins.filter(pin => pin.type === 'available').length;
-        const sold = pins.filter(pin => pin.type === 'sold').length;
-
-        // Atualizar contadores da sidebar
-        availableCount.textContent = available;
-        soldCount.textContent = sold;
-    }
 
     // ========================================
     // FUNÇÕES DE CRIAÇÃO DE PINOS
@@ -1525,6 +1540,16 @@
         const pendingPinElement = createPendingPinElement(percentX, percentY);
         mapWrapper.appendChild(pendingPinElement);
 
+        // Popular select de lotes
+        populateLotesSelect();
+
+        // Resetar seleções
+        selectedPinType = null;
+        selectedLoteId = null;
+        document.getElementById('selectLote').value = '';
+        document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('confirmPinBtn').disabled = true;
+
         // Mostrar modal de seleção
         typeModal.classList.add('show');
     });
@@ -1532,22 +1557,82 @@
     // ========================================
     // FUNÇÕES DOS MODAIS
     // ========================================
-    function confirmPin(pinType) {
+    function selectPinType(pinType) {
+        selectedPinType = pinType;
+        // Remover seleção anterior
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Adicionar seleção atual
+        event.target.closest('.type-btn').classList.add('active');
+        checkConfirmButton();
+    }
+
+    function checkConfirmButton() {
+        const selectLote = document.getElementById('selectLote');
+        const confirmBtn = document.getElementById('confirmPinBtn');
+
+        if (selectLote && selectLote.value && selectedPinType) {
+            confirmBtn.disabled = false;
+            confirmBtn.classList.add('active');
+        } else {
+            confirmBtn.disabled = true;
+            confirmBtn.classList.remove('active');
+        }
+    }
+
+    function confirmPinWithLote() {
         if (!pendingPin) return;
 
+        const selectLote = document.getElementById('selectLote');
+        const loteId = selectLote.value;
+
+        if (!loteId || !selectedPinType) {
+            alert('Por favor, selecione um lote e um tipo.');
+            return;
+        }
+
+        // Buscar dados do lote selecionado
+        const loteSelecionado = lotesFromDatabase.find(l => l.id === loteId);
+
+        if (!loteSelecionado) {
+            alert('Lote não encontrado.');
+            return;
+        }
+
+        // Verificar se o lote já tem um pino
+        const loteJaTemPino = pins.find(p => p.lote_id === loteId);
+        if (loteJaTemPino) {
+            if (!confirm('Este lote já possui um pino no mapa. Deseja atualizar a posição?')) {
+                return;
+            }
+            // Remover pino existente
+            pins = pins.filter(p => p.lote_id !== loteId);
+            const existingPinElement = document.querySelector(`[data-pin-id="lote_${loteId}"]`);
+            if (existingPinElement) {
+                existingPinElement.remove();
+            }
+        }
+
+        // Determinar tipo baseado no status do lote, mas usar o selecionado se disponível
+        let pinType = selectedPinType;
+        if (loteSelecionado.status && loteSelecionado.status.tipo == 2) {
+            pinType = 'sold'; // Forçar sold se o status for vendido
+        }
+
+        // Criar novo pino vinculado ao lote
         const newPin = {
-            id: nextPinId++,
+            id: `lote_${loteId}`,
+            lote_id: loteId,
             x: pendingPin.x,
             y: pendingPin.y,
             type: pinType,
             data: {
-                title: `Lote ${String(nextPinId - 1).padStart(3, '0')} - Novo`,
-                price: pinType === 'available' ? "R$ 120.000" : "R$ 95.000",
-                area: "450m²",
-                status: pinType === 'available' ? "Disponível" : "Vendido",
-                description: pinType === 'available'
-                    ? "Novo lote adicionado, excelente oportunidade de investimento."
-                    : "Lote recém vendido, parabéns ao novo proprietário!"
+                title: loteSelecionado.nome || `Lote ${loteId.substring(0, 8)}`,
+                price: loteSelecionado.valor ? `R$ ${parseFloat(loteSelecionado.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Não informado',
+                area: loteSelecionado.m2 ? `${loteSelecionado.m2}m²` : 'Não informado',
+                status: loteSelecionado.status ? loteSelecionado.status.nome : 'Não definido',
+                description: loteSelecionado.observacao || 'Lote cadastrado no sistema.'
             }
         };
 
@@ -1565,15 +1650,50 @@
 
         // Limpar estado do modal
         pendingPin = null;
+        selectedPinType = null;
+        selectedLoteId = null;
         typeModal.classList.remove('show');
+        document.getElementById('selectLote').value = '';
+        document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
 
-        // Salvar no storage
-        savePinsToStorage();
+        console.log('✅ Novo pino adicionado e vinculado ao lote:', newPin);
+    }
 
-        // Atualizar contadores
-        updateCounters();
+    function populateLotesSelect() {
+        const selectLote = document.getElementById('selectLote');
 
-        console.log('Novo pino adicionado:', newPin);
+        // Remover listeners antigos (se houver)
+        const newSelectLote = selectLote.cloneNode(true);
+        selectLote.parentNode.replaceChild(newSelectLote, selectLote);
+
+        const updatedSelectLote = document.getElementById('selectLote');
+        updatedSelectLote.innerHTML = '<option value="">Selecione um lote...</option>';
+
+        // Filtrar lotes que ainda não têm pino
+        const lotesSemPino = lotesFromDatabase.filter(lote => {
+            return !pins.find(pin => pin.lote_id === lote.id);
+        });
+
+        if (lotesSemPino.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Todos os lotes já possuem pino';
+            option.disabled = true;
+            updatedSelectLote.appendChild(option);
+        } else {
+            lotesSemPino.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.id;
+                option.textContent = `${lote.nome || 'Lote sem nome'}${lote.quadra ? ' - ' + lote.quadra.nome : ''}`;
+                updatedSelectLote.appendChild(option);
+            });
+        }
+
+        // Adicionar listener para habilitar botão de confirmar
+        updatedSelectLote.addEventListener('change', function() {
+            selectedLoteId = this.value;
+            checkConfirmButton();
+        });
     }
 
     function cancelPin() {
@@ -1584,6 +1704,8 @@
         }
 
         pendingPin = null;
+        selectedPinType = null;
+        selectedLoteId = null;
         typeModal.classList.remove('show');
     }
 
@@ -1640,9 +1762,6 @@
         // Salvar no storage
         savePinsToStorage();
 
-        // Atualizar contadores
-        updateCounters();
-
         console.log('Pino removido, ID:', currentPinForModal.id);
     }
 
@@ -1679,7 +1798,6 @@
             const pinElement = createPinElement(pin);
             mapWrapper.appendChild(pinElement);
         });
-        updateCounters();
     }
 
     // ========================================
@@ -1724,7 +1842,6 @@
 
     // Inicializar displays
     updateZoomDisplay();
-    updateCounters();
     updateConfigDisplays();
 
     // Função global para debug (acesso via console)

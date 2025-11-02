@@ -242,6 +242,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Loteamento - Empreendimentos
     Route::resource('empreendimentos', App\Http\Controllers\EmpreendimentoController::class);
     Route::get('/empreendimentos/{empreendimento}/mapa', [App\Http\Controllers\EmpreendimentoController::class, 'mapa'])->name('empreendimentos.mapa');
+    Route::post('/empreendimentos/{empreendimento}/salvar-posicoes-pinos', [App\Http\Controllers\EmpreendimentoController::class, 'salvarPosicoesPinos'])->name('empreendimentos.salvar-posicoes-pinos');
 
     // Loteamento - Status de Lotes
     Route::resource('lote-status', App\Http\Controllers\LoteStatusController::class);

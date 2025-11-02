@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Empreendimento;
+use App\Models\Lote;
 use App\Helpers\PermissionHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -137,7 +138,10 @@ class EmpreendimentoController extends Controller
             abort(403, 'Empreendimento não encontrado.');
         }
 
-        return view('empreendimento.mapa', compact('empreendimento'));
+        // Carregar lotes com suas posições de pinos
+        $lotes = $empreendimento->lotes()->with(['status', 'quadra'])->get();
+
+        return view('empreendimento.mapa', compact('empreendimento', 'lotes'));
     }
 
     /**
@@ -270,5 +274,51 @@ class EmpreendimentoController extends Controller
 
         return redirect()->route('empreendimentos.index')
             ->with('success', 'Empreendimento deletado com sucesso.');
+    }
+
+    /**
+     * Salvar posições dos pinos dos lotes no mapa
+     */
+    public function salvarPosicoesPinos(Request $request, Empreendimento $empreendimento)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'editar')) {
+            return response()->json(['error' => 'Você não tem permissão para editar empreendimentos.'], 403);
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            return response()->json(['error' => 'Empreendimento não encontrado.'], 403);
+        }
+
+        $validated = $request->validate([
+            'pinos' => 'required|array',
+            'pinos.*.lote_id' => 'required|uuid|exists:lote,id',
+            'pinos.*.x' => 'required|numeric|min:0|max:100',
+            'pinos.*.y' => 'required|numeric|min:0|max:100',
+        ]);
+
+        try {
+            foreach ($validated['pinos'] as $pinoData) {
+                $lote = Lote::find($pinoData['lote_id']);
+
+                // Verificar se o lote pertence ao empreendimento
+                if ($lote && $lote->empreendimento_id === $empreendimento->id) {
+                    $lote->posicao_pino = [
+                        'x' => $pinoData['x'],
+                        'y' => $pinoData['y'],
+                    ];
+                    $lote->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Posições dos pinos salvas com sucesso.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erro ao salvar posições dos pinos: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }
