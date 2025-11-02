@@ -122,6 +122,9 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">
                                     Valor Total
                                 </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-green-700 uppercase tracking-wider">
+                                    Duplicado
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="validas-tbody" class="bg-white divide-y divide-gray-200">
@@ -320,6 +323,12 @@ function exibirResultadosValidacao(data) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
                     ${item.valor ? 'R$ ' + parseFloat(item.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-'}
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    ${item.duplicado ?
+                        '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fas fa-exclamation-triangle mr-1"></i>Sim</span>' :
+                        '<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i>Não</span>'
+                    }
+                </td>
             `;
 
             validasTbody.appendChild(row);
@@ -327,7 +336,7 @@ function exibirResultadosValidacao(data) {
     } else {
         validasTbody.innerHTML = `
             <tr>
-                <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">
                     <i class="fas fa-inbox text-gray-400 text-2xl mb-2 block"></i>
                     Nenhuma linha válida encontrada.
                 </td>

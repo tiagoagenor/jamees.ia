@@ -31,76 +31,66 @@ class LoteController extends Controller
 
         $empresaAtual = PermissionHelper::getEmpresaAtual();
 
-        $query = Lote::where('empreendimento_id', $empreendimento->id)
-            ->with(['quadra', 'status']);
-
         // Filtros
         $filtroNome = $request->get('nome');
-        if ($filtroNome) {
-            $query->where('nome', 'like', "%{$filtroNome}%");
-        }
-
         $filtroQuadra = $request->get('quadra');
-        if ($filtroQuadra) {
-            $query->where('quadra_id', $filtroQuadra);
-        }
-
         $filtroStatus = $request->get('status');
-        if ($filtroStatus) {
-            $query->where('lote_status_id', $filtroStatus);
-        }
-
         $filtroValorMin = $request->get('valor_min');
-        if ($filtroValorMin) {
-            $query->where('valor', '>=', $filtroValorMin);
-        }
-
         $filtroValorMax = $request->get('valor_max');
-        if ($filtroValorMax) {
-            $query->where('valor', '<=', $filtroValorMax);
-        }
 
         // Ordenação
         $sortBy = $request->get('sort_by');
         $sortDirection = $request->get('sort_direction', 'asc');
 
+        // Sempre usar join com quadra para permitir ordenação por quadra (padrão ou quando solicitado)
+        $query = Lote::select('lote.*')
+            ->leftJoin('quadra', 'lote.quadra_id', '=', 'quadra.id')
+            ->where('lote.empreendimento_id', $empreendimento->id)
+            ->with(['quadra', 'status']); // Manter eager loading
+
+        // Aplicar filtros com prefixo de tabela
+        if ($filtroNome) {
+            $query->where('lote.nome', 'like', "%{$filtroNome}%");
+        }
+        if ($filtroQuadra) {
+            $query->where('lote.quadra_id', $filtroQuadra);
+        }
+        if ($filtroStatus) {
+            $query->where('lote.lote_status_id', $filtroStatus);
+        }
+        if ($filtroValorMin) {
+            $query->where('lote.valor', '>=', $filtroValorMin);
+        }
+        if ($filtroValorMax) {
+            $query->where('lote.valor', '<=', $filtroValorMax);
+        }
+
+        // Ordenação
+        // Sempre ordenar por quadra primeiro, depois por nome (numericamente quando possível)
         if ($sortBy && $sortBy === 'quadra') {
-            // Para ordenar por quadra, precisamos fazer join
-            // Reconstruir a query com prefixos de tabela para evitar ambiguidade
-            $query = Lote::select('lote.*')
-                ->leftJoin('quadra', 'lote.quadra_id', '=', 'quadra.id')
-                ->where('lote.empreendimento_id', $empreendimento->id)
-                ->with(['quadra', 'status']); // Manter eager loading
-
-            // Reaplicar filtros com prefixo de tabela
-            if ($filtroNome) {
-                $query->where('lote.nome', 'like', "%{$filtroNome}%");
-            }
-            if ($filtroQuadra) {
-                $query->where('lote.quadra_id', $filtroQuadra);
-            }
-            if ($filtroStatus) {
-                $query->where('lote.lote_status_id', $filtroStatus);
-            }
-            if ($filtroValorMin) {
-                $query->where('lote.valor', '>=', $filtroValorMin);
-            }
-            if ($filtroValorMax) {
-                $query->where('lote.valor', '<=', $filtroValorMax);
-            }
-
-            $query->orderBy('quadra.nome', $sortDirection);
+            $query->orderBy('quadra.nome', $sortDirection)
+                  ->orderByRaw("CAST(REGEXP_SUBSTR(lote.nome, '[0-9]+') AS UNSIGNED) ASC")
+                  ->orderBy('lote.nome', 'asc'); // Fallback para ordenação alfabética
+        } elseif ($sortBy === 'm2') {
+            $query->orderBy('lote.m2', $sortDirection)
+                  ->orderBy('quadra.nome', 'asc')
+                  ->orderByRaw("CAST(REGEXP_SUBSTR(lote.nome, '[0-9]+') AS UNSIGNED) ASC")
+                  ->orderBy('lote.nome', 'asc'); // Fallback para ordenação alfabética
+        } elseif ($sortBy === 'valor') {
+            $query->orderBy('lote.valor', $sortDirection)
+                  ->orderBy('quadra.nome', 'asc')
+                  ->orderByRaw("CAST(REGEXP_SUBSTR(lote.nome, '[0-9]+') AS UNSIGNED) ASC")
+                  ->orderBy('lote.nome', 'asc'); // Fallback para ordenação alfabética
+        } elseif ($sortBy) {
+            $query->orderBy('lote.' . $sortBy, $sortDirection)
+                  ->orderBy('quadra.nome', 'asc')
+                  ->orderByRaw("CAST(REGEXP_SUBSTR(lote.nome, '[0-9]+') AS UNSIGNED) ASC")
+                  ->orderBy('lote.nome', 'asc'); // Fallback para ordenação alfabética
         } else {
-            // Sem join, usar eager loading para relacionamentos
-            if ($sortBy === 'm2') {
-                $query->orderBy('m2', $sortDirection);
-            } elseif ($sortBy === 'valor') {
-                $query->orderBy('valor', $sortDirection);
-            } elseif ($sortBy) {
-                $query->orderBy($sortBy, $sortDirection);
-            } else {
-                $query->orderBy('nome', 'asc');
-            }
+            // Ordenação padrão: por quadra, depois por nome do lote (numericamente)
+            $query->orderBy('quadra.nome', 'asc')
+                  ->orderByRaw("CAST(REGEXP_SUBSTR(lote.nome, '[0-9]+') AS UNSIGNED) ASC")
+                  ->orderBy('lote.nome', 'asc'); // Fallback para ordenação alfabética
         }
 
         // Paginação
@@ -584,6 +574,21 @@ class LoteController extends Controller
             $dadosValidos = [];
             $quadrasACriar = []; // Para criar quadras que não existem
 
+            // Buscar lotes existentes para verificar duplicados (nome + quadra)
+            $lotesExistentes = Lote::where('empreendimento_id', $empreendimento->id)
+                ->with('quadra')
+                ->get()
+                ->map(function($lote) {
+                    return [
+                        'nome' => strtolower(trim($lote->nome)),
+                        'quadra_nome' => strtolower(trim($lote->quadra->nome ?? '')),
+                        'lote' => $lote
+                    ];
+                })
+                ->keyBy(function($item) {
+                    return $item['nome'] . '|' . $item['quadra_nome'];
+                });
+
             // Validar todas as linhas primeiro (não parar no primeiro erro)
             foreach ($lines as $linhaNum => $linha) {
                 $numeroLinha = $linhaNum + 2; // +1 porque removemos cabeçalho, +1 porque começamos em 1
@@ -765,6 +770,14 @@ class LoteController extends Controller
                     continue;
                 }
 
+                // Verificar se já existe lote com mesmo nome e quadra no banco de dados
+                $nomeLower = strtolower(trim($nome));
+                $quadraNomeLower = strtolower(trim($quadraNome));
+                $chaveDuplicado = $nomeLower . '|' . $quadraNomeLower;
+
+                // Verificar duplicado no banco de dados
+                $ehDuplicado = isset($lotesExistentes[$chaveDuplicado]);
+
                 // Dados válidos (serão usados apenas se não houver erros)
                 $dadosValidos[] = [
                     'linha' => $numeroLinha,
@@ -774,7 +787,7 @@ class LoteController extends Controller
                     'empreendimento_id' => $empreendimento->id,
                     'quadra_id' => $quadraId, // Será definido ao criar quadras
                     'lote_status_id' => $statusId,
-                    'nome' => $nome,
+                    'nome' => trim($nome), // Garantir que o nome está limpo
                     'frente' => $frente,
                     'fundo' => $fundo,
                     'lateral_direita' => $lateralDireita,
@@ -784,9 +797,13 @@ class LoteController extends Controller
                     'm2_tipo' => $m2Tipo,
                     'valor' => $valor,
                     'observacao' => $observacao,
+                    'duplicado' => $ehDuplicado, // Flag de duplicado
                 ];
 
-                $validas++;
+                // Contar como válida apenas se não for duplicado
+                if (!$ehDuplicado) {
+                    $validas++;
+                }
             }
 
             // Se for apenas validação, retornar resultado
@@ -796,10 +813,17 @@ class LoteController extends Controller
                     $mensagemQuadras = ' Serão criadas ' . count($quadrasACriar) . ' quadra(s) automaticamente: ' . implode(', ', array_keys($quadrasACriar)) . '.';
                 }
 
+                // Contar duplicados
+                $duplicados = array_filter($dadosValidos, function($item) {
+                    return isset($item['duplicado']) && $item['duplicado'];
+                });
+                $duplicadosCount = count($duplicados);
+
                 return response()->json([
                     'success' => count($erros) === 0,
                     'total_linhas' => $totalLinhas,
                     'validas' => $validas,
+                    'duplicados' => $duplicadosCount,
                     'dados_validos' => $dadosValidos, // Incluir dados válidos para exibir na tabela
                     'erros' => $erros,
                     'quadras_a_criar' => array_keys($quadrasACriar),
@@ -847,31 +871,67 @@ class LoteController extends Controller
                         }
                     }
 
-                    // Atualizar quadra_id nos dados válidos
-                    foreach ($dadosValidos as &$dados) {
-                        if (empty($dados['quadra_id']) && isset($dados['quadra_nome'])) {
-                            $dados['quadra_id'] = $quadrasCriadas[$dados['quadra_nome']] ?? null;
+                    // Atualizar quadra_id nos dados válidos e preparar para inserção
+                    $lotesParaInserir = [];
+                    foreach ($dadosValidos as $dados) {
+                        // Atualizar quadra_id se necessário
+                        $quadraIdFinal = $dados['quadra_id'];
+                        if (empty($quadraIdFinal) && isset($dados['quadra_nome'])) {
+                            $quadraIdFinal = $quadrasCriadas[$dados['quadra_nome']] ?? null;
                         }
-                        unset($dados['linha']);
-                        unset($dados['quadra_nome']);
-                        unset($dados['status_nome']); // Remover status_nome, não é campo do banco
+
+                        // Criar lotes (apenas os que não são duplicados)
+                        if (!isset($dados['duplicado']) || !$dados['duplicado']) {
+                            // Preparar dados do lote explicitamente para evitar referências
+                            $dadosLote = [
+                                'id' => $dados['id'],
+                                'empreendimento_id' => $dados['empreendimento_id'],
+                                'quadra_id' => $quadraIdFinal,
+                                'lote_status_id' => $dados['lote_status_id'],
+                                'nome' => $dados['nome'], // Usar o nome diretamente do array
+                                'frente' => $dados['frente'],
+                                'fundo' => $dados['fundo'],
+                                'lateral_direita' => $dados['lateral_direita'],
+                                'lateral_esquerda' => $dados['lateral_esquerda'],
+                                'valor_m2' => $dados['valor_m2'],
+                                'm2' => $dados['m2'],
+                                'm2_tipo' => $dados['m2_tipo'],
+                                'valor' => $dados['valor'],
+                                'observacao' => $dados['observacao'],
+                            ];
+
+                            $lotesParaInserir[] = $dadosLote;
+                        }
                     }
 
-                    // Criar lotes
-                    foreach ($dadosValidos as $dados) {
-                        Lote::create($dados);
+                    // Criar todos os lotes
+                    foreach ($lotesParaInserir as $dadosLote) {
+                        Lote::create($dadosLote);
                     }
 
                     DB::commit();
 
-                    $mensagem = count($dadosValidos) . ' lote(s) importado(s) com sucesso.';
+                    // Contar apenas os importados (sem duplicados)
+                    $importadosCount = count(array_filter($dadosValidos, function($item) {
+                        return !isset($item['duplicado']) || !$item['duplicado'];
+                    }));
+
+                    $duplicadosCount = count(array_filter($dadosValidos, function($item) {
+                        return isset($item['duplicado']) && $item['duplicado'];
+                    }));
+
+                    $mensagem = $importadosCount . ' lote(s) importado(s) com sucesso.';
+                    if ($duplicadosCount > 0) {
+                        $mensagem .= ' ' . $duplicadosCount . ' lote(s) duplicado(s) foram ignorados.';
+                    }
                     if (count($quadrasCriadas) > 0) {
                         $mensagem .= ' ' . count($quadrasCriadas) . ' quadra(s) criada(s) automaticamente: ' . implode(', ', array_keys($quadrasCriadas)) . '.';
                     }
 
                     return response()->json([
                         'success' => true,
-                        'importados' => count($dadosValidos),
+                        'importados' => $importadosCount,
+                        'duplicados' => $duplicadosCount,
                         'quadras_criadas' => count($quadrasCriadas),
                         'message' => $mensagem
                     ]);

@@ -54,7 +54,7 @@
     }
 
     .sidebar-header {
-        margin-bottom: 32px;
+        margin-bottom: 8px;
         padding-bottom: 24px;
         border-bottom: 1px solid #e2e8f0;
     }
@@ -281,30 +281,7 @@
     }
 
     .reset-btn {
-        width: 100%;
-        padding: 12px 16px;
-        background: white;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .reset-btn:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-        color: #334155;
-    }
-
-    .reset-btn:active {
-        transform: scale(0.98);
+        display: none;
     }
 
     .instructions {
@@ -381,6 +358,62 @@
         width: 100%;
         height: 100%;
         max-height: 100%;
+    }
+
+    .zoom-controls-top {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .zoom-btn-top {
+        width: 26px;
+        height: 26px;
+        background: transparent;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #475569;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .zoom-btn-top:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+    }
+
+    .zoom-btn-top:active {
+        background: #e2e8f0;
+        transform: scale(0.95);
+    }
+
+    .zoom-display-top {
+        min-width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+    }
+
+    .zoom-value-top {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1e293b;
     }
 
     .map-container {
@@ -790,11 +823,15 @@
                 <i class="fas fa-map-marker-alt"></i>
                 Adicionar Pino
             </h1>
-            <p class="sidebar-subtitle">Marque os lotes no mapa interativo</p>
         </div>
 
         <!-- Seção Ativar Modo -->
-        <div class="section section-no-bg">
+        <div id="addPinSection" class="section section-no-bg">
+            <a href="{{ route('lotes.index', $empreendimento->id) }}" class="btn" style="width: 100%; margin-bottom: 16px; background-color: #6b7280; color: white; border: none; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fas fa-arrow-left"></i>
+                Voltar
+            </a>
+
             <h3 class="section-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -817,8 +854,68 @@
             </div>
         </div>
 
+        <!-- Conteúdo do Modal na Sidebar -->
+        <div id="modalContentSidebar" class="section section-no-bg" style="display: none;">
+            <div class="modal-content-sidebar">
+                <p style="text-align: center; color: #6b7280; margin-bottom: 16px;">
+                    Selecione a quadra, lote e status:
+                </p>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                        Selecionar Quadra *
+                    </label>
+                    <select id="selectQuadra" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="">Selecione uma quadra...</option>
+                        @foreach($quadras ?? [] as $quadra)
+                            <option value="{{ $quadra->id }}">{{ $quadra->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                        Selecionar Lote *
+                    </label>
+                    <select id="selectLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;" disabled>
+                        <option value="">Selecione uma quadra primeiro...</option>
+                    </select>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Apenas lotes sem pino serão exibidos</p>
+                </div>
+
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="confirmPinWithLote()" id="confirmPinBtn" disabled>
+                        Confirmar
+                    </button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="cancelPin()">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalhes do Lote (quando clicar em um pino) -->
+        <div id="loteDetailSection" class="section section-no-bg" style="display: none;">
+            <div style="margin-bottom: 16px;">
+                <button onclick="fecharDetalhesLote()" class="btn" style="width: 100%; background-color: #6b7280; color: white; border: none; margin-bottom: 12px;">
+                    <i class="fas fa-times mr-2"></i>
+                    Fechar
+                </button>
+            </div>
+
+            <h3 class="section-title" id="detailLoteTitle" style="margin-bottom: 16px;">
+                <i class="fas fa-info-circle"></i>
+                Detalhes do Lote
+            </h3>
+
+            <div id="loteDetailContent" style="space-y: 4px;">
+                <!-- Informações serão preenchidas via JavaScript -->
+            </div>
+        </div>
+
         <!-- Controles -->
-        <div class="section section-no-bg">
+        <div id="controlsSection" class="section section-no-bg">
             <h3 class="section-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -837,14 +934,6 @@
                     Salvar Pinos
                 </button>
 
-                <div class="zoom-controls">
-                    <button id="zoomOutBtn" class="zoom-btn" title="Diminuir Zoom">−</button>
-                    <div class="zoom-display">
-                        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 2px;">Zoom</div>
-                        <div class="zoom-value" id="zoomLevel">100%</div>
-                    </div>
-                    <button id="zoomInBtn" class="zoom-btn" title="Aumentar Zoom">+</button>
-                </div>
                 <button id="resetBtn" class="reset-btn">
                     <i class="fas fa-redo mr-2"></i>
                     Resetar Vista
@@ -856,6 +945,15 @@
 
     <!-- ÁREA DA IMAGEM -->
     <div class="map-area">
+        <!-- Controles de Zoom -->
+        <div class="zoom-controls-top">
+            <button id="zoomOutBtn" class="zoom-btn-top" title="Diminuir Zoom">−</button>
+            <div class="zoom-display-top">
+                <div class="zoom-value-top" id="zoomLevel">100%</div>
+            </div>
+            <button id="zoomInBtn" class="zoom-btn-top" title="Aumentar Zoom">+</button>
+        </div>
+
         <div id="mapContainer" class="map-container">
             <div id="mapWrapper" class="map-wrapper">
                 <img id="mapImage" class="map-image"
@@ -1015,7 +1113,8 @@
     const PIN_OFFSET_Y = 6; // Offset vertical para novos pinos (em pixels)
 
     // Lotes carregados do banco de dados
-    const lotesFromDatabase = @json($lotes ?? []);
+        const lotesFromDatabase = @json($lotes ?? []);
+        const statusLotes = @json($statusLotes ?? []);
 
     // Tamanho fixo da imagem (independente do monitor)
     const FIXED_IMAGE_WIDTH = 1200; // Largura fixa em pixels
@@ -1104,6 +1203,8 @@
                 if (lote.status && lote.status.tipo == 2) { // Vendido
                     pinType = 'sold';
                 }
+                // Pegar cor do status se disponível
+                const statusCor = lote.status && lote.status.cor ? lote.status.cor : null;
 
                 pins.push({
                     id: `lote_${lote.id}`,
@@ -1111,6 +1212,7 @@
                     x: parseFloat(lote.posicao_pino.x),
                     y: parseFloat(lote.posicao_pino.y),
                     type: pinType,
+                    statusCor: statusCor, // Salvar cor do status
                     data: {
                         title: lote.nome || `Lote ${index + 1}`,
                         price: lote.valor ? `R$ ${parseFloat(lote.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Não informado',
@@ -1132,8 +1234,9 @@
     let pendingPin = null;
     let currentPinForModal = null;
     let nextPinId = 6; // Próximo ID para novos pinos
-    let selectedPinType = null; // Tipo selecionado no modal
+    let selectedStatusId = null; // Status selecionado
     let selectedLoteId = null; // Lote selecionado no modal
+    let removedPins = []; // Rastrear pinos removidos (lote_ids que devem ter posição limpa)
 
     // Dados dos lotes
     const lotData = {
@@ -1201,8 +1304,14 @@
                 y: pin.y
             }));
 
-        if (pinsToSave.length === 0) {
-            showSaveNotification('Nenhum pino vinculado a lote para salvar.', 'warning');
+        // Filtrar removidos que não estão mais na lista de pins (para limpar no banco)
+        const pinsToRemove = removedPins.filter(loteId => {
+            // Se o lote_id não está mais na lista de pins para salvar, deve ser removido
+            return !pinsToSave.find(pin => pin.lote_id === loteId);
+        });
+
+        if (pinsToSave.length === 0 && pinsToRemove.length === 0) {
+            showSaveNotification('Nenhuma alteração para salvar.', 'warning');
             return;
         }
 
@@ -1214,15 +1323,21 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
-                    pinos: pinsToSave
+                    pinos: pinsToSave,
+                    remover: pinsToRemove // Lista de lote_ids para limpar posição_pino
                 })
             });
 
             const data = await response.json();
 
             if (response.ok && data.success) {
+                // Limpar lista de removidos após salvar com sucesso
+                removedPins = [];
                 showSaveNotification('Posições dos pinos salvas com sucesso!', 'success');
                 console.log('✅ Posições salvas:', pinsToSave);
+                if (pinsToRemove.length > 0) {
+                    console.log('✅ Pinos removidos do banco:', pinsToRemove);
+                }
             } else {
                 showSaveNotification(data.error || 'Erro ao salvar posições dos pinos.', 'error');
                 console.error('❌ Erro:', data);
@@ -1357,15 +1472,20 @@
         pinElement.style.setProperty('--pin-hover-scale', PIN_HOVER_SCALE);
         pinElement.dataset.pinId = pin.id;
 
+        // Aplicar cor do status se disponível
+        const pinColor = pin.statusCor || (pin.type === 'sold' ? '#ef4444' : '#10b981');
+
         pinElement.innerHTML = `
-            <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <svg class="pin-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="color: ${pinColor}; fill: ${pinColor};">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
         `;
 
         pinElement.addEventListener('click', (e) => {
             e.stopPropagation();
-            openDetailModal(pin);
+            // Buscar o pino completo do array para garantir que tenha todos os dados
+            const fullPin = pins.find(p => p.id === pin.id) || pin;
+            mostrarDetalhesLoteNaSidebar(fullPin);
         });
 
         return pinElement;
@@ -1540,39 +1660,82 @@
         const pendingPinElement = createPendingPinElement(percentX, percentY);
         mapWrapper.appendChild(pendingPinElement);
 
-        // Popular select de lotes
-        populateLotesSelect();
+        // Esconder seção de adicionar pino
+        const addPinSection = document.getElementById('addPinSection');
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const controlsSection = document.getElementById('controlsSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
+
+        if (addPinSection && modalContentSidebar && sidebarTitle) {
+            addPinSection.style.display = 'none';
+            modalContentSidebar.style.display = 'block';
+
+            // Esconder controles de visualização
+            if (controlsSection) {
+                controlsSection.style.display = 'none';
+            }
+
+            // Trocar título
+            sidebarTitle.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Selecione o tipo de lote
+            `;
+        }
 
         // Resetar seleções
-        selectedPinType = null;
+        selectedStatusId = null;
         selectedLoteId = null;
-        document.getElementById('selectLote').value = '';
-        document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('confirmPinBtn').disabled = true;
+        const selectQuadraEl = document.getElementById('selectQuadra');
+        const selectLoteEl = document.getElementById('selectLote');
 
-        // Mostrar modal de seleção
-        typeModal.classList.add('show');
+        if (selectQuadraEl) {
+            selectQuadraEl.value = '';
+        }
+        if (selectLoteEl) {
+            selectLoteEl.value = '';
+            selectLoteEl.disabled = true;
+        }
+        const confirmBtn = document.getElementById('confirmPinBtn');
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+        }
+
+        // Event listener para quadra - atualizar lotes quando quadra for selecionada
+        if (selectQuadraEl) {
+            selectQuadraEl.addEventListener('change', function() {
+                const quadraId = this.value;
+                populateLotesSelect(quadraId);
+                if (selectLoteEl) {
+                    selectLoteEl.disabled = !quadraId;
+                    selectLoteEl.value = '';
+                    selectedLoteId = null;
+                }
+                checkConfirmButton();
+            });
+        }
+
+        // Adicionar event listener ao select de lote
+        if (selectLoteEl) {
+            selectLoteEl.addEventListener('change', function() {
+                selectedLoteId = this.value;
+                checkConfirmButton();
+            });
+        }
     });
 
     // ========================================
     // FUNÇÕES DOS MODAIS
     // ========================================
-    function selectPinType(pinType) {
-        selectedPinType = pinType;
-        // Remover seleção anterior
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        // Adicionar seleção atual
-        event.target.closest('.type-btn').classList.add('active');
-        checkConfirmButton();
-    }
-
     function checkConfirmButton() {
+        const selectQuadra = document.getElementById('selectQuadra');
         const selectLote = document.getElementById('selectLote');
         const confirmBtn = document.getElementById('confirmPinBtn');
 
-        if (selectLote && selectLote.value && selectedPinType) {
+        if (selectQuadra && selectLote &&
+            selectQuadra.value && selectLote.value) {
             confirmBtn.disabled = false;
             confirmBtn.classList.add('active');
         } else {
@@ -1585,10 +1748,10 @@
         if (!pendingPin) return;
 
         const selectLote = document.getElementById('selectLote');
-        const loteId = selectLote.value;
+        const loteId = selectLote ? selectLote.value : null;
 
-        if (!loteId || !selectedPinType) {
-            alert('Por favor, selecione um lote e um tipo.');
+        if (!loteId) {
+            alert('Por favor, selecione um lote.');
             return;
         }
 
@@ -1599,6 +1762,10 @@
             alert('Lote não encontrado.');
             return;
         }
+
+        // Usar o status do lote selecionado
+        const statusTipo = loteSelecionado.status ? parseInt(loteSelecionado.status.tipo) : null;
+        const statusCor = loteSelecionado.status && loteSelecionado.status.cor ? loteSelecionado.status.cor : null;
 
         // Verificar se o lote já tem um pino
         const loteJaTemPino = pins.find(p => p.lote_id === loteId);
@@ -1614,11 +1781,8 @@
             }
         }
 
-        // Determinar tipo baseado no status do lote, mas usar o selecionado se disponível
-        let pinType = selectedPinType;
-        if (loteSelecionado.status && loteSelecionado.status.tipo == 2) {
-            pinType = 'sold'; // Forçar sold se o status for vendido
-        }
+        // Determinar tipo do pino baseado no tipo do status (1 = available, 2 = sold)
+        const pinType = statusTipo === 2 ? 'sold' : 'available';
 
         // Criar novo pino vinculado ao lote
         const newPin = {
@@ -1627,6 +1791,7 @@
             x: pendingPin.x,
             y: pendingPin.y,
             type: pinType,
+            statusCor: statusCor, // Salvar cor do status
             data: {
                 title: loteSelecionado.nome || `Lote ${loteId.substring(0, 8)}`,
                 price: loteSelecionado.valor ? `R$ ${parseFloat(loteSelecionado.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}` : 'Não informado',
@@ -1637,6 +1802,11 @@
         };
 
         pins.push(newPin);
+
+        // Se o lote estava na lista de removidos, remover da lista (pois foi readicionado)
+        if (removedPins.includes(loteId)) {
+            removedPins = removedPins.filter(id => id !== loteId);
+        }
 
         // Remover pino temporário
         const pendingPinElement = document.getElementById('pendingPin');
@@ -1650,50 +1820,94 @@
 
         // Limpar estado do modal
         pendingPin = null;
-        selectedPinType = null;
         selectedLoteId = null;
-        typeModal.classList.remove('show');
-        document.getElementById('selectLote').value = '';
-        document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+
+        // Restaurar seção de adicionar pino
+        const addPinSection = document.getElementById('addPinSection');
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const controlsSection = document.getElementById('controlsSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
+
+        if (addPinSection && modalContentSidebar && sidebarTitle) {
+            addPinSection.style.display = 'block';
+            modalContentSidebar.style.display = 'none';
+
+            // Mostrar controles de visualização novamente
+            if (controlsSection) {
+                controlsSection.style.display = 'block';
+            }
+
+            // Restaurar título
+            sidebarTitle.innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                Adicionar Pino
+            `;
+        }
+
+        const selectQuadraEl = document.getElementById('selectQuadra');
+        const selectLoteEl = document.getElementById('selectLote');
+
+        if (selectQuadraEl) {
+            selectQuadraEl.value = '';
+        }
+        if (selectLoteEl) {
+            selectLoteEl.value = '';
+            selectLoteEl.disabled = true;
+        }
 
         console.log('✅ Novo pino adicionado e vinculado ao lote:', newPin);
     }
 
-    function populateLotesSelect() {
+    function populateLotesSelect(quadraId) {
         const selectLote = document.getElementById('selectLote');
+        if (!selectLote) return;
 
-        // Remover listeners antigos (se houver)
-        const newSelectLote = selectLote.cloneNode(true);
-        selectLote.parentNode.replaceChild(newSelectLote, selectLote);
+        // Limpar opções atuais
+        selectLote.innerHTML = '<option value="">Selecione um lote...</option>';
 
-        const updatedSelectLote = document.getElementById('selectLote');
-        updatedSelectLote.innerHTML = '<option value="">Selecione um lote...</option>';
+        if (!quadraId) {
+            selectLote.disabled = true;
+            return;
+        }
 
-        // Filtrar lotes que ainda não têm pino
+        // Filtrar lotes que ainda não têm pino E pertencem à quadra selecionada
+        // Um lote não deve aparecer se:
+        // 1. Já tem um pino no array pins (pino temporário ou carregado)
+        // 2. Já tem posicao_pino salva no banco de dados (pino já existe no mapa)
         const lotesSemPino = lotesFromDatabase.filter(lote => {
-            return !pins.find(pin => pin.lote_id === lote.id);
+            const semPinoNoArray = !pins.find(pin => pin.lote_id === lote.id);
+            const semPosicaoNoBanco = !lote.posicao_pino ||
+                                      lote.posicao_pino.x === null ||
+                                      lote.posicao_pino.x === undefined ||
+                                      lote.posicao_pino.y === null ||
+                                      lote.posicao_pino.y === undefined;
+            const daQuadra = lote.quadra_id === quadraId;
+            return semPinoNoArray && semPosicaoNoBanco && daQuadra;
         });
 
         if (lotesSemPino.length === 0) {
             const option = document.createElement('option');
             option.value = '';
-            option.textContent = 'Todos os lotes já possuem pino';
+            option.textContent = 'Todos os lotes desta quadra já possuem pino';
             option.disabled = true;
-            updatedSelectLote.appendChild(option);
+            selectLote.appendChild(option);
         } else {
+            // Ordenar por nome do lote
+            lotesSemPino.sort((a, b) => {
+                const nomeA = a.nome || '';
+                const nomeB = b.nome || '';
+                return nomeA.localeCompare(nomeB);
+            });
+
             lotesSemPino.forEach(lote => {
                 const option = document.createElement('option');
                 option.value = lote.id;
-                option.textContent = `${lote.nome || 'Lote sem nome'}${lote.quadra ? ' - ' + lote.quadra.nome : ''}`;
-                updatedSelectLote.appendChild(option);
+                option.textContent = lote.nome || 'Lote sem nome';
+                selectLote.appendChild(option);
             });
         }
 
-        // Adicionar listener para habilitar botão de confirmar
-        updatedSelectLote.addEventListener('change', function() {
-            selectedLoteId = this.value;
-            checkConfirmButton();
-        });
+        selectLote.disabled = false;
     }
 
     function cancelPin() {
@@ -1704,39 +1918,432 @@
         }
 
         pendingPin = null;
-        selectedPinType = null;
         selectedLoteId = null;
-        typeModal.classList.remove('show');
-    }
 
-    function openDetailModal(pin) {
-        currentPinForModal = pin;
+        // Restaurar seção de adicionar pino
+        const addPinSection = document.getElementById('addPinSection');
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const controlsSection = document.getElementById('controlsSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
 
-        // Atualizar conteúdo do modal
-        const detailHeader = document.getElementById('detailHeader');
-        const detailTitle = document.getElementById('detailTitle');
-        const detailPrice = document.getElementById('detailPrice');
-        const detailArea = document.getElementById('detailArea');
-        const detailStatus = document.getElementById('detailStatus');
-        const detailDescription = document.getElementById('detailDescription');
-        const interestBtn = document.getElementById('interestBtn');
+        if (addPinSection && modalContentSidebar && sidebarTitle) {
+            addPinSection.style.display = 'block';
+            modalContentSidebar.style.display = 'none';
 
-        detailHeader.className = `modal-header ${pin.type}`;
-        detailTitle.textContent = pin.data.title;
-        detailPrice.textContent = pin.data.price;
-        detailArea.textContent = pin.data.area;
-        detailStatus.textContent = pin.data.status;
-        detailDescription.textContent = pin.data.description;
+            // Mostrar controles de visualização novamente
+            if (controlsSection) {
+                controlsSection.style.display = 'block';
+            }
 
-        if (pin.type === 'available') {
-            interestBtn.style.display = 'block';
-            detailStatus.style.color = '#10b981';
-        } else {
-            interestBtn.style.display = 'none';
-            detailStatus.style.color = '#ef4444';
+            // Restaurar título
+            sidebarTitle.innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                Adicionar Pino
+            `;
         }
 
-        detailModal.classList.add('show');
+        const selectQuadraEl = document.getElementById('selectQuadra');
+        const selectLoteEl = document.getElementById('selectLote');
+
+        if (selectQuadraEl) {
+            selectQuadraEl.value = '';
+        }
+        if (selectLoteEl) {
+            selectLoteEl.value = '';
+            selectLoteEl.disabled = true;
+        }
+    }
+
+    function cancelarAdicaoPino() {
+        // Desativar modo de adição se estiver ativo
+        isAddingPin = false;
+        const addPinBtn = document.getElementById('addPinBtn');
+        const activeNotice = document.getElementById('activeNotice');
+
+        if (addPinBtn) {
+            addPinBtn.classList.remove('active');
+            addPinBtn.classList.add('inactive');
+        }
+        if (activeNotice) {
+            activeNotice.style.display = 'none';
+        }
+
+        // Cancelar qualquer pino pendente
+        if (pendingPin) {
+            cancelPin();
+        }
+
+        // Esconder modal content se estiver visível
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const addPinSection = document.getElementById('addPinSection');
+        const controlsSection = document.getElementById('controlsSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
+
+        if (modalContentSidebar) {
+            modalContentSidebar.style.display = 'none';
+        }
+        if (addPinSection) {
+            addPinSection.style.display = 'block';
+        }
+        if (controlsSection) {
+            controlsSection.style.display = 'block';
+        }
+        if (sidebarTitle) {
+            sidebarTitle.innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                Adicionar Pino
+            `;
+        }
+
+        // Limpar seleções
+        const selectQuadraEl = document.getElementById('selectQuadra');
+        const selectLoteEl = document.getElementById('selectLote');
+
+        if (selectQuadraEl) {
+            selectQuadraEl.value = '';
+        }
+        if (selectLoteEl) {
+            selectLoteEl.value = '';
+            selectLoteEl.disabled = true;
+        }
+    }
+
+    function mostrarDetalhesLoteNaSidebar(pin) {
+        if (!pin) {
+            console.error('Pino não encontrado');
+            return;
+        }
+
+        currentPinForModal = pin;
+
+        // Esconder outras seções
+        const addPinSection = document.getElementById('addPinSection');
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const controlsSection = document.getElementById('controlsSection');
+        const loteDetailSection = document.getElementById('loteDetailSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
+
+        if (addPinSection) addPinSection.style.display = 'none';
+        if (modalContentSidebar) modalContentSidebar.style.display = 'none';
+        if (controlsSection) controlsSection.style.display = 'none';
+        if (loteDetailSection) loteDetailSection.style.display = 'block';
+
+        // Atualizar título da sidebar
+        if (sidebarTitle) {
+            const pinData = pin.data || {};
+            let loteCompleto = null;
+            if (pin.lote_id) {
+                loteCompleto = lotesFromDatabase.find(l => l.id === pin.lote_id);
+            }
+            const nomeLote = loteCompleto ? loteCompleto.nome : (pinData.title || 'Detalhes do Lote');
+            sidebarTitle.innerHTML = `
+                <i class="fas fa-edit"></i>
+                Editar ${nomeLote}
+            `;
+        }
+
+        // Preencher informações do lote
+        const loteDetailContent = document.getElementById('loteDetailContent');
+        if (loteDetailContent) {
+            // Buscar lote completo do banco de dados
+            let loteCompleto = null;
+            if (pin.lote_id) {
+                loteCompleto = lotesFromDatabase.find(l => l.id === pin.lote_id);
+            }
+
+            const pinData = pin.data || {};
+            const statusColor = pin.type === 'available' ? '#10b981' : '#ef4444';
+
+            // Função auxiliar para formatar valores
+            const formatarValor = (valor) => {
+                if (!valor || valor === null || valor === undefined) return 'Não informado';
+                if (typeof valor === 'number') {
+                    return 'R$ ' + parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+                return valor;
+            };
+
+            const formatarArea = (valor) => {
+                if (!valor || valor === null || valor === undefined) return 'Não informado';
+                if (typeof valor === 'number') {
+                    return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m²';
+                }
+                return valor;
+            };
+
+            const formatarMedida = (valor) => {
+                if (!valor || valor === null || valor === undefined) return '-';
+                return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m';
+            };
+
+            loteDetailContent.innerHTML = `
+                ${loteCompleto && loteCompleto.nome ? `
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                            <i class="fas fa-tag mr-1"></i>
+                            Nome do Lote
+                        </label>
+                        <p style="font-size: 15px; color: #1e293b; font-weight: 600;">
+                            ${loteCompleto.nome}
+                        </p>
+                    </div>
+                ` : ''}
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Status *
+                    </label>
+                    <select id="selectStatusLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; border-left: 4px solid ${statusColor};" onchange="atualizarCorStatus(this)">
+                        ${statusLotes.map(status => {
+                            const isSelected = loteCompleto && loteCompleto.lote_status_id === status.id;
+                            return `<option value="${status.id}" data-cor="${status.cor || '#10b981'}" ${isSelected ? 'selected' : ''}>${status.nome}</option>`;
+                        }).join('')}
+                    </select>
+                </div>
+
+                ${loteCompleto && loteCompleto.quadra ? `
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                            <i class="fas fa-th mr-1"></i>
+                            Quadra
+                        </label>
+                        <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
+                            ${loteCompleto.quadra.nome || 'Não informado'}
+                        </p>
+                    </div>
+                ` : ''}
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                        <i class="fas fa-dollar-sign mr-1"></i>
+                        Preço
+                    </label>
+                    <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
+                        ${loteCompleto && loteCompleto.valor ? formatarValor(loteCompleto.valor) : (pinData.price || 'Não informado')}
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                        <i class="fas fa-ruler-combined mr-1"></i>
+                        Área (m²)
+                    </label>
+                    <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
+                        ${loteCompleto && loteCompleto.m2 ? formatarArea(loteCompleto.m2) : (pinData.area || 'Não informado')}
+                    </p>
+                </div>
+
+                ${loteCompleto && (loteCompleto.frente || loteCompleto.fundo || loteCompleto.lateral_direita || loteCompleto.lateral_esquerda) ? `
+                    <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px;">
+                            <i class="fas fa-expand-arrows-alt mr-1"></i>
+                            Dimensões
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            ${loteCompleto.frente ? `
+                                <div>
+                                    <span style="font-size: 11px; color: #94a3b8;">Frente</span>
+                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
+                                        ${formatarMedida(loteCompleto.frente)}
+                                    </p>
+                                </div>
+                            ` : ''}
+                            ${loteCompleto.fundo ? `
+                                <div>
+                                    <span style="font-size: 11px; color: #94a3b8;">Fundo</span>
+                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
+                                        ${formatarMedida(loteCompleto.fundo)}
+                                    </p>
+                                </div>
+                            ` : ''}
+                            ${loteCompleto.lateral_direita ? `
+                                <div>
+                                    <span style="font-size: 11px; color: #94a3b8;">Lateral Direita</span>
+                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
+                                        ${formatarMedida(loteCompleto.lateral_direita)}
+                                    </p>
+                                </div>
+                            ` : ''}
+                            ${loteCompleto.lateral_esquerda ? `
+                                <div>
+                                    <span style="font-size: 11px; color: #94a3b8;">Lateral Esquerda</span>
+                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
+                                        ${formatarMedida(loteCompleto.lateral_esquerda)}
+                                    </p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${loteCompleto && loteCompleto.valor_m2 ? `
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                            <i class="fas fa-tag mr-1"></i>
+                            Valor por m²
+                        </label>
+                        <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
+                            ${formatarValor(loteCompleto.valor_m2)}
+                        </p>
+                    </div>
+                ` : ''}
+
+                ${loteCompleto && loteCompleto.observacao ? `
+                    <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
+                            <i class="fas fa-align-left mr-1"></i>
+                            Observação
+                        </label>
+                        <p style="font-size: 13px; color: #475569; line-height: 1.5;">
+                            ${loteCompleto.observacao}
+                        </p>
+                    </div>
+                ` : ''}
+
+                <div style="margin-top: 16px; display: flex; gap: 8px;">
+                    ${loteCompleto ? `
+                        <a href="/lotes/${loteCompleto.id}/edit" class="btn btn-primary" style="flex: 1; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-edit mr-2"></i>
+                            Editar
+                        </a>
+                    ` : ''}
+                    <button onclick="salvarStatusLote()" class="btn" style="flex: 1; background-color: #10b981; color: white; border: none;">
+                        <i class="fas fa-save mr-2"></i>
+                        Salvar Status
+                    </button>
+                </div>
+
+                <div style="margin-top: 12px;">
+                    <button onclick="removerPinoAtual()" class="btn" style="width: 100%; background-color: #ef4444; color: white; border: none;">
+                        <i class="fas fa-trash mr-2"></i>
+                        Remover Pino
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    function fecharDetalhesLote() {
+        const addPinSection = document.getElementById('addPinSection');
+        const modalContentSidebar = document.getElementById('modalContentSidebar');
+        const controlsSection = document.getElementById('controlsSection');
+        const loteDetailSection = document.getElementById('loteDetailSection');
+        const sidebarTitle = document.querySelector('.sidebar-title');
+
+        if (loteDetailSection) loteDetailSection.style.display = 'none';
+        if (addPinSection) addPinSection.style.display = 'block';
+        if (controlsSection) controlsSection.style.display = 'block';
+
+        if (sidebarTitle) {
+            sidebarTitle.innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                Adicionar Pino
+            `;
+        }
+
+        currentPinForModal = null;
+    }
+
+    function removerPinoAtual() {
+        if (!currentPinForModal) return;
+        removeCurrentPin();
+        fecharDetalhesLote();
+    }
+
+    function atualizarCorStatus(select) {
+        const selectedOption = select.options[select.selectedIndex];
+        const cor = selectedOption.getAttribute('data-cor') || '#10b981';
+        select.style.borderLeftColor = cor;
+    }
+
+    function salvarStatusLote() {
+        if (!currentPinForModal || !currentPinForModal.lote_id) {
+            alert('Erro: Lote não encontrado.');
+            return;
+        }
+
+        const selectStatus = document.getElementById('selectStatusLote');
+        if (!selectStatus) {
+            alert('Erro: Select de status não encontrado.');
+            return;
+        }
+
+        const novoStatusId = selectStatus.value;
+        if (!novoStatusId) {
+            alert('Por favor, selecione um status.');
+            return;
+        }
+
+        // Enviar requisição AJAX para atualizar o status
+        fetch(`/lotes/${currentPinForModal.lote_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                lote_status_id: novoStatusId,
+                _method: 'PUT'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Erro ao atualizar status');
+                });
+            }
+            return response.json().catch(() => ({ success: true }));
+        })
+        .then(data => {
+            // Atualizar o lote no array local
+            const loteIndex = lotesFromDatabase.findIndex(l => l.id === currentPinForModal.lote_id);
+            if (loteIndex !== -1) {
+                lotesFromDatabase[loteIndex].lote_status_id = novoStatusId;
+                // Atualizar o status no objeto
+                const novoStatus = statusLotes.find(s => s.id === novoStatusId);
+                if (novoStatus) {
+                    lotesFromDatabase[loteIndex].status = novoStatus;
+                    // Atualizar o pino
+                    const pinIndex = pins.findIndex(p => p.lote_id === currentPinForModal.lote_id);
+                    if (pinIndex !== -1) {
+                        pins[pinIndex].type = novoStatus.tipo === 2 ? 'sold' : 'available';
+                        pins[pinIndex].data.status = novoStatus.nome;
+                        pins[pinIndex].statusCor = novoStatus.cor || '#10b981';
+                    }
+                    // Recriar o pino no mapa
+                    atualizarPinoNoMapa(currentPinForModal.lote_id);
+                }
+            }
+            // Atualizar a sidebar com os dados atualizados
+            const pinAtualizado = pins.find(p => p.lote_id === currentPinForModal.lote_id) || currentPinForModal;
+            mostrarDetalhesLoteNaSidebar(pinAtualizado);
+            alert('Status atualizado com sucesso!');
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao atualizar status: ' + error.message);
+        });
+    }
+
+    function atualizarPinoNoMapa(loteId) {
+        const pinIndex = pins.findIndex(p => p.lote_id === loteId);
+        if (pinIndex === -1) return;
+
+        const pin = pins[pinIndex];
+        const pinElement = document.querySelector(`[data-pin-id="${pin.id}"]`);
+        if (pinElement) {
+            const lote = lotesFromDatabase.find(l => l.id === loteId);
+            if (lote && lote.status) {
+                const corStatus = lote.status.cor || '#10b981';
+                const svgIcon = pinElement.querySelector('.pin-icon');
+                if (svgIcon) {
+                    svgIcon.style.color = corStatus;
+                    svgIcon.style.fill = corStatus;
+                }
+            }
+        }
     }
 
     function closeDetailModal() {
@@ -1746,6 +2353,14 @@
 
     function removeCurrentPin() {
         if (!currentPinForModal) return;
+
+        // Se o pino tinha lote_id, adicionar à lista de removidos
+        if (currentPinForModal.lote_id) {
+            // Adicionar o lote_id à lista de removidos (se ainda não estiver)
+            if (!removedPins.includes(currentPinForModal.lote_id)) {
+                removedPins.push(currentPinForModal.lote_id);
+            }
+        }
 
         // Remover do array
         pins = pins.filter(pin => pin.id !== currentPinForModal.id);
@@ -1759,31 +2374,20 @@
         // Fechar modal
         closeDetailModal();
 
-        // Salvar no storage
-        savePinsToStorage();
-
         console.log('Pino removido, ID:', currentPinForModal.id);
+        console.log('Lotes removidos para limpar:', removedPins);
     }
 
     // Fechar modais clicando fora
-    typeModal.addEventListener('click', (e) => {
-        if (e.target === typeModal) {
-            cancelPin();
-        }
-    });
-
     detailModal.addEventListener('click', (e) => {
         if (e.target === detailModal) {
             closeDetailModal();
         }
     });
 
-    // Tecla ESC para fechar modais
+    // Tecla ESC para fechar modal de detalhes
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (typeModal.classList.contains('show')) {
-                cancelPin();
-            }
             if (detailModal.classList.contains('show')) {
                 closeDetailModal();
             }
@@ -1843,6 +2447,7 @@
     // Inicializar displays
     updateZoomDisplay();
     updateConfigDisplays();
+
 
     // Função global para debug (acesso via console)
     window.getPinsData = getAllPins;

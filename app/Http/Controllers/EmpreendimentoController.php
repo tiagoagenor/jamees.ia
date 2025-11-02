@@ -141,7 +141,15 @@ class EmpreendimentoController extends Controller
         // Carregar lotes com suas posições de pinos
         $lotes = $empreendimento->lotes()->with(['status', 'quadra'])->get();
 
-        return view('empreendimento.mapa', compact('empreendimento', 'lotes'));
+        // Buscar quadras do empreendimento
+        $quadras = $empreendimento->quadras()->orderBy('nome')->get();
+
+        // Buscar status de lotes disponíveis
+        $statusLotes = \App\Models\LoteStatus::where('empresa_id', $empresaAtual->id)
+            ->orderBy('nome')
+            ->get();
+
+        return view('empreendimento.mapa', compact('empreendimento', 'lotes', 'statusLotes', 'quadras'));
     }
 
     /**
@@ -291,29 +299,59 @@ class EmpreendimentoController extends Controller
         }
 
         $validated = $request->validate([
-            'pinos' => 'required|array',
-            'pinos.*.lote_id' => 'required|uuid|exists:lote,id',
-            'pinos.*.x' => 'required|numeric|min:0|max:100',
-            'pinos.*.y' => 'required|numeric|min:0|max:100',
+            'pinos' => 'nullable|array',
+            'pinos.*.lote_id' => 'required_with:pinos|uuid|exists:lote,id',
+            'pinos.*.x' => 'required_with:pinos|numeric|min:0|max:100',
+            'pinos.*.y' => 'required_with:pinos|numeric|min:0|max:100',
+            'remover' => 'nullable|array',
+            'remover.*' => 'uuid|exists:lote,id',
         ]);
 
         try {
-            foreach ($validated['pinos'] as $pinoData) {
-                $lote = Lote::find($pinoData['lote_id']);
+            // Salvar/atualizar posições dos pinos
+            if (isset($validated['pinos']) && count($validated['pinos']) > 0) {
+                foreach ($validated['pinos'] as $pinoData) {
+                    $lote = Lote::find($pinoData['lote_id']);
 
-                // Verificar se o lote pertence ao empreendimento
-                if ($lote && $lote->empreendimento_id === $empreendimento->id) {
-                    $lote->posicao_pino = [
-                        'x' => $pinoData['x'],
-                        'y' => $pinoData['y'],
-                    ];
-                    $lote->save();
+                    // Verificar se o lote pertence ao empreendimento
+                    if ($lote && $lote->empreendimento_id === $empreendimento->id) {
+                        $lote->posicao_pino = [
+                            'x' => $pinoData['x'],
+                            'y' => $pinoData['y'],
+                        ];
+                        $lote->save();
+                    }
+                }
+            }
+
+            // Remover posições dos pinos (limpar posicao_pino no banco)
+            if (isset($validated['remover']) && count($validated['remover']) > 0) {
+                foreach ($validated['remover'] as $loteId) {
+                    $lote = Lote::find($loteId);
+
+                    // Verificar se o lote pertence ao empreendimento
+                    if ($lote && $lote->empreendimento_id === $empreendimento->id) {
+                        $lote->posicao_pino = null;
+                        $lote->save();
+                    }
+                }
+            }
+
+            $message = 'Alterações salvas com sucesso.';
+            if (isset($validated['pinos']) && count($validated['pinos']) > 0) {
+                $message = 'Posições dos pinos salvas com sucesso.';
+            }
+            if (isset($validated['remover']) && count($validated['remover']) > 0) {
+                if (isset($validated['pinos']) && count($validated['pinos']) > 0) {
+                    $message = 'Pinos atualizados e removidos com sucesso.';
+                } else {
+                    $message = 'Pinos removidos com sucesso.';
                 }
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Posições dos pinos salvas com sucesso.',
+                'message' => $message,
             ]);
         } catch (\Exception $e) {
             return response()->json([

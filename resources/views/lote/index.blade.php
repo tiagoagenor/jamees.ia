@@ -350,6 +350,19 @@
                                     @endif
                                 </a>
                             </th>
+                            <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center space-x-1">
+                                    <span>Mapa</span>
+                                    <div class="relative">
+                                        <i id="info-mapa-icon" class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"
+                                           onmouseenter="showMapaTooltip(event)"
+                                           onmouseleave="hideMapaTooltip()"></i>
+                                        <div id="mapa-tooltip" class="fixed z-50 hidden px-3 py-2 text-xs font-normal text-white bg-gray-900 rounded shadow-lg whitespace-normal w-56 text-center pointer-events-none">
+                                            Indica se o lote já foi posicionado no mapa interativo do empreendimento.
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
                             <th class="px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
@@ -395,6 +408,30 @@
                                 </td>
                                 <td class="px-8 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {{ $lote->valor ? 'R$ ' . number_format($lote->valor, 2, ',', '.') : '-' }}
+                                </td>
+                                <td class="px-8 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @php
+                                        $posicaoPino = $lote->posicao_pino;
+                                        $temPinoNoMapa = !empty($posicaoPino) &&
+                                                       is_array($posicaoPino) &&
+                                                       isset($posicaoPino['x']) &&
+                                                       isset($posicaoPino['y']) &&
+                                                       $posicaoPino['x'] !== null &&
+                                                       $posicaoPino['y'] !== null &&
+                                                       $posicaoPino['x'] !== '' &&
+                                                       $posicaoPino['y'] !== '';
+                                    @endphp
+                                    @if($temPinoNoMapa)
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Sim
+                                        </span>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                            Não
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-3">
@@ -832,5 +869,26 @@ function deletarEmMassa() {
 document.addEventListener('DOMContentLoaded', function() {
     atualizarContador();
 });
+
+// Tooltip do mapa
+function showMapaTooltip(event) {
+    const icon = event.target;
+    const tooltip = document.getElementById('mapa-tooltip');
+    const rect = icon.getBoundingClientRect();
+
+    tooltip.classList.remove('hidden');
+
+    // Posicionar acima do ícone
+    const top = rect.top + window.scrollY - tooltip.offsetHeight - 8;
+    const left = rect.left + window.scrollX + (rect.width / 2) - (tooltip.offsetWidth / 2);
+
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+}
+
+function hideMapaTooltip() {
+    const tooltip = document.getElementById('mapa-tooltip');
+    tooltip.classList.add('hidden');
+}
 </script>
 @endsection
