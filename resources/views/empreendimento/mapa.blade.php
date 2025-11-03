@@ -957,7 +957,7 @@
         <div id="mapContainer" class="map-container">
             <div id="mapWrapper" class="map-wrapper">
                 <img id="mapImage" class="map-image"
-                    src="{{ $empreendimento->imagem_mapa ? asset('storage/' . $empreendimento->imagem_mapa) : asset('map/mapa-dos-lotes-1637671897.webp') }}"
+                    src="{{ $empreendimento->imagem_mapa ? asset($empreendimento->imagem_mapa) : asset('map/mapa-dos-lotes-1637671897.webp') }}"
                     alt="Mapa do Loteamento"
                      draggable="false">
             </div>

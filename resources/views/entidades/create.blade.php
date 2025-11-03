@@ -149,6 +149,32 @@
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    @if($tipo === 'funcionario')
+                        <!-- Vínculo com Usuário -->
+                        <div>
+                            <label for="usuario_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                Usuário
+                                <span class="text-xs text-gray-500 font-normal">(opcional)</span>
+                            </label>
+                            <select id="usuario_id"
+                                    name="usuario_id"
+                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="">Selecione um usuário (opcional)</option>
+                                @if(isset($usuarios))
+                                    @foreach($usuarios as $usuario)
+                                        <option value="{{ $usuario->id }}" {{ old('usuario_id') == $usuario->id ? 'selected' : '' }}>
+                                            {{ $usuario->nome }} - {{ $usuario->email }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Vincule este funcionário a um usuário do sistema</p>
+                            @error('usuario_id')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Observação -->

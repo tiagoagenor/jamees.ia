@@ -72,7 +72,7 @@
 
             @if($empreendimento->imagem)
                 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="{{ Storage::url($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-auto">
+                    <img src="{{ asset($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-auto">
                 </div>
             @endif
         </div>

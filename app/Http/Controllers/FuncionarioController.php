@@ -99,7 +99,12 @@ class FuncionarioController extends Controller
             abort(403, 'Você não tem permissão para criar funcionários.');
         }
 
-        return view('entidades.create')->with('tipo', 'funcionario');
+        // Buscar usuários disponíveis para vincular (sem funcionário vinculado)
+        $usuarios = \App\Models\Usuario::whereDoesntHave('funcionario')
+            ->orderBy('nome')
+            ->get();
+
+        return view('entidades.create', compact('usuarios'))->with('tipo', 'funcionario');
     }
 
     /**
@@ -125,6 +130,7 @@ class FuncionarioController extends Controller
             'telefone_comercial' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'tipo_pessoa' => 'required|in:1,2',
+            'usuario_id' => 'nullable|exists:usuario,id',
             'contatos' => 'nullable|array',
             'contatos.*.nome' => 'required_with:contatos|string|max:255',
             'contatos.*.contato' => 'required_with:contatos|string|max:255',
@@ -145,6 +151,16 @@ class FuncionarioController extends Controller
             'tipo_pessoa.required' => 'O tipo de pessoa é obrigatório.',
         ]);
 
+        // Verificar se o usuário já está vinculado a outro funcionário
+        if ($request->filled('usuario_id')) {
+            $usuarioExistente = \App\Models\Usuario::find($request->usuario_id);
+            if ($usuarioExistente && $usuarioExistente->funcionario) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Este usuário já está vinculado a outro funcionário.');
+            }
+        }
+
         // Criar funcionário
         $funcionario = Funcionario::create([
             'id' => Str::uuid()->toString(),
@@ -160,6 +176,7 @@ class FuncionarioController extends Controller
             'observacao' => $request->observacao,
             'tipo_pessoa' => $request->tipo_pessoa,
             'status' => true,
+            'usuario_id' => $request->filled('usuario_id') ? $request->usuario_id : null,
         ]);
 
         // Criar contatos se fornecidos
@@ -230,10 +247,21 @@ class FuncionarioController extends Controller
             abort(403, 'Você não tem permissão para editar funcionários.');
         }
 
-        $funcionario->load(['contatos', 'enderecos']);
+        $funcionario->load(['contatos', 'enderecos', 'usuario']);
         $entidade = $funcionario;
 
-        return view('entidades.edit', compact('entidade'))->with('tipo', 'funcionario');
+        // Buscar usuários disponíveis para vincular (sem funcionário vinculado ou o próprio usuário vinculado a este funcionário)
+        $usuarioVinculado = $funcionario->usuario;
+        $usuarios = \App\Models\Usuario::where(function($query) use ($usuarioVinculado) {
+                $query->whereDoesntHave('funcionario');
+                if ($usuarioVinculado) {
+                    $query->orWhere('id', $usuarioVinculado->id);
+                }
+            })
+            ->orderBy('nome')
+            ->get();
+
+        return view('entidades.edit', compact('entidade', 'usuarios'))->with('tipo', 'funcionario');
     }
 
     /**
@@ -253,10 +281,21 @@ class FuncionarioController extends Controller
             'telefone_comercial' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'tipo_pessoa' => 'required|in:1,2',
+            'usuario_id' => 'nullable|exists:usuario,id',
         ]);
 
         // Salvar valores antigos para audit log
         $oldValues = $funcionario->getAttributes();
+
+        // Verificar se está alterando o usuário vinculado
+        if ($request->filled('usuario_id') && $funcionario->usuario_id != $request->usuario_id) {
+            $novoUsuario = \App\Models\Usuario::find($request->usuario_id);
+            if ($novoUsuario && $novoUsuario->funcionario && $novoUsuario->funcionario->id != $funcionario->id) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Este usuário já está vinculado a outro funcionário.');
+            }
+        }
 
         // Preparar novos valores
         $newValues = [
@@ -270,6 +309,7 @@ class FuncionarioController extends Controller
             'site' => $request->site,
             'observacao' => $request->observacao,
             'tipo_pessoa' => $request->tipo_pessoa,
+            'usuario_id' => $request->filled('usuario_id') ? $request->usuario_id : null,
         ];
 
         // Verificar se houve alterações nos dados principais
@@ -284,6 +324,14 @@ class FuncionarioController extends Controller
             if ($oldValueNormalized !== $newValueNormalized) {
                 $hasChanges = true;
                 break;
+            }
+        }
+
+        // Se estava removendo o vínculo, remover também do usuário
+        if (!$request->filled('usuario_id') && $funcionario->usuario_id) {
+            $usuarioAnterior = \App\Models\Usuario::find($funcionario->usuario_id);
+            if ($usuarioAnterior) {
+                // O relacionamento HasOne já garante que não precisa fazer nada aqui
             }
         }
 

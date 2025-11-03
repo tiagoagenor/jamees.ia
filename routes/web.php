@@ -43,6 +43,14 @@ Route::get('/test', function () {
     return 'Teste funcionando! Usuário: ' . (Auth::check() ? Auth::user()->nome : 'Não logado');
 });
 
+// Rota de informações do PHP (protegida por autenticação)
+Route::get('/phpinfo', function () {
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+    return view('phpinfo');
+})->middleware('auth')->name('phpinfo');
+
 // Rota de login manual para teste
 Route::get('/login-manual', function () {
     $user = App\Models\Usuario::where('email', 'maria@teste.com')->first();

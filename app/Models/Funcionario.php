@@ -149,4 +149,12 @@ class Funcionario extends Model
     {
         return 'Funcionário';
     }
+
+    /**
+     * Verificar se o funcionário tem usuário associado
+     */
+    public function temUsuario(): bool
+    {
+        return !is_null($this->usuario_id);
+    }
 }

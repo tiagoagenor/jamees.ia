@@ -7,7 +7,7 @@ use App\Models\Empreendimento;
 use App\Models\Lote;
 use App\Helpers\PermissionHelper;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class EmpreendimentoController extends Controller
 {
@@ -64,40 +64,270 @@ class EmpreendimentoController extends Controller
             abort(403, 'Empresa atual não encontrada.');
         }
 
-        $validated = $request->validate([
-            'nome' => 'required|string|max:255',
-            'imagem' => 'nullable|image|max:10240',
-            'imagem_mapa' => 'nullable|image|max:10240',
-            'zoom_default' => 'nullable|integer|min:50|max:300',
-            'valor_m2' => 'nullable|numeric|min:0',
-            'maximo_parcelas' => 'nullable|integer|min:1',
-            'sinal' => 'required|in:1,2',
-            'sinal_tipo' => 'nullable|in:1,2',
-            'sinal_valor' => 'nullable|numeric|min:0',
-            'status' => 'required|in:0,1',
-            'quadra_numeracao_tipo' => 'required|in:1,2',
+        // Log detalhado ANTES de tudo para diagnosticar o problema
+        Log::info('Diagnóstico de upload (store)', [
+            'has_imagem' => $request->hasFile('imagem'),
+            'has_imagem_mapa' => $request->hasFile('imagem_mapa'),
+            'content_type' => $request->header('Content-Type'),
+            'content_length' => $request->header('Content-Length'),
+            'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size' => ini_get('post_max_size'),
+            'max_file_uploads' => ini_get('max_file_uploads'),
+            'memory_limit' => ini_get('memory_limit'),
+            'all_files' => $request->allFiles(),
         ]);
+
+        // Log antes da validação para verificar se o arquivo chegou
+        if ($request->hasFile('imagem')) {
+            $file = $request->file('imagem');
+            Log::info('Arquivo recebido antes da validação (store)', [
+                'nome_arquivo' => $file->getClientOriginalName(),
+                'tamanho' => $file->getSize(),
+                'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                'mime_type' => $file->getMimeType(),
+                'is_valid' => $file->isValid(),
+                'error_code' => $file->getError(),
+                'error_message' => $file->isValid() ? null : $file->getErrorMessage(),
+            ]);
+        } else {
+            Log::warning('Arquivo imagem NÃO chegou ao servidor (store)', [
+                'request_all' => array_keys($request->all()),
+                'request_files' => array_keys($request->allFiles()),
+                'content_type_header' => $request->header('Content-Type'),
+                'content_length_header' => $request->header('Content-Length'),
+            ]);
+        }
+
+        if ($request->hasFile('imagem_mapa')) {
+            $file = $request->file('imagem_mapa');
+            Log::info('Arquivo do mapa recebido antes da validação (store)', [
+                'nome_arquivo' => $file->getClientOriginalName(),
+                'tamanho' => $file->getSize(),
+                'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                'mime_type' => $file->getMimeType(),
+                'is_valid' => $file->isValid(),
+                'error_code' => $file->getError(),
+                'error_message' => $file->isValid() ? null : $file->getErrorMessage(),
+            ]);
+        }
+
+        try {
+            $validated = $request->validate([
+                'nome' => 'required|string|max:255',
+                'imagem' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+                'imagem_mapa' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+                'zoom_default' => 'nullable|integer|min:50|max:300',
+                'valor_m2' => 'nullable|numeric|min:0',
+                'maximo_parcelas' => 'nullable|integer|min:1',
+                'sinal' => 'required|in:1,2',
+                'sinal_tipo' => 'nullable|in:1,2',
+                'sinal_valor' => 'nullable|numeric|min:0',
+                'status' => 'required|in:0,1',
+                'quadra_numeracao_tipo' => 'required|in:1,2',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erro de validação no upload de imagem (store)', [
+                'erros' => $e->errors(),
+                'dados_request' => $request->except(['imagem', 'imagem_mapa']), // Não logar arquivos
+                'has_imagem' => $request->hasFile('imagem'),
+                'has_imagem_mapa' => $request->hasFile('imagem_mapa'),
+            ]);
+            throw $e;
+        }
 
         // Se zoom_default estiver vazio ou 0, usar default 180
         if (empty($validated['zoom_default']) || $validated['zoom_default'] == 0) {
             $validated['zoom_default'] = 180;
         }
 
-        // Upload de imagem se houver
+        $validated['empresa_id'] = $empresaAtual->id;
+
+        // Criar empreendimento primeiro para obter o ID
+        $empreendimento = Empreendimento::create($validated);
+
+        // Criar pastas específicas para este empreendimento
+        $pastaEmpreendimento = 'img_empreendimentos/' . $empreendimento->id . '_cover';
+        $pastaMapa = 'img_empreendimentos/' . $empreendimento->id . '_mapa';
+
+        // Criar diretórios se não existirem
+        if (!file_exists(public_path($pastaEmpreendimento))) {
+            mkdir(public_path($pastaEmpreendimento), 0755, true);
+        }
+        if (!file_exists(public_path($pastaMapa))) {
+            mkdir(public_path($pastaMapa), 0755, true);
+        }
+
+        // Upload de imagem de capa se houver
         if ($request->hasFile('imagem')) {
-            $path = $request->file('imagem')->store('empreendimentos', 'public');
-            $validated['imagem'] = $path;
+            try {
+                $file = $request->file('imagem');
+
+                // Log detalhado do arquivo
+                Log::info('Tentativa de upload de imagem', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'nome_arquivo' => $file->getClientOriginalName(),
+                    'tamanho' => $file->getSize(),
+                    'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    'mime_type' => $file->getMimeType(),
+                    'extensao' => $file->getClientOriginalExtension(),
+                    'caminho_temp' => $file->getPathname(),
+                    'pasta_destino' => $pastaEmpreendimento,
+                ]);
+
+                // Verificar se o upload foi bem-sucedido
+                if (!$file->isValid()) {
+                    $errorMessage = $file->getErrorMessage();
+                    $errorCode = $file->getError();
+
+                    Log::error('Arquivo de imagem inválido', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'nome_arquivo' => $file->getClientOriginalName(),
+                        'codigo_erro' => $errorCode,
+                        'mensagem_erro' => $errorMessage,
+                        'tamanho' => $file->getSize(),
+                        'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                        'upload_max_filesize' => ini_get('upload_max_filesize'),
+                        'post_max_size' => ini_get('post_max_size'),
+                        'max_file_uploads' => ini_get('max_file_uploads'),
+                    ]);
+
+                    throw new \Exception('Arquivo inválido. Código de erro: ' . $errorCode . '. Mensagem: ' . $errorMessage);
+                }
+
+                // Verificar se a pasta existe e tem permissão de escrita
+                $pastaPath = public_path($pastaEmpreendimento);
+                if (!is_dir($pastaPath)) {
+                    Log::error('Pasta de destino não existe', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                    ]);
+                    throw new \Exception('Pasta de destino não existe: ' . $pastaPath);
+                }
+
+                if (!is_writable($pastaPath)) {
+                    Log::error('Pasta de destino sem permissão de escrita', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                        'permissoes' => substr(sprintf('%o', fileperms($pastaPath)), -4),
+                    ]);
+                    throw new \Exception('Pasta de destino sem permissão de escrita: ' . $pastaPath);
+                }
+
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path($pastaEmpreendimento), $fileName);
+
+                // Salvar apenas a URL relativa
+                $empreendimento->imagem = $pastaEmpreendimento . '/' . $fileName;
+                $empreendimento->save();
+
+                Log::info('Upload de imagem bem-sucedido', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'arquivo_salvo' => $empreendimento->imagem,
+                    'tamanho' => filesize(public_path($empreendimento->imagem)),
+                ]);
+            } catch (\Exception $e) {
+                // Log do erro completo
+                Log::error('Erro ao fazer upload da imagem', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'erro' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'arquivo' => $e->getFile(),
+                    'linha' => $e->getLine(),
+                ]);
+
+                // Se der erro, deletar o empreendimento criado e retornar com erro
+                $empreendimento->delete();
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Erro ao fazer upload da imagem: ' . $e->getMessage() . '. Tamanho máximo permitido: 10MB. Verifique se o arquivo não excede o limite e se é um formato válido (JPG, PNG, GIF, WEBP). Verifique os logs para mais detalhes.');
+            }
         }
 
         // Upload de imagem do mapa se houver
         if ($request->hasFile('imagem_mapa')) {
-            $path = $request->file('imagem_mapa')->store('empreendimentos', 'public');
-            $validated['imagem_mapa'] = $path;
+            try {
+                $file = $request->file('imagem_mapa');
+
+                // Log detalhado do arquivo
+                Log::info('Tentativa de upload de imagem do mapa', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'nome_arquivo' => $file->getClientOriginalName(),
+                    'tamanho' => $file->getSize(),
+                    'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    'mime_type' => $file->getMimeType(),
+                    'extensao' => $file->getClientOriginalExtension(),
+                    'caminho_temp' => $file->getPathname(),
+                    'pasta_destino' => $pastaMapa,
+                ]);
+
+                // Verificar se o upload foi bem-sucedido
+                if (!$file->isValid()) {
+                    $errorMessage = $file->getErrorMessage();
+                    $errorCode = $file->getError();
+
+                    Log::error('Arquivo de imagem do mapa inválido', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'nome_arquivo' => $file->getClientOriginalName(),
+                        'codigo_erro' => $errorCode,
+                        'mensagem_erro' => $errorMessage,
+                        'tamanho' => $file->getSize(),
+                        'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                        'upload_max_filesize' => ini_get('upload_max_filesize'),
+                        'post_max_size' => ini_get('post_max_size'),
+                        'max_file_uploads' => ini_get('max_file_uploads'),
+                    ]);
+
+                    throw new \Exception('Arquivo inválido. Código de erro: ' . $errorCode . '. Mensagem: ' . $errorMessage);
+                }
+
+                // Verificar se a pasta existe e tem permissão de escrita
+                $pastaPath = public_path($pastaMapa);
+                if (!is_dir($pastaPath)) {
+                    Log::error('Pasta de destino do mapa não existe', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                    ]);
+                    throw new \Exception('Pasta de destino não existe: ' . $pastaPath);
+                }
+
+                if (!is_writable($pastaPath)) {
+                    Log::error('Pasta de destino do mapa sem permissão de escrita', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                        'permissoes' => substr(sprintf('%o', fileperms($pastaPath)), -4),
+                    ]);
+                    throw new \Exception('Pasta de destino sem permissão de escrita: ' . $pastaPath);
+                }
+
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path($pastaMapa), $fileName);
+
+                // Salvar apenas a URL relativa
+                $empreendimento->imagem_mapa = $pastaMapa . '/' . $fileName;
+                $empreendimento->save();
+
+                Log::info('Upload de imagem do mapa bem-sucedido', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'arquivo_salvo' => $empreendimento->imagem_mapa,
+                    'tamanho' => filesize(public_path($empreendimento->imagem_mapa)),
+                ]);
+            } catch (\Exception $e) {
+                // Log do erro completo
+                Log::error('Erro ao fazer upload da imagem do mapa', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'erro' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'arquivo' => $e->getFile(),
+                    'linha' => $e->getLine(),
+                ]);
+
+                // Se der erro, deletar o empreendimento criado e retornar com erro
+                $empreendimento->delete();
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Erro ao fazer upload da imagem do mapa: ' . $e->getMessage() . '. Tamanho máximo permitido: 10MB. Verifique se o arquivo não excede o limite e se é um formato válido (JPG, PNG, GIF, WEBP). Verifique os logs para mais detalhes.');
+            }
         }
-
-        $validated['empresa_id'] = $empresaAtual->id;
-
-        Empreendimento::create($validated);
 
         return redirect()->route('empreendimentos.index')
             ->with('success', 'Empreendimento criado com sucesso.');
@@ -136,6 +366,11 @@ class EmpreendimentoController extends Controller
         $empresaAtual = PermissionHelper::getEmpresaAtual();
         if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
             abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se existe imagem do mapa
+        if (!$empreendimento->imagem_mapa || empty($empreendimento->imagem_mapa) || !file_exists(public_path($empreendimento->imagem_mapa))) {
+            return view('empreendimento.mapa-sem-imagem', compact('empreendimento'));
         }
 
         // Carregar lotes com suas posições de pinos
@@ -183,43 +418,239 @@ class EmpreendimentoController extends Controller
             abort(403, 'Empreendimento não encontrado.');
         }
 
-        $validated = $request->validate([
-            'nome' => 'required|string|max:255',
-            'imagem' => 'nullable|image|max:10240',
-            'imagem_mapa' => 'nullable|image|max:10240',
-            'zoom_default' => 'nullable|integer|min:50|max:300',
-            'valor_m2' => 'nullable|numeric|min:0',
-            'maximo_parcelas' => 'nullable|integer|min:1',
-            'sinal' => 'required|in:1,2',
-            'sinal_tipo' => 'nullable|in:1,2',
-            'sinal_valor' => 'nullable|numeric|min:0',
-            'status' => 'required|in:0,1',
-            'quadra_numeracao_tipo' => 'required|in:1,2',
-        ]);
+        // Log antes da validação para verificar se o arquivo chegou
+        if ($request->hasFile('imagem')) {
+            $file = $request->file('imagem');
+            Log::info('Arquivo recebido antes da validação (update)', [
+                'empreendimento_id' => $empreendimento->id,
+                'nome_arquivo' => $file->getClientOriginalName(),
+                'tamanho' => $file->getSize(),
+                'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                'mime_type' => $file->getMimeType(),
+                'is_valid' => $file->isValid(),
+                'error_code' => $file->getError(),
+                'error_message' => $file->isValid() ? null : $file->getErrorMessage(),
+            ]);
+        }
+
+        if ($request->hasFile('imagem_mapa')) {
+            $file = $request->file('imagem_mapa');
+            Log::info('Arquivo do mapa recebido antes da validação (update)', [
+                'empreendimento_id' => $empreendimento->id,
+                'nome_arquivo' => $file->getClientOriginalName(),
+                'tamanho' => $file->getSize(),
+                'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                'mime_type' => $file->getMimeType(),
+                'is_valid' => $file->isValid(),
+                'error_code' => $file->getError(),
+                'error_message' => $file->isValid() ? null : $file->getErrorMessage(),
+            ]);
+        }
+
+        try {
+            $validated = $request->validate([
+                'nome' => 'required|string|max:255',
+                'imagem' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+                'imagem_mapa' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+                'zoom_default' => 'nullable|integer|min:50|max:300',
+                'valor_m2' => 'nullable|numeric|min:0',
+                'maximo_parcelas' => 'nullable|integer|min:1',
+                'sinal' => 'required|in:1,2',
+                'sinal_tipo' => 'nullable|in:1,2',
+                'sinal_valor' => 'nullable|numeric|min:0',
+                'status' => 'required|in:0,1',
+                'quadra_numeracao_tipo' => 'required|in:1,2',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erro de validação no upload de imagem (update)', [
+                'empreendimento_id' => $empreendimento->id,
+                'erros' => $e->errors(),
+                'dados_request' => $request->except(['imagem', 'imagem_mapa']), // Não logar arquivos
+                'has_imagem' => $request->hasFile('imagem'),
+                'has_imagem_mapa' => $request->hasFile('imagem_mapa'),
+            ]);
+            throw $e;
+        }
 
         // Se zoom_default estiver vazio ou 0, usar default 180
         if (empty($validated['zoom_default']) || $validated['zoom_default'] == 0) {
             $validated['zoom_default'] = 180;
         }
 
-        // Upload de imagem se houver
+        // Criar pastas específicas para este empreendimento se não existirem
+        $pastaEmpreendimento = 'img_empreendimentos/' . $empreendimento->id . '_cover';
+        $pastaMapa = 'img_empreendimentos/' . $empreendimento->id . '_mapa';
+
+        // Criar diretórios se não existirem
+        if (!file_exists(public_path($pastaEmpreendimento))) {
+            mkdir(public_path($pastaEmpreendimento), 0755, true);
+        }
+        if (!file_exists(public_path($pastaMapa))) {
+            mkdir(public_path($pastaMapa), 0755, true);
+        }
+
+        // Upload de imagem de capa se houver
         if ($request->hasFile('imagem')) {
-            // Deletar imagem antiga se existir
-            if ($empreendimento->imagem) {
-                Storage::disk('public')->delete($empreendimento->imagem);
+            try {
+                // Deletar imagem antiga se existir (pode estar em pasta antiga ou nova)
+                if ($empreendimento->imagem) {
+                    $oldFilePath = public_path($empreendimento->imagem);
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+
+                $file = $request->file('imagem');
+
+                // Log detalhado do arquivo
+                Log::info('Tentativa de upload de imagem (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'nome_arquivo' => $file->getClientOriginalName(),
+                    'tamanho' => $file->getSize(),
+                    'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    'mime_type' => $file->getMimeType(),
+                    'extensao' => $file->getClientOriginalExtension(),
+                ]);
+
+                // Verificar se o upload foi bem-sucedido
+                if (!$file->isValid()) {
+                    $errorMessage = $file->getErrorMessage();
+                    $errorCode = $file->getError();
+
+                    Log::error('Arquivo de imagem inválido (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'nome_arquivo' => $file->getClientOriginalName(),
+                        'codigo_erro' => $errorCode,
+                        'mensagem_erro' => $errorMessage,
+                        'tamanho' => $file->getSize(),
+                        'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    ]);
+
+                    throw new \Exception('Arquivo inválido. Código de erro: ' . $errorCode . '. Mensagem: ' . $errorMessage);
+                }
+
+                // Verificar se a pasta existe e tem permissão de escrita
+                $pastaPath = public_path($pastaEmpreendimento);
+                if (!is_dir($pastaPath)) {
+                    Log::error('Pasta de destino não existe (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                    ]);
+                    throw new \Exception('Pasta de destino não existe: ' . $pastaPath);
+                }
+
+                if (!is_writable($pastaPath)) {
+                    Log::error('Pasta de destino sem permissão de escrita (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                        'permissoes' => substr(sprintf('%o', fileperms($pastaPath)), -4),
+                    ]);
+                    throw new \Exception('Pasta de destino sem permissão de escrita: ' . $pastaPath);
+                }
+
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path($pastaEmpreendimento), $fileName);
+
+                // Salvar apenas a URL relativa
+                $validated['imagem'] = $pastaEmpreendimento . '/' . $fileName;
+
+                Log::info('Upload de imagem bem-sucedido (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'arquivo_salvo' => $validated['imagem'],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Erro ao fazer upload da imagem (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'erro' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Erro ao fazer upload da imagem: ' . $e->getMessage() . '. Verifique os logs para mais detalhes.');
             }
-            $path = $request->file('imagem')->store('empreendimentos', 'public');
-            $validated['imagem'] = $path;
         }
 
         // Upload de imagem do mapa se houver
         if ($request->hasFile('imagem_mapa')) {
-            // Deletar imagem antiga se existir
-            if ($empreendimento->imagem_mapa) {
-                Storage::disk('public')->delete($empreendimento->imagem_mapa);
+            try {
+                // Deletar imagem antiga se existir (pode estar em pasta antiga ou nova)
+                if ($empreendimento->imagem_mapa) {
+                    $oldFilePath = public_path($empreendimento->imagem_mapa);
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+
+                $file = $request->file('imagem_mapa');
+
+                // Log detalhado do arquivo
+                Log::info('Tentativa de upload de imagem do mapa (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'nome_arquivo' => $file->getClientOriginalName(),
+                    'tamanho' => $file->getSize(),
+                    'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    'mime_type' => $file->getMimeType(),
+                    'extensao' => $file->getClientOriginalExtension(),
+                ]);
+
+                // Verificar se o upload foi bem-sucedido
+                if (!$file->isValid()) {
+                    $errorMessage = $file->getErrorMessage();
+                    $errorCode = $file->getError();
+
+                    Log::error('Arquivo de imagem do mapa inválido (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'nome_arquivo' => $file->getClientOriginalName(),
+                        'codigo_erro' => $errorCode,
+                        'mensagem_erro' => $errorMessage,
+                        'tamanho' => $file->getSize(),
+                        'tamanho_mb' => round($file->getSize() / 1024 / 1024, 2),
+                    ]);
+
+                    throw new \Exception('Arquivo inválido. Código de erro: ' . $errorCode . '. Mensagem: ' . $errorMessage);
+                }
+
+                // Verificar se a pasta existe e tem permissão de escrita
+                $pastaPath = public_path($pastaMapa);
+                if (!is_dir($pastaPath)) {
+                    Log::error('Pasta de destino do mapa não existe (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                    ]);
+                    throw new \Exception('Pasta de destino não existe: ' . $pastaPath);
+                }
+
+                if (!is_writable($pastaPath)) {
+                    Log::error('Pasta de destino do mapa sem permissão de escrita (update)', [
+                        'empreendimento_id' => $empreendimento->id,
+                        'pasta' => $pastaPath,
+                        'permissoes' => substr(sprintf('%o', fileperms($pastaPath)), -4),
+                    ]);
+                    throw new \Exception('Pasta de destino sem permissão de escrita: ' . $pastaPath);
+                }
+
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path($pastaMapa), $fileName);
+
+                // Salvar apenas a URL relativa
+                $validated['imagem_mapa'] = $pastaMapa . '/' . $fileName;
+
+                Log::info('Upload de imagem do mapa bem-sucedido (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'arquivo_salvo' => $validated['imagem_mapa'],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Erro ao fazer upload da imagem do mapa (update)', [
+                    'empreendimento_id' => $empreendimento->id,
+                    'erro' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Erro ao fazer upload da imagem do mapa: ' . $e->getMessage() . '. Verifique os logs para mais detalhes.');
             }
-            $path = $request->file('imagem_mapa')->store('empreendimentos', 'public');
-            $validated['imagem_mapa'] = $path;
         }
 
         $empreendimento->update($validated);
@@ -268,14 +699,41 @@ class EmpreendimentoController extends Controller
                 ->with('error', $mensagem);
         }
 
-        // Deletar imagem se existir
+        // Deletar imagens e pastas se existirem
+        $pastaEmpreendimento = 'img_empreendimentos/' . $empreendimento->id . '_cover';
+        $pastaMapa = 'img_empreendimentos/' . $empreendimento->id . '_mapa';
+
+        // Deletar imagem de capa se existir
         if ($empreendimento->imagem) {
-            Storage::disk('public')->delete($empreendimento->imagem);
+            $imagePath = public_path($empreendimento->imagem);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
         }
 
         // Deletar imagem do mapa se existir
         if ($empreendimento->imagem_mapa) {
-            Storage::disk('public')->delete($empreendimento->imagem_mapa);
+            $mapaPath = public_path($empreendimento->imagem_mapa);
+            if (file_exists($mapaPath)) {
+                unlink($mapaPath);
+            }
+        }
+
+        // Deletar pastas se estiverem vazias
+        $pastaCoverPath = public_path($pastaEmpreendimento);
+        if (file_exists($pastaCoverPath) && is_dir($pastaCoverPath)) {
+            // Verificar se a pasta está vazia
+            if (count(scandir($pastaCoverPath)) == 2) { // 2 = . e ..
+                rmdir($pastaCoverPath);
+            }
+        }
+
+        $pastaMapaPath = public_path($pastaMapa);
+        if (file_exists($pastaMapaPath) && is_dir($pastaMapaPath)) {
+            // Verificar se a pasta está vazia
+            if (count(scandir($pastaMapaPath)) == 2) { // 2 = . e ..
+                rmdir($pastaMapaPath);
+            }
         }
 
         $empreendimento->delete();
