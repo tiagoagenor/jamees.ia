@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use App\Traits\HasUuid;
+use App\Enums\UsuarioStatusEnum;
 
 class Usuario extends Model implements Authenticatable
 {
@@ -23,6 +24,7 @@ class Usuario extends Model implements Authenticatable
         'senha',
         'imagem',
         'status',
+        'principal',
         'remember_token',
     ];
 
@@ -35,6 +37,8 @@ class Usuario extends Model implements Authenticatable
     protected $casts = [
         'criado_em' => 'datetime',
         'atualizado_em' => 'datetime',
+        'status' => UsuarioStatusEnum::class,
+        'principal' => 'boolean',
     ];
 
     protected static function boot()
@@ -72,6 +76,26 @@ class Usuario extends Model implements Authenticatable
                     ->withPivot('principal', 'status', 'criado_em', 'atualizado_em');
     }
 
+    /**
+     * Obter a empresa principal do usuário
+     */
+    public function empresaPrincipal()
+    {
+        return $this->empresas()->wherePivot('principal', 1)->first();
+    }
+
+    /**
+     * Obter a empresa atual do usuário (sessão)
+     */
+    public function empresaAtual()
+    {
+        $empresaId = session('empresa_atual_id');
+        if ($empresaId) {
+            return $this->empresas()->where('empresa.id', $empresaId)->first();
+        }
+        return $this->empresaPrincipal();
+    }
+
     public function ultimosAcessos(): HasMany
     {
         return $this->hasMany(UltimaAcesso::class, 'usuario_id');
@@ -99,6 +123,73 @@ class Usuario extends Model implements Authenticatable
     public function getAuthIdentifier()
     {
         return $this->getKey();
+    }
+
+    public function grupos(): BelongsToMany
+    {
+        return $this->belongsToMany(Grupo::class, 'usuario_grupo', 'usuario_id', 'grupo_id')
+                    ->withTimestamps();
+    }
+
+    public function temPermissao($modulo, $acao): bool
+    {
+        // Buscar grupos da empresa principal do usuário
+        $empresaPrincipal = $this->empresas()->wherePivot('principal', 1)->first();
+
+        if (!$empresaPrincipal) {
+            return false;
+        }
+
+        $grupo = $this->grupos()
+            ->where('empresa_id', $empresaPrincipal->id)
+            ->first();
+
+        if (!$grupo) {
+            return false;
+        }
+
+        return $grupo->temPermissao($modulo, $acao);
+    }
+
+    public function isAdmin(): bool
+    {
+        // Verificar se é admin na empresa principal
+        $empresaPrincipal = $this->empresas()->wherePivot('principal', 1)->first();
+
+        if (!$empresaPrincipal) {
+            return false;
+        }
+
+        return $this->grupos()
+            ->where('empresa_id', $empresaPrincipal->id)
+            ->where('administrativo', true)
+            ->exists();
+    }
+
+    public function isPrincipal(): bool
+    {
+        return $this->principal;
+    }
+
+    public function canDeleteUser(Usuario $targetUser): bool
+    {
+        // Usuário principal pode deletar qualquer um
+        if ($this->isPrincipal()) {
+            return true;
+        }
+
+        // Não pode deletar usuário principal
+        if ($targetUser->isPrincipal()) {
+            return false;
+        }
+
+        // Se o usuário atual é admin, pode deletar outros usuários
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // Se o usuário atual não é admin, pode deletar apenas usuários não-admin
+        return !$targetUser->isAdmin();
     }
 
 }

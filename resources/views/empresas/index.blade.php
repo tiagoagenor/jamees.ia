@@ -4,7 +4,7 @@
 @section('page-title', 'Empresas')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div id="empresas-app" class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>
@@ -22,7 +22,7 @@
     <div class="mb-6 bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-medium text-gray-900">Filtros</h3>
-            @if(request()->hasAny(['nome_fantasia', 'razao_social', 'cnpj', 'status', 'whitelabel_id', 'tipo']))
+            @if(request()->hasAny(['nome_fantasia', 'razao_social', 'cnpj', 'status', 'tipo']))
                 <div class="flex items-center space-x-2">
                     <span class="text-sm text-gray-500">Filtros ativos:</span>
                     @if(request('nome_fantasia'))
@@ -42,7 +42,7 @@
                     @endif
                     @if(request('status'))
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Status: {{ request('status') == '1' ? 'Ativo' : 'Inativo' }}
+                            Status: {{ request('status') ? \App\Enums\EmpresaStatusEnum::fromValue((int)request('status'))?->label() : 'Todos' }}
                         </span>
                     @endif
                     @if(request('tipo'))
@@ -94,22 +94,8 @@
                         name="status"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                     <option value="">Todos</option>
-                    <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Ativo</option>
-                    <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inativo</option>
-                </select>
-            </div>
-
-            <!-- Whitelabel -->
-            <div>
-                <label for="whitelabel_id" class="block text-sm font-medium text-gray-700 mb-1">Whitelabel</label>
-                <select id="whitelabel_id"
-                        name="whitelabel_id"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                    <option value="">Todos</option>
-                    @foreach($whitelabels as $whitelabel)
-                        <option value="{{ $whitelabel->id }}" {{ request('whitelabel_id') == $whitelabel->id ? 'selected' : '' }}>
-                            {{ $whitelabel->nome }}
-                        </option>
+                    @foreach(\App\Enums\EmpresaStatusEnum::options() as $value => $label)
+                        <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
@@ -123,6 +109,43 @@
                     <option value="">Todos</option>
                     <option value="PJ" {{ request('tipo') == 'PJ' ? 'selected' : '' }}>Pessoa Jurídica</option>
                     <option value="PF" {{ request('tipo') == 'PF' ? 'selected' : '' }}>Pessoa Física</option>
+                </select>
+            </div>
+
+            <!-- UF -->
+            <div>
+                <label for="uf" class="block text-sm font-medium text-gray-700 mb-1">UF</label>
+                <select id="uf"
+                        name="uf"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    <option value="">Todas</option>
+                    <option value="AC" {{ request('uf') == 'AC' ? 'selected' : '' }}>AC</option>
+                    <option value="AL" {{ request('uf') == 'AL' ? 'selected' : '' }}>AL</option>
+                    <option value="AP" {{ request('uf') == 'AP' ? 'selected' : '' }}>AP</option>
+                    <option value="AM" {{ request('uf') == 'AM' ? 'selected' : '' }}>AM</option>
+                    <option value="BA" {{ request('uf') == 'BA' ? 'selected' : '' }}>BA</option>
+                    <option value="CE" {{ request('uf') == 'CE' ? 'selected' : '' }}>CE</option>
+                    <option value="DF" {{ request('uf') == 'DF' ? 'selected' : '' }}>DF</option>
+                    <option value="ES" {{ request('uf') == 'ES' ? 'selected' : '' }}>ES</option>
+                    <option value="GO" {{ request('uf') == 'GO' ? 'selected' : '' }}>GO</option>
+                    <option value="MA" {{ request('uf') == 'MA' ? 'selected' : '' }}>MA</option>
+                    <option value="MT" {{ request('uf') == 'MT' ? 'selected' : '' }}>MT</option>
+                    <option value="MS" {{ request('uf') == 'MS' ? 'selected' : '' }}>MS</option>
+                    <option value="MG" {{ request('uf') == 'MG' ? 'selected' : '' }}>MG</option>
+                    <option value="PA" {{ request('uf') == 'PA' ? 'selected' : '' }}>PA</option>
+                    <option value="PB" {{ request('uf') == 'PB' ? 'selected' : '' }}>PB</option>
+                    <option value="PR" {{ request('uf') == 'PR' ? 'selected' : '' }}>PR</option>
+                    <option value="PE" {{ request('uf') == 'PE' ? 'selected' : '' }}>PE</option>
+                    <option value="PI" {{ request('uf') == 'PI' ? 'selected' : '' }}>PI</option>
+                    <option value="RJ" {{ request('uf') == 'RJ' ? 'selected' : '' }}>RJ</option>
+                    <option value="RN" {{ request('uf') == 'RN' ? 'selected' : '' }}>RN</option>
+                    <option value="RS" {{ request('uf') == 'RS' ? 'selected' : '' }}>RS</option>
+                    <option value="RO" {{ request('uf') == 'RO' ? 'selected' : '' }}>RO</option>
+                    <option value="RR" {{ request('uf') == 'RR' ? 'selected' : '' }}>RR</option>
+                    <option value="SC" {{ request('uf') == 'SC' ? 'selected' : '' }}>SC</option>
+                    <option value="SP" {{ request('uf') == 'SP' ? 'selected' : '' }}>SP</option>
+                    <option value="SE" {{ request('uf') == 'SE' ? 'selected' : '' }}>SE</option>
+                    <option value="TO" {{ request('uf') == 'TO' ? 'selected' : '' }}>TO</option>
                 </select>
             </div>
 
@@ -154,9 +177,12 @@
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:p-6">
+    <!-- Lista de Empresas (design alinhado à página de Grupos) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Empresas</h3>
+        </div>
+        <div class="px-0 pt-0 pb-6">
             @if($empresas->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -237,9 +263,15 @@
                                                 <div class="text-sm font-medium text-gray-900">
                                                     {{ $empresa->nome_fantasia }}
                                                 </div>
-                                                @if($empresa->principal)
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                @if($empresaPrincipal && $empresa->id == $empresaPrincipal->id)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-crown mr-1"></i>
                                                         Principal
+                                                    </span>
+                                                @elseif($empresaPrincipal && $empresa->empresa_id == $empresaPrincipal->id)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <i class="fas fa-building mr-1"></i>
+                                                        Filial
                                                     </span>
                                                 @endif
                                             </div>
@@ -257,36 +289,55 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($empresa->status)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Ativo
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Inativo
-                                            </span>
-                                        @endif
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $empresa->status->color() == 'green' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ $empresa->status->label() }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $empresa->criado_em ? $empresa->criado_em->format('d/m/Y H:i') : 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex items-center space-x-2">
-                                            <a href="{{ route('empresas.show', $empresa) }}"
-                                               class="text-indigo-600 hover:text-indigo-900">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('empresas.edit', $empresa) }}"
-                                               class="text-yellow-600 hover:text-yellow-900">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button"
-                                                    onclick="deleteEmpresa('{{ $empresa->id }}', '{{ $empresa->nome_fantasia }}')"
-                                                    class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                        <div class="flex items-center space-x-3">
+                                            <!-- Visualizar -->
+                                            <div class="relative group">
+                                                <a href="{{ route('empresas.show', $empresa) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span class="sr-only">Visualizar</span>
+                                                </a>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Visualizar
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
 
-                                            <form id="delete-form-{{ $empresa->id }}"
+                                            <!-- Editar -->
+                                            <div class="relative group">
+                                                <a href="{{ route('empresas.edit', $empresa) }}" class="text-yellow-600 hover:text-yellow-900 flex items-center">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span class="sr-only">Editar</span>
+                                                </a>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Editar
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Excluir -->
+                                            <div class="relative group">
+                                                <button type="button"
+                                                        @click="deleteEmpresa('{{ $empresa->id }}', '{{ $empresa->nome_fantasia }}')"
+                                                        class="text-red-600 hover:text-red-900 flex items-center">
+                                                    <i class="fas fa-trash"></i>
+                                                    <span class="sr-only">Excluir</span>
+                                                </button>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Excluir
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
+
+                                            <form :id="`delete-form-{{ $empresa->id }}`"
                                                   method="POST"
                                                   action="{{ route('empresas.destroy', $empresa) }}"
                                                   style="display: none;">
@@ -302,7 +353,7 @@
                 </div>
 
                 <!-- Informações e Paginação -->
-                <div class="mt-6 flex items-center justify-between">
+                <div class="px-2 mt-6 flex items-center justify-between">
                     <div class="text-sm text-gray-700">
                         Mostrando {{ $empresas->firstItem() ?? 0 }} até {{ $empresas->lastItem() ?? 0 }} de {{ $empresas->total() }} resultados
                     </div>
@@ -329,36 +380,9 @@
     </div>
 </div>
 
+<script src="{{ asset('js/vue-components.js') }}"></script>
 <script>
-function deleteEmpresa(id, nome) {
-    Swal.fire({
-        title: 'Tem certeza?',
-        text: `Você está prestes a excluir a empresa "${nome}". Esta ação não pode ser desfeita!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sim, excluir!',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Mostrar loading
-            Swal.fire({
-                title: 'Excluindo...',
-                text: 'Aguarde enquanto excluímos a empresa.',
-                icon: 'info',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Submeter o formulário
-            document.getElementById(`delete-form-${id}`).submit();
-        }
-    });
-}
+const { createApp } = Vue;
+createApp(window.EmpresasIndex).mount('#empresas-app');
 </script>
 @endsection

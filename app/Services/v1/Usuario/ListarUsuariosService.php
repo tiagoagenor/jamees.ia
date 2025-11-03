@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Services\v1\Usuario;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Usuario;
+use App\Models\Empresa;
+
+class ListarUsuariosService
+{
+    public function execute(Request $request)
+    {
+        $user = Auth::user();
+
+        // Buscar empresa principal do usuário logado
+        $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+
+        if ($empresaPrincipal) {
+            // Buscar todas as empresas do usuário logado (principal + outras)
+            $empresaIds = $user->empresas->pluck('id')->toArray();
+
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones', 'grupos')
+                            ->whereHas('empresas', function($q) use ($empresaIds) {
+                                $q->whereIn('empresa.id', $empresaIds);
+                            });
+        } else {
+            // Se não tem empresa principal, mostrar usuários das empresas do usuário logado
+            $empresaIds = $user->empresas->pluck('id')->toArray();
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones', 'grupos')
+                            ->whereHas('empresas', function($q) use ($empresaIds) {
+                                $q->whereIn('empresa.id', $empresaIds);
+                            });
+        }
+
+        // Filtros
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . $request->nome . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->email . '%');
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('empresa_id')) {
+            $query->whereHas('empresas', function($q) use ($request) {
+                $q->where('empresa_id', $request->empresa_id);
+            });
+        }
+
+        if ($request->filled('cpf')) {
+            $query->whereHas('geral', function($q) use ($request) {
+                $q->where('cpf', 'like', '%' . $request->cpf . '%');
+            });
+        }
+
+        if ($request->filled('uf')) {
+            $query->whereHas('enderecos', function($q) use ($request) {
+                $q->where('uf', $request->uf);
+            });
+        }
+
+        // Ordenação tri-state: desc -> asc -> sem ordenação
+        $sortBy = $request->get('sort_by');
+        $sortDirectionParam = strtolower($request->get('sort_direction'));
+        $sortDirection = $sortDirectionParam === 'desc' ? 'desc' : ($sortDirectionParam === 'asc' ? 'asc' : null);
+        $sortable = ['nome', 'email', 'status', 'criado_em'];
+        if ($sortBy && in_array($sortBy, $sortable) && $sortDirection) {
+            $query->orderBy($sortBy, $sortDirection);
+        }
+
+        $usuarios = $query->paginate(15)->withQueryString();
+
+        // Filtrar empresas para mostrar apenas as do usuário logado
+        $empresas = $user->empresas;
+
+        return view('usuarios.index', [
+            'usuarios' => $usuarios,
+            'empresas' => $empresas,
+            'empresaPrincipal' => $empresaPrincipal,
+            'filtros' => $request->only(['nome', 'email', 'status', 'empresa_id', 'cpf', 'uf']),
+            'ordenacao' => [
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection
+            ]
+        ]);
+    }
+}

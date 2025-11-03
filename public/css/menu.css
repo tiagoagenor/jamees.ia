@@ -1,0 +1,52 @@
+/* Menu animations */
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+/* Smooth transitions for submenu arrows */
+.fa-chevron-down {
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Submenu animations */
+#cadastro-submenu,
+#financeiro-submenu,
+#configuracoes-submenu {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effects for menu items */
+.menu-item:hover {
+    background-color: rgba(55, 65, 81, 0.1);
+}
+
+/* Active menu item styling */
+.menu-item-active {
+    background-color: rgba(55, 65, 81, 0.2);
+    color: white;
+}
+
+/* Custom scrollbar for sidebar menu */
+nav.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.1);
+    border-radius: 3px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+}
+
+nav.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+}
+
+/* Firefox scrollbar styling */
+nav.overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) rgba(55, 65, 81, 0.1);
+}

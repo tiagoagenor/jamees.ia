@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'multi.tenant' => \App\Http\Middleware\MultiTenantMiddleware::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'plano.ativo' => \App\Http\Middleware\CheckPlanoAtivo::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

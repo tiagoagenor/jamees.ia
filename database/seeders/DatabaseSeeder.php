@@ -16,8 +16,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             WhitelabelSeeder::class,
-            UsuarioSeeder::class,
-            EmpresaSeeder::class,
+            PermissaoSeeder::class,
+            PlanoSeeder::class,
+            GrupoSeeder::class,
+            UsuarioGrupoSeeder::class,
+            LoteStatusSeeder::class,
         ]);
     }
 }
