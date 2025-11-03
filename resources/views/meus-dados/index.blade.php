@@ -76,7 +76,8 @@
                                    name="telefone"
                                    value="{{ old('telefone', $telefoneCompleto) }}"
                                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200 @error('telefone') border-red-300 ring-red-500 @enderror"
-                                   placeholder="Digite seu telefone">
+                                   placeholder="(00) 00000-0000"
+                                   maxlength="15">
                             @error('telefone')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -150,4 +151,114 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const telefoneInput = document.getElementById('telefone');
+    const form = telefoneInput.closest('form');
+
+    // Função para aplicar máscara de telefone
+    function aplicarMascaraTelefone(valor, posicaoCursor) {
+        // Remove tudo que não é dígito
+        const apenasDigitos = valor.replace(/\D/g, '');
+
+        let valorComMascara = '';
+
+        // Aplica a máscara baseado no número de dígitos
+        if (apenasDigitos.length === 0) {
+            valorComMascara = '';
+        } else if (apenasDigitos.length <= 2) {
+            valorComMascara = '(' + apenasDigitos;
+        } else if (apenasDigitos.length <= 7) {
+            valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' + apenasDigitos.substring(2);
+        } else if (apenasDigitos.length <= 10) {
+            // Telefone fixo: (00) 0000-0000
+            valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' +
+                             apenasDigitos.substring(2, 6) + '-' +
+                             apenasDigitos.substring(6);
+        } else {
+            // Celular: (00) 00000-0000
+            valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' +
+                             apenasDigitos.substring(2, 7) + '-' +
+                             apenasDigitos.substring(7, 11);
+        }
+
+        // Ajusta posição do cursor após aplicar máscara
+        if (posicaoCursor !== undefined && posicaoCursor !== null) {
+            // Calcula quantos caracteres não-dígitos existem antes da posição do cursor
+            const digitosAntes = valor.substring(0, posicaoCursor).replace(/\D/g, '').length;
+            let novaPosicao = 0;
+            let digitosContados = 0;
+
+            for (let i = 0; i < valorComMascara.length && digitosContados < digitosAntes; i++) {
+                if (/\d/.test(valorComMascara[i])) {
+                    digitosContados++;
+                }
+                novaPosicao = i + 1;
+            }
+
+            // Se está apagando (backspace), ajusta para não pular caracteres especiais
+            setTimeout(() => {
+                telefoneInput.setSelectionRange(novaPosicao, novaPosicao);
+            }, 0);
+        }
+
+        return valorComMascara;
+    }
+
+    // Função para remover máscara (apenas dígitos)
+    function removerMascaraTelefone(valor) {
+        return valor.replace(/\D/g, '');
+    }
+
+    // Aplica máscara enquanto o usuário digita ou apaga
+    telefoneInput.addEventListener('input', function(e) {
+        const posicaoCursor = e.target.selectionStart;
+        const valorComMascara = aplicarMascaraTelefone(e.target.value, posicaoCursor);
+        e.target.value = valorComMascara;
+    });
+
+    // Permite navegar e apagar caracteres especiais
+    telefoneInput.addEventListener('keydown', function(e) {
+        // Se for backspace ou delete, permite apagar mesmo que esteja em caracteres especiais
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            const posicaoCursor = e.target.selectionStart;
+            const valor = e.target.value;
+
+            // Se está apagando um caractere especial, remove o dígito anterior/posterior
+            if (valor[posicaoCursor - 1] && !/\d/.test(valor[posicaoCursor - 1])) {
+                e.preventDefault();
+                const apenasDigitos = valor.replace(/\D/g, '');
+                const digitosAteCursor = valor.substring(0, posicaoCursor).replace(/\D/g, '').length;
+
+                // Remove o último dígito antes da posição do cursor
+                if (digitosAteCursor > 0) {
+                    const novosDigitos = apenasDigitos.substring(0, digitosAteCursor - 1) + apenasDigitos.substring(digitosAteCursor);
+                    e.target.value = aplicarMascaraTelefone(novosDigitos);
+                }
+            }
+        }
+    });
+
+    // Aplica máscara quando o campo ganha foco (se já tiver valor)
+    telefoneInput.addEventListener('focus', function(e) {
+        if (e.target.value && !e.target.value.includes('(')) {
+            e.target.value = aplicarMascaraTelefone(e.target.value);
+        }
+    });
+
+    // Remove máscara antes de enviar o formulário
+    form.addEventListener('submit', function(e) {
+        const valorSemMascara = removerMascaraTelefone(telefoneInput.value);
+        telefoneInput.value = valorSemMascara;
+    });
+
+    // Aplica máscara no valor inicial se houver
+    if (telefoneInput.value) {
+        telefoneInput.value = aplicarMascaraTelefone(telefoneInput.value);
+    }
+});
+</script>
+@endpush
 @endsection
