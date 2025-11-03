@@ -86,6 +86,44 @@ class Movimentacao extends Model
         return $this->belongsTo(Entidade::class, 'entidade_id');
     }
 
+    public function cliente(): BelongsTo
+    {
+        return $this->belongsTo(Cliente::class, 'entidade_id');
+    }
+
+    public function fornecedor(): BelongsTo
+    {
+        return $this->belongsTo(Fornecedor::class, 'entidade_id');
+    }
+
+    public function funcionario(): BelongsTo
+    {
+        return $this->belongsTo(Funcionario::class, 'entidade_id');
+    }
+
+    public function transportadora(): BelongsTo
+    {
+        return $this->belongsTo(Transportadora::class, 'entidade_id');
+    }
+
+    /**
+     * Get the entity based on entidade_tipo
+     */
+    public function getEntidade()
+    {
+        if (!$this->entidade_id || !$this->entidade_tipo) {
+            return null;
+        }
+
+        return match($this->entidade_tipo) {
+            1 => Cliente::find($this->entidade_id),
+            2 => Fornecedor::find($this->entidade_id),
+            3 => Funcionario::find($this->entidade_id),
+            4 => Transportadora::find($this->entidade_id),
+            default => null,
+        };
+    }
+
     // Scopes
     public function scopeDaEmpresa($query, $empresaId)
     {

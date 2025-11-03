@@ -95,44 +95,44 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
         ->middleware('permission:permissoes,listar');
 
     // Rotas de clientes
-    Route::get('/clientes', [App\Http\Controllers\EntidadeController::class, 'clientes'])->name('clientes.index');
-    Route::get('/clientes/create', [App\Http\Controllers\EntidadeController::class, 'createCliente'])->name('clientes.create');
-    Route::post('/clientes', [App\Http\Controllers\EntidadeController::class, 'storeCliente'])->name('clientes.store');
-    Route::get('/clientes/{entidade}', [App\Http\Controllers\EntidadeController::class, 'show'])->name('clientes.show');
-    Route::get('/clientes/{entidade}/edit', [App\Http\Controllers\EntidadeController::class, 'edit'])->name('clientes.edit');
-    Route::put('/clientes/{entidade}', [App\Http\Controllers\EntidadeController::class, 'update'])->name('clientes.update');
-    Route::delete('/clientes/{entidade}', [App\Http\Controllers\EntidadeController::class, 'destroy'])->name('clientes.destroy');
-    Route::patch('/clientes/{entidade}/toggle-status', [App\Http\Controllers\EntidadeController::class, 'toggleStatus'])->name('clientes.toggle-status');
+    Route::get('/clientes', [App\Http\Controllers\ClienteController::class, 'index'])->name('clientes.index');
+    Route::get('/clientes/create', [App\Http\Controllers\ClienteController::class, 'create'])->name('clientes.create');
+    Route::post('/clientes', [App\Http\Controllers\ClienteController::class, 'store'])->name('clientes.store');
+    Route::get('/clientes/{cliente}', [App\Http\Controllers\ClienteController::class, 'show'])->name('clientes.show');
+    Route::get('/clientes/{cliente}/edit', [App\Http\Controllers\ClienteController::class, 'edit'])->name('clientes.edit');
+    Route::put('/clientes/{cliente}', [App\Http\Controllers\ClienteController::class, 'update'])->name('clientes.update');
+    Route::delete('/clientes/{cliente}', [App\Http\Controllers\ClienteController::class, 'destroy'])->name('clientes.destroy');
+    Route::patch('/clientes/{cliente}/toggle-status', [App\Http\Controllers\ClienteController::class, 'toggleStatus'])->name('clientes.toggle-status');
 
     // Rotas de fornecedores
-    Route::get('/fornecedores', [App\Http\Controllers\EntidadeController::class, 'fornecedores'])->name('fornecedores.index');
-    Route::get('/fornecedores/create', [App\Http\Controllers\EntidadeController::class, 'createFornecedor'])->name('fornecedores.create');
-    Route::post('/fornecedores', [App\Http\Controllers\EntidadeController::class, 'storeFornecedor'])->name('fornecedores.store');
-    Route::get('/fornecedores/{entidade}', [App\Http\Controllers\EntidadeController::class, 'show'])->name('fornecedores.show');
-    Route::get('/fornecedores/{entidade}/edit', [App\Http\Controllers\EntidadeController::class, 'edit'])->name('fornecedores.edit');
-    Route::put('/fornecedores/{entidade}', [App\Http\Controllers\EntidadeController::class, 'update'])->name('fornecedores.update');
-    Route::delete('/fornecedores/{entidade}', [App\Http\Controllers\EntidadeController::class, 'destroy'])->name('fornecedores.destroy');
-    Route::patch('/fornecedores/{entidade}/toggle-status', [App\Http\Controllers\EntidadeController::class, 'toggleStatus'])->name('fornecedores.toggle-status');
+    Route::get('/fornecedores', [App\Http\Controllers\FornecedorController::class, 'index'])->name('fornecedores.index');
+    Route::get('/fornecedores/create', [App\Http\Controllers\FornecedorController::class, 'create'])->name('fornecedores.create');
+    Route::post('/fornecedores', [App\Http\Controllers\FornecedorController::class, 'store'])->name('fornecedores.store');
+    Route::get('/fornecedores/{fornecedor}', [App\Http\Controllers\FornecedorController::class, 'show'])->name('fornecedores.show');
+    Route::get('/fornecedores/{fornecedor}/edit', [App\Http\Controllers\FornecedorController::class, 'edit'])->name('fornecedores.edit');
+    Route::put('/fornecedores/{fornecedor}', [App\Http\Controllers\FornecedorController::class, 'update'])->name('fornecedores.update');
+    Route::delete('/fornecedores/{fornecedor}', [App\Http\Controllers\FornecedorController::class, 'destroy'])->name('fornecedores.destroy');
+    Route::patch('/fornecedores/{fornecedor}/toggle-status', [App\Http\Controllers\FornecedorController::class, 'toggleStatus'])->name('fornecedores.toggle-status');
 
     // Rotas de funcionários
-    Route::get('/funcionarios', [App\Http\Controllers\EntidadeController::class, 'funcionarios'])->name('funcionarios.index');
-    Route::get('/funcionarios/create', [App\Http\Controllers\EntidadeController::class, 'createFuncionario'])->name('funcionarios.create');
-    Route::post('/funcionarios', [App\Http\Controllers\EntidadeController::class, 'storeFuncionario'])->name('funcionarios.store');
-    Route::get('/funcionarios/{entidade}', [App\Http\Controllers\EntidadeController::class, 'show'])->name('funcionarios.show');
-    Route::get('/funcionarios/{entidade}/edit', [App\Http\Controllers\EntidadeController::class, 'edit'])->name('funcionarios.edit');
-    Route::put('/funcionarios/{entidade}', [App\Http\Controllers\EntidadeController::class, 'update'])->name('funcionarios.update');
-    Route::delete('/funcionarios/{entidade}', [App\Http\Controllers\EntidadeController::class, 'destroy'])->name('funcionarios.destroy');
-    Route::patch('/funcionarios/{entidade}/toggle-status', [App\Http\Controllers\EntidadeController::class, 'toggleStatus'])->name('funcionarios.toggle-status');
+    Route::get('/funcionarios', [App\Http\Controllers\FuncionarioController::class, 'index'])->name('funcionarios.index');
+    Route::get('/funcionarios/create', [App\Http\Controllers\FuncionarioController::class, 'create'])->name('funcionarios.create');
+    Route::post('/funcionarios', [App\Http\Controllers\FuncionarioController::class, 'store'])->name('funcionarios.store');
+    Route::get('/funcionarios/{funcionario}', [App\Http\Controllers\FuncionarioController::class, 'show'])->name('funcionarios.show');
+    Route::get('/funcionarios/{funcionario}/edit', [App\Http\Controllers\FuncionarioController::class, 'edit'])->name('funcionarios.edit');
+    Route::put('/funcionarios/{funcionario}', [App\Http\Controllers\FuncionarioController::class, 'update'])->name('funcionarios.update');
+    Route::delete('/funcionarios/{funcionario}', [App\Http\Controllers\FuncionarioController::class, 'destroy'])->name('funcionarios.destroy');
+    Route::patch('/funcionarios/{funcionario}/toggle-status', [App\Http\Controllers\FuncionarioController::class, 'toggleStatus'])->name('funcionarios.toggle-status');
 
     // Rotas de transportadoras
-    Route::get('/transportadoras', [App\Http\Controllers\EntidadeController::class, 'transportadoras'])->name('transportadoras.index');
-    Route::get('/transportadoras/create', [App\Http\Controllers\EntidadeController::class, 'createTransportadora'])->name('transportadoras.create');
-    Route::post('/transportadoras', [App\Http\Controllers\EntidadeController::class, 'storeTransportadora'])->name('transportadoras.store');
-    Route::get('/transportadoras/{entidade}', [App\Http\Controllers\EntidadeController::class, 'show'])->name('transportadoras.show');
-    Route::get('/transportadoras/{entidade}/edit', [App\Http\Controllers\EntidadeController::class, 'edit'])->name('transportadoras.edit');
-    Route::put('/transportadoras/{entidade}', [App\Http\Controllers\EntidadeController::class, 'update'])->name('transportadoras.update');
-    Route::delete('/transportadoras/{entidade}', [App\Http\Controllers\EntidadeController::class, 'destroy'])->name('transportadoras.destroy');
-    Route::patch('/transportadoras/{entidade}/toggle-status', [App\Http\Controllers\EntidadeController::class, 'toggleStatus'])->name('transportadoras.toggle-status');
+    Route::get('/transportadoras', [App\Http\Controllers\TransportadoraController::class, 'index'])->name('transportadoras.index');
+    Route::get('/transportadoras/create', [App\Http\Controllers\TransportadoraController::class, 'create'])->name('transportadoras.create');
+    Route::post('/transportadoras', [App\Http\Controllers\TransportadoraController::class, 'store'])->name('transportadoras.store');
+    Route::get('/transportadoras/{transportadora}', [App\Http\Controllers\TransportadoraController::class, 'show'])->name('transportadoras.show');
+    Route::get('/transportadoras/{transportadora}/edit', [App\Http\Controllers\TransportadoraController::class, 'edit'])->name('transportadoras.edit');
+    Route::put('/transportadoras/{transportadora}', [App\Http\Controllers\TransportadoraController::class, 'update'])->name('transportadoras.update');
+    Route::delete('/transportadoras/{transportadora}', [App\Http\Controllers\TransportadoraController::class, 'destroy'])->name('transportadoras.destroy');
+    Route::patch('/transportadoras/{transportadora}/toggle-status', [App\Http\Controllers\TransportadoraController::class, 'toggleStatus'])->name('transportadoras.toggle-status');
 
     // Rotas para contatos das entidades
     Route::post('/entidades/{entidade}/contatos', [App\Http\Controllers\EntidadeController::class, 'storeContato'])->name('entidades.contatos.store');
