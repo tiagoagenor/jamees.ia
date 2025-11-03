@@ -11,6 +11,7 @@ use App\Models\UsuarioEndereco;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class CriarUsuarioService
 {
@@ -25,6 +26,8 @@ class CriarUsuarioService
             'telefones.*.tipo' => 'required|integer|in:1,2,3,4',
             'empresas' => 'required|array|min:1',
             'empresas.*' => 'required|exists:empresa,id',
+            'grupos' => 'required|array|min:1',
+            'grupos.*' => 'required|exists:grupos,id',
             'status' => 'nullable|integer',
             // Campos pessoais
             'cpf' => 'nullable|string|max:255',
@@ -64,6 +67,9 @@ class CriarUsuarioService
                     'atualizado_em' => now(),
                 ]);
             }
+
+            // Vincular usuário aos grupos
+            $usuario->grupos()->sync($request->grupos);
 
             // Adicionar telefones do usuário
             foreach ($request->telefones as $telefone) {
@@ -113,6 +119,9 @@ class CriarUsuarioService
                     'atualizado_em' => now(),
                 ]);
             }
+
+            // Registrar no audit log
+            AuditService::logCreate($usuario, "Criou usuário: {$usuario->nome}");
 
             return redirect()->route('usuarios.index')
                 ->with('success', 'Usuário criado com sucesso!');

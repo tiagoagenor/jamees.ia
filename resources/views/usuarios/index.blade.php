@@ -185,31 +185,50 @@
         </div>
     @endif
 
-    <!-- Table -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <div class="px-4 py-5 sm:p-6">
+    <!-- Lista de Usuários (design alinhado à página de Empresas/Grupos) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Usuários</h3>
+        </div>
+        <div class="px-0 pt-0 pb-6">
             @if($usuarios->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'nome', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'nome';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'nome'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Nome</span>
-                                        @if(request('sort_by') == 'nome')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
                                     </a>
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'email', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'email';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'email'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Email</span>
-                                        @if(request('sort_by') == 'email')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
@@ -219,22 +238,41 @@
                                     Empresas
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'status', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    @php
+                                        $isCol = request('sort_by') === 'status';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'status'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Status</span>
-                                        @if(request('sort_by') == 'status')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
                                     </a>
                                 </th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'criado_em', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}"
-                                       class="flex items-center space-x-1 hover:text-gray-700">
+                                    Tipo
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    @php
+                                        $isCol = request('sort_by') === 'criado_em';
+                                        $dir = request('sort_direction');
+                                        $params = request()->query();
+                                        if (!$isCol) { $params['sort_by'] = 'criado_em'; $params['sort_direction'] = 'desc'; }
+                                        elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                        else { unset($params['sort_by'], $params['sort_direction']); }
+                                        $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                    @endphp
+                                    <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
                                         <span>Criado em</span>
-                                        @if(request('sort_by') == 'criado_em')
-                                            <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                        @if($isCol)
+                                            <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
                                         @else
                                             <i class="fas fa-sort text-gray-400"></i>
                                         @endif
@@ -263,12 +301,14 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $usuario->email }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        @foreach($usuario->empresas as $empresa)
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                {{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}
-                                            </span>
-                                        @endforeach
+                                    <td class="px-6 py-4 text-sm text-gray-900">
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($usuario->empresas as $empresa)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">
+                                                    {{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}
+                                                </span>
+                                            @endforeach
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -276,24 +316,66 @@
                                             {{ $usuario->status->label() }}
                                         </span>
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($usuario->isPrincipal())
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                <i class="fas fa-crown mr-1"></i>
+                                                Principal
+                                            </span>
+                                        @elseif($usuario->isAdmin())
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-user-shield mr-1"></i>
+                                                Admin
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-user mr-1"></i>
+                                                Usuário
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {{ $usuario->criado_em ? $usuario->criado_em->format('d/m/Y H:i') : 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex items-center space-x-2">
-                                            <a href="{{ route('usuarios.show', $usuario) }}"
-                                               class="text-indigo-600 hover:text-indigo-900">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('usuarios.edit', $usuario) }}"
-                                               class="text-yellow-600 hover:text-yellow-900">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button"
-                                                    @click="deleteUsuario('{{ $usuario->id }}', '{{ $usuario->nome }}')"
-                                                    class="text-red-600 hover:text-red-900">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                        <div class="flex items-center space-x-3">
+                                            <!-- Visualizar -->
+                                            <div class="relative group">
+                                                <a href="{{ route('usuarios.show', $usuario) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span class="sr-only">Visualizar</span>
+                                                </a>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Visualizar
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Editar -->
+                                            <div class="relative group">
+                                                <a href="{{ route('usuarios.edit', $usuario) }}" class="text-yellow-600 hover:text-yellow-900 flex items-center">
+                                                    <i class="fas fa-edit"></i>
+                                                    <span class="sr-only">Editar</span>
+                                                </a>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Editar
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Excluir -->
+                                            <div class="relative group">
+                                                <button type="button"
+                                                        @click="deleteUsuario('{{ $usuario->id }}', '{{ $usuario->nome }}')"
+                                                        class="text-red-600 hover:text-red-900 flex items-center">
+                                                    <i class="fas fa-trash"></i>
+                                                    <span class="sr-only">Excluir</span>
+                                                </button>
+                                                <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                    Excluir
+                                                    <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                </div>
+                                            </div>
 
                                             <form :id="`delete-form-{{ $usuario->id }}`"
                                                   method="POST"

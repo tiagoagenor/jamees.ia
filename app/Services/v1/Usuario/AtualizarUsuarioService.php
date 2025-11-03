@@ -11,6 +11,7 @@ use App\Models\UsuarioEndereco;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class AtualizarUsuarioService
 {
@@ -25,6 +26,8 @@ class AtualizarUsuarioService
             'telefones.*.tipo' => 'required|integer|in:1,2,3,4',
             'empresas' => 'required|array|min:1',
             'empresas.*' => 'required|exists:empresa,id',
+            'grupos' => 'required|array|min:1',
+            'grupos.*' => 'required|exists:grupos,id',
             'status' => 'nullable|integer',
             // Campos pessoais
             'cpf' => 'nullable|string|max:255',
@@ -44,6 +47,9 @@ class AtualizarUsuarioService
         ]);
 
         try {
+            // Capturar valores antigos antes da atualização
+            $oldValues = $usuario->getAttributes();
+
             $usuario->update([
                 'nome' => $request->nome,
                 'email' => $request->email,
@@ -63,6 +69,9 @@ class AtualizarUsuarioService
                 ];
             }
             $usuario->empresas()->sync($empresasData);
+
+            // Atualizar grupos
+            $usuario->grupos()->sync($request->grupos);
 
             // Atualizar telefones
             $usuario->telefones()->delete(); // Remove todos os telefones existentes
@@ -136,6 +145,11 @@ class AtualizarUsuarioService
                     'criado_em' => now(),
                     'atualizado_em' => now(),
                 ]);
+            }
+
+            // Registrar no audit log apenas se houve mudanças
+            if ($usuario->wasChanged()) {
+                AuditService::logUpdate($usuario, $oldValues, "Atualizou usuário: {$usuario->nome}");
             }
 
             return redirect()->route('usuarios.index')

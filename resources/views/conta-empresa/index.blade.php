@@ -1,0 +1,486 @@
+@extends('layouts.app')
+
+@section('title', 'Contas Bancárias')
+
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-university text-blue-600 mr-3"></i>
+                    Contas Bancárias
+                </h1>
+                <p class="text-gray-600 mt-2">Gerencie as contas bancárias da sua empresa</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('conta-empresa.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nova Conta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-filter text-blue-600 mr-2"></i>
+                    Filtros
+                </h3>
+                <div class="text-sm text-gray-600">
+                    <span class="font-medium">{{ $contas->count() }}</span> conta(s) encontrada(s)
+                    @if($filtroNome)
+                        <span class="text-blue-600">para "{{ $filtroNome }}"</span>
+                    @endif
+                </div>
+            </div>
+
+            <form method="GET" action="{{ route('conta-empresa.index') }}" class="space-y-4">
+                <!-- Filtros Principais -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Filtro por Nome -->
+                    <div class="space-y-2">
+                        <label for="nome" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-search text-gray-400 mr-1"></i>
+                            Nome da Conta
+                        </label>
+                        <input type="text"
+                               name="nome"
+                               id="nome"
+                               value="{{ $filtroNome }}"
+                               placeholder="Digite o nome da conta..."
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Filtro por Status -->
+                    <div class="space-y-2">
+                        <label for="status" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-toggle-on text-gray-400 mr-1"></i>
+                            Status
+                        </label>
+                        <select name="status" id="status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="todos" {{ $filtroStatus === 'todos' ? 'selected' : '' }}>Todas as contas</option>
+                            <option value="ativas" {{ $filtroStatus === 'ativas' ? 'selected' : '' }}>Apenas ativas</option>
+                            <option value="inativas" {{ $filtroStatus === 'inativas' ? 'selected' : '' }}>Apenas inativas</option>
+                        </select>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-cogs text-gray-400 mr-1"></i>
+                            Ações
+                        </label>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-search mr-2"></i>
+                                Filtrar
+                            </button>
+                            <a href="{{ route('conta-empresa.index') }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-center">
+                                <i class="fas fa-times mr-2"></i>
+                                Limpar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros Ativos -->
+                @if($filtroNome || $filtroStatus !== 'todos')
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-gray-700">Filtros ativos:</span>
+                            @if($filtroNome)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-search mr-1"></i>
+                                    Nome: "{{ $filtroNome }}"
+                                    <button type="button" onclick="limparFiltroNome()" class="ml-1 text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                            @if($filtroStatus !== 'todos')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-toggle-on mr-1"></i>
+                                    Status: {{ ucfirst($filtroStatus) }}
+                                    <button type="button" onclick="limparFiltroStatus()" class="ml-1 text-green-600 hover:text-green-800">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </form>
+        </div>
+    </div>
+
+    <!-- Contas Tabela (alinhado ao Centro de Custo) -->
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Contas Bancárias</h3>
+        </div>
+
+        @if($contas->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banco</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'nome';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'nome'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Nome</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'status';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'status'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Status</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo inicial</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                @php
+                                    $isCol = request('sort_by') === 'criado_em';
+                                    $dir = request('sort_direction');
+                                    $params = request()->query();
+                                    if (!$isCol) { $params['sort_by'] = 'criado_em'; $params['sort_direction'] = 'desc'; }
+                                    elseif ($dir === 'desc') { $params['sort_direction'] = 'asc'; }
+                                    else { unset($params['sort_by'], $params['sort_direction']); }
+                                    $url = url()->current() . (count($params) ? ('?' . http_build_query($params)) : '');
+                                @endphp
+                                <a href="{{ $url }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Criado em</span>
+                                    @if($isCol)
+                                        <i class="fas fa-sort-{{ $dir === 'asc' ? 'up' : 'down' }} text-indigo-600"></i>
+                                    @else
+                                        <i class="fas fa-sort text-gray-400"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($contas as $conta)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex items-center">
+                                        @if($conta->banco && $conta->banco->imagem)
+                                            <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                                                <img src="{{ asset('img/bancos/' . $conta->banco->imagem) }}" alt="{{ $conta->banco->nome_normalizado }}" class="w-full h-full object-contain"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <div class="w-full h-full hidden items-center justify-center text-gray-400">
+                                                    <i class="fas fa-university"></i>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="w-10 h-10 rounded flex items-center justify-center @if($conta->isCorrente()) bg-blue-100 text-blue-600 @elseif($conta->isPoupanca()) bg-green-100 text-green-600 @elseif($conta->isInvestimento()) bg-purple-100 text-purple-600 @elseif($conta->isCartaoCredito()) bg-red-100 text-red-600 @else bg-orange-100 text-orange-600 @endif">
+                                                <i class="{{ $conta->getTipoIcon() }}"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $conta->nome }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {{ $conta->isAtiva() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        <i class="{{ $conta->isAtiva() ? 'fas fa-check-circle' : 'fas fa-times-circle' }} mr-1"></i>
+                                        {{ $conta->isAtiva() ? 'Ativa' : 'Inativa' }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $conta->getSaldoInicialFormatado() }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $conta->criado_em ? \Illuminate\Support\Carbon::parse($conta->criado_em)->format('d/m/Y H:i') : '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-3">
+                                        <!-- Visualizar -->
+                                        <div class="relative group">
+                                            <a href="{{ route('conta-empresa.show', $conta) }}" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                                <i class="fas fa-eye"></i>
+                                                <span class="sr-only">Visualizar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Visualizar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Editar -->
+                                        <div class="relative group">
+                                            <a href="{{ route('conta-empresa.edit', $conta) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                <i class="fas fa-edit"></i>
+                                                <span class="sr-only">Editar</span>
+                                            </a>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Editar
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Ativar/Inativar -->
+                                        <div class="relative group">
+                                            <button onclick="confirmarToggleStatus('{{ $conta->id }}', '{{ $conta->nome }}', {{ $conta->isAtiva() ? 'true' : 'false' }})" class="text-purple-600 hover:text-purple-900 flex items-center">
+                                                <i class="fas fa-toggle-{{ $conta->isAtiva() ? 'on' : 'off' }}"></i>
+                                                <span class="sr-only">{{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                {{ $conta->isAtiva() ? 'Desativar' : 'Ativar' }}
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Excluir -->
+                                        <div class="relative group">
+                                            <button onclick="confirmarExclusao('{{ $conta->id }}', '{{ $conta->nome }}')" class="text-red-600 hover:text-red-900 flex items-center">
+                                                <i class="fas fa-trash"></i>
+                                                <span class="sr-only">Excluir</span>
+                                            </button>
+                                            <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                                Excluir
+                                                <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div class="px-6 py-4 border-t border-gray-200">
+                @if($contas instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Mostrando {{ $contas->firstItem() }} até {{ $contas->lastItem() }} de {{ $contas->total() }} resultados
+                        </div>
+                        <div class="flex space-x-1">
+                            @if ($contas->onFirstPage())
+                                <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            @else
+                                <a href="{{ $contas->previousPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            @endif
+
+                            @foreach ($contas->getUrlRange(1, $contas->lastPage()) as $page => $url)
+                                @if ($page == $contas->currentPage())
+                                    <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
+                                @else
+                                    <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                @endif
+                            @endforeach
+
+                            @if ($contas->hasMorePages())
+                                <a href="{{ $contas->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            @else
+                                <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Mostrando {{ $contas->count() }} resultado(s)
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @else
+            <div class="p-12 text-center">
+                <i class="fas fa-university text-gray-400 text-6xl mb-4"></i>
+                @if($filtroNome)
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma conta encontrada</h3>
+                    <p class="text-gray-600 mb-6">
+                        Não foram encontradas contas com o nome "{{ $filtroNome }}".
+                        @if($filtroStatus !== 'todos')
+                            @if($filtroStatus === 'ativas')
+                                Tente buscar apenas por contas ativas.
+                            @else
+                                Tente buscar apenas por contas inativas.
+                            @endif
+                        @endif
+                    </p>
+                @elseif($filtroStatus === 'ativas')
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma conta ativa encontrada</h3>
+                    <p class="text-gray-600 mb-6">Não há contas bancárias ativas no momento.</p>
+                @elseif($filtroStatus === 'inativas')
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma conta inativa encontrada</h3>
+                    <p class="text-gray-600 mb-6">Não há contas bancárias inativas no momento.</p>
+                @else
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhuma conta bancária encontrada</h3>
+                    <p class="text-gray-600 mb-6">Comece criando uma nova conta bancária para sua empresa.</p>
+                @endif
+                <div class="flex justify-center space-x-3">
+                    <a href="{{ route('conta-empresa.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nova Conta
+                    </a>
+                    @if($filtroNome || $filtroStatus !== 'todos')
+                        <a href="{{ route('conta-empresa.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-times mr-2"></i>
+                            Limpar Filtros
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Exibir mensagens de sessão
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Sucesso!',
+        text: '{{ session('success') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+@if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro!',
+        text: '{{ session('error') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+@endif
+
+// Confirmar exclusão
+function confirmarExclusao(contaId, contaNome) {
+    Swal.fire({
+        title: 'Confirmar Exclusão',
+        text: `Tem certeza que deseja excluir "${contaNome}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sim, excluir!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Criar formulário para exclusão
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/contas-bancarias/${contaId}`;
+
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
+
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '_token';
+            tokenField.value = '{{ csrf_token() }}';
+
+            form.appendChild(methodField);
+            form.appendChild(tokenField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Confirmar toggle de status
+function confirmarToggleStatus(contaId, contaNome, isAtiva) {
+    const action = isAtiva ? 'desativar' : 'ativar';
+    const icon = isAtiva ? 'warning' : 'success';
+
+    Swal.fire({
+        title: `Confirmar ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+        text: `Tem certeza que deseja ${action} "${contaNome}"?`,
+        icon: icon,
+        showCancelButton: true,
+        confirmButtonColor: isAtiva ? '#d33' : '#28a745',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: `Sim, ${action}!`,
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Criar formulário para toggle status
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/contas-bancarias/${contaId}/toggle-status`;
+
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'PATCH';
+
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '_token';
+            tokenField.value = '{{ csrf_token() }}';
+
+            form.appendChild(methodField);
+            form.appendChild(tokenField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Limpar filtro de nome
+function limparFiltroNome() {
+    document.getElementById('nome').value = '';
+    document.querySelector('form').submit();
+}
+
+// Limpar filtro de status
+function limparFiltroStatus() {
+    document.getElementById('status').value = 'todos';
+    document.querySelector('form').submit();
+}
+</script>
+@endsection

@@ -163,6 +163,10 @@
                                            {{ in_array($empresa->id, old('empresas', $usuario->empresas->pluck('id')->toArray())) ? 'checked' : '' }}
                                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
                                     <div class="flex items-center space-x-2">
+                                        @php
+                                            $user = Auth::user();
+                                            $empresaPrincipal = $user->empresaPrincipal();
+                                        @endphp
                                         @if($empresaPrincipal && $empresa->id == $empresaPrincipal->id)
                                             <span class="text-yellow-600">👑</span>
                                             <span class="text-sm font-medium text-gray-900">{{ $empresa->nome_fantasia ?: $empresa->razao_social ?: $empresa->nome_referencia }}</span>
@@ -183,6 +187,43 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                         @error('empresas.*')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Grupos -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Grupos <span class="text-red-500">*</span>
+                        </label>
+                        <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
+                            @foreach($grupos as $grupo)
+                                <label class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                    <input type="checkbox"
+                                           name="grupos[]"
+                                           value="{{ $grupo->id }}"
+                                           {{ in_array($grupo->id, old('grupos', $usuario->grupos->pluck('id')->toArray())) ? 'checked' : '' }}
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <div class="flex items-center space-x-2">
+                                        @if($grupo->administrativo)
+                                            <span class="text-red-600">👑</span>
+                                            <span class="text-sm font-medium text-gray-900">{{ $grupo->nome }}</span>
+                                            <span class="text-xs text-red-600 font-medium">(Administrativo)</span>
+                                        @else
+                                            <span class="text-blue-600">👥</span>
+                                            <span class="text-sm font-medium text-gray-900">{{ $grupo->nome }}</span>
+                                        @endif
+                                    </div>
+                                    @if($grupo->descricao)
+                                        <div class="text-xs text-gray-500 ml-6">{{ $grupo->descricao }}</div>
+                                    @endif
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('grupos')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        @error('grupos.*')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>

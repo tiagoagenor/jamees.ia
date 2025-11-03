@@ -8,23 +8,17 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-2xl w-full space-y-8">
-        <!-- Header -->
-        <div class="text-center">
-            <div class="mx-auto">
-                <span style="font-family: 'Roboto'; font-size: 55px; font-weight: bold; font-style: italic; color: rgb(79 70 229 / var(--tw-bg-opacity, 1));">JAMEES</span>
+<body class="min-h-screen flex">
+    <!-- Left Column - Registration Form -->
+    <div class="w-1/2 bg-white flex flex-col justify-center">
+        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-8">
+            <!-- Main Title -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Criar Conta</h1>
+                <p class="text-gray-500 text-lg">Preencha os dados abaixo para criar sua conta!</p>
             </div>
-            <h2 class="mt-6 text-3xl font-bold text-gray-900">
-                Criar nova conta
-            </h2>
-            <p class="mt-2 text-sm text-gray-600">
-                Preencha os dados abaixo para criar sua conta
-            </p>
-        </div>
 
-        <!-- Form Card -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <!-- Error Messages -->
             @if ($errors->any())
                 <div class="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
                     <div class="flex">
@@ -58,245 +52,303 @@
                 </div>
             @endif
 
-            <form class="space-y-6" method="POST" action="{{ route('register') }}">
+            <!-- Registration Form -->
+            <form class="space-y-5" method="POST" action="{{ route('register') }}">
                 @csrf
 
-                <!-- Company Section -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="fas fa-building text-indigo-600 mr-2"></i>
-                        Dados da Empresa
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">Informações sobre sua empresa</p>
-
-                    <div class="mt-4">
-                        <label for="empresa_nome" class="block text-sm font-medium text-gray-700">Nome da Empresa</label>
-                        <div class="mt-1 relative">
-                            <input id="empresa_nome" name="empresa_nome" type="text" required
-                                   class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                   placeholder="Digite o nome da sua empresa" value="{{ old('empresa_nome') }}">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-building text-gray-400"></i>
-                            </div>
-                        </div>
-                        @error('empresa_nome')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                <!-- Company Name Field -->
+                <div>
+                    <label for="empresa_nome" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Nome da Empresa<span class="text-red-500">*</span>
+                    </label>
+                    <input id="empresa_nome" name="empresa_nome" type="text" required
+                           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                           placeholder="Digite o nome da sua empresa" value="{{ old('empresa_nome') }}">
+                    @error('empresa_nome')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                <!-- Personal Section -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="fas fa-user text-indigo-600 mr-2"></i>
-                        Dados Pessoais
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">Suas informações pessoais</p>
-
-                    <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <div>
-                            <label for="nome" class="block text-sm font-medium text-gray-700">Nome Completo</label>
-                            <div class="mt-1 relative">
-                                <input id="nome" name="nome" type="text" required
-                                       class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                       placeholder="Seu nome completo" value="{{ old('nome') }}">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-user text-gray-400"></i>
-                                </div>
-                            </div>
-                            @error('nome')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="telefone" class="block text-sm font-medium text-gray-700">Telefone</label>
-                            <div class="mt-1 relative">
-                                <input id="telefone" name="telefone" type="tel" required
-                                       class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                       placeholder="(11) 99999-9999" value="{{ old('telefone') }}">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-phone text-gray-400"></i>
-                                </div>
-                            </div>
-                            @error('telefone')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                    </div>
+                <!-- Full Name Field -->
+                <div>
+                    <label for="nome" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Nome Completo<span class="text-red-500">*</span>
+                    </label>
+                    <input id="nome" name="nome" type="text" required
+                           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                           placeholder="Digite seu nome completo" value="{{ old('nome') }}">
+                    @error('nome')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                <!-- Account Section -->
-                <div class="pb-6">
-                    <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                        <i class="fas fa-lock text-indigo-600 mr-2"></i>
-                        Dados de Acesso
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">Crie suas credenciais de acesso</p>
+                <!-- Phone Field -->
+                <div>
+                    <label for="telefone" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Telefone<span class="text-red-500">*</span>
+                    </label>
+                    <input id="telefone" name="telefone" type="tel" required
+                           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                           placeholder="(00) 00000-0000" value="{{ old('telefone') }}" maxlength="15">
+                    @error('telefone')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
 
-                    <div class="mt-4 space-y-4">
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                            <div class="mt-1 relative">
-                                <input id="email" name="email" type="email" required
-                                       class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                       placeholder="seu@email.com" value="{{ old('email') }}">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-envelope text-gray-400"></i>
-                                </div>
-                            </div>
-                            @error('email')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Email<span class="text-red-500">*</span>
+                    </label>
+                    <input id="email" name="email" type="email" required
+                           class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                           placeholder="Digite seu email" value="{{ old('email') }}">
+                    @error('email')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
 
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label for="senha" class="block text-sm font-medium text-gray-700">Senha</label>
-                                <div class="mt-1 relative">
-                                    <input id="senha" name="senha" type="password" required
-                                           class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                           placeholder="Mínimo 6 caracteres">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-lock text-gray-400"></i>
-                                    </div>
-                                </div>
-                                @error('senha')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label for="senha_confirmation" class="block text-sm font-medium text-gray-700">Confirmar Senha</label>
-                                <div class="mt-1 relative">
-                                    <input id="senha_confirmation" name="senha_confirmation" type="password" required
-                                           class="block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                           placeholder="Confirme sua senha">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-lock text-gray-400"></i>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Password Field -->
+                <div>
+                    <label for="senha" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Senha<span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input id="senha" name="senha" type="password" required
+                               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-11 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                               placeholder="Mínimo 6 caracteres">
+                        <div class="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer text-gray-500">
+                            <button type="button" onclick="togglePassword('senha')">
+                                <i id="senha-icon" class="fas fa-eye text-sm"></i>
+                            </button>
                         </div>
                     </div>
+                    @error('senha')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div>
+                    <label for="senha_confirmation" class="mb-1.5 block text-sm font-medium text-gray-700">
+                        Confirmar Senha<span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input id="senha_confirmation" name="senha_confirmation" type="password" required
+                               class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pr-11 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none focus:border-blue-500 focus:ring-blue-500/10"
+                               placeholder="Confirme sua senha">
+                        <div class="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer text-gray-500">
+                            <button type="button" onclick="togglePassword('senha_confirmation')">
+                                <i id="senha_confirmation-icon" class="fas fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    @error('senha_confirmation')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Submit Button -->
-                <div class="pt-6">
+                <div>
                     <button type="submit"
-                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                            <i class="fas fa-user-plus text-indigo-500 group-hover:text-indigo-400"></i>
-                        </span>
+                            class="bg-blue-600 hover:bg-blue-700 flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white transition">
                         Criar Conta
                     </button>
                 </div>
-
-                <!-- Login Link -->
-                <div class="text-center">
-                    <p class="text-sm text-gray-600">
-                        Já tem uma conta?
-                        <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200">
-                            Faça login aqui
-                        </a>
-                    </p>
-                </div>
             </form>
+
+            <!-- Login Link -->
+            <div class="mt-5">
+                <p class="text-center text-sm font-normal text-gray-700">
+                    Já tem uma conta?
+                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-700">Faça login aqui</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Branding -->
+    <div class="w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+        <!-- Animated Background Pattern -->
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>
+            <div class="absolute top-20 left-20 w-32 h-32 bg-blue-400/10 rounded-full blur-xl animate-pulse"></div>
+            <div class="absolute top-40 right-32 w-24 h-24 bg-purple-400/10 rounded-full blur-xl animate-pulse delay-1000"></div>
+            <div class="absolute bottom-32 left-32 w-28 h-28 bg-indigo-400/10 rounded-full blur-xl animate-pulse delay-2000"></div>
+            <div class="absolute bottom-20 right-20 w-20 h-20 bg-blue-400/10 rounded-full blur-xl animate-pulse delay-500"></div>
+        </div>
+
+        <!-- Geometric Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-16 left-16 w-4 h-4 bg-white rotate-45"></div>
+            <div class="absolute top-32 right-24 w-3 h-3 bg-white rotate-45"></div>
+            <div class="absolute top-48 left-40 w-2 h-2 bg-white rotate-45"></div>
+            <div class="absolute bottom-40 right-32 w-4 h-4 bg-white rotate-45"></div>
+            <div class="absolute bottom-24 left-28 w-3 h-3 bg-white rotate-45"></div>
+            <div class="absolute top-64 right-16 w-2 h-2 bg-white rotate-45"></div>
+            <div class="absolute bottom-48 left-16 w-3 h-3 bg-white rotate-45"></div>
+            <div class="absolute top-80 right-40 w-2 h-2 bg-white rotate-45"></div>
+        </div>
+
+        <!-- Logo and Content -->
+        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+            <!-- Logo -->
+            <div class="mb-12">
+                <div class="flex items-center justify-center mb-6">
+                    <!-- Logo Text with same font as logged area -->
+                    <span style="font-family: 'Roboto'; font-size: 48px; font-weight: bold; font-style: italic; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">JAMEES</span>
+                </div>
+            </div>
+
+            <!-- Subtitle -->
+            <div class="mb-16">
+                <p class="text-blue-100 text-xl font-light leading-relaxed">
+                    Sistema de Gestão Empresarial<br>
+                    <span class="text-blue-200 font-medium">Completo e Gratuito</span>
+                </p>
+            </div>
+
+            <!-- Features -->
+            <div class="space-y-4 text-left">
+                <div class="flex items-center text-blue-100">
+                    <div class="w-2 h-2 bg-blue-300 rounded-full mr-3"></div>
+                    <span class="text-sm">Gestão Financeira Completa</span>
+                </div>
+                <div class="flex items-center text-blue-100">
+                    <div class="w-2 h-2 bg-blue-300 rounded-full mr-3"></div>
+                    <span class="text-sm">Controle de Clientes e Fornecedores</span>
+                </div>
+                <div class="flex items-center text-blue-100">
+                    <div class="w-2 h-2 bg-blue-300 rounded-full mr-3"></div>
+                    <span class="text-sm">Relatórios e Dashboards</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Máscara para telefone brasileiro
+        // Máscara de telefone (igual à tela de Meus Dados)
         document.addEventListener('DOMContentLoaded', function() {
             const telefoneInput = document.getElementById('telefone');
-            const emailInput = document.getElementById('email');
+            const form = telefoneInput ? telefoneInput.closest('form') : null;
 
-            // Máscara de telefone
-            if (telefoneInput) {
-                telefoneInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
+            if (!telefoneInput || !form) return;
 
-                    if (value.length > 11) {
-                        value = value.substring(0, 11);
-                    }
+            // Função para aplicar máscara de telefone
+            function aplicarMascaraTelefone(valor, posicaoCursor) {
+                // Remove tudo que não é dígito
+                const apenasDigitos = valor.replace(/\D/g, '');
 
-                    if (value.length >= 2) {
-                        if (value.length <= 6) {
-                            e.target.value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
-                        } else if (value.length <= 10) {
-                            e.target.value = `(${value.substring(0, 2)}) ${value.substring(2, 6)}-${value.substring(6)}`;
-                        } else if (value.length <= 11) {
-                            e.target.value = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
+                let valorComMascara = '';
+
+                // Aplica a máscara baseado no número de dígitos
+                if (apenasDigitos.length === 0) {
+                    valorComMascara = '';
+                } else if (apenasDigitos.length <= 2) {
+                    valorComMascara = '(' + apenasDigitos;
+                } else if (apenasDigitos.length <= 7) {
+                    valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' + apenasDigitos.substring(2);
+                } else if (apenasDigitos.length <= 10) {
+                    // Telefone fixo: (00) 0000-0000
+                    valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' +
+                                     apenasDigitos.substring(2, 6) + '-' +
+                                     apenasDigitos.substring(6);
+                } else {
+                    // Celular: (00) 00000-0000
+                    valorComMascara = '(' + apenasDigitos.substring(0, 2) + ') ' +
+                                     apenasDigitos.substring(2, 7) + '-' +
+                                     apenasDigitos.substring(7, 11);
+                }
+
+                // Ajusta posição do cursor após aplicar máscara
+                if (posicaoCursor !== undefined && posicaoCursor !== null) {
+                    // Calcula quantos caracteres não-dígitos existem antes da posição do cursor
+                    const digitosAntes = valor.substring(0, posicaoCursor).replace(/\D/g, '').length;
+                    let novaPosicao = 0;
+                    let digitosContados = 0;
+
+                    for (let i = 0; i < valorComMascara.length && digitosContados < digitosAntes; i++) {
+                        if (/\d/.test(valorComMascara[i])) {
+                            digitosContados++;
                         }
-                    } else if (value.length > 0) {
-                        e.target.value = `(${value}`;
+                        novaPosicao = i + 1;
                     }
-                });
 
-                // Aplicar máscara ao valor existente (se houver)
-                if (telefoneInput.value) {
-                    let value = telefoneInput.value.replace(/\D/g, '');
-                    if (value.length >= 2) {
-                        if (value.length <= 6) {
-                            telefoneInput.value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
-                        } else if (value.length <= 10) {
-                            telefoneInput.value = `(${value.substring(0, 2)}) ${value.substring(2, 6)}-${value.substring(6)}`;
-                        } else if (value.length <= 11) {
-                            telefoneInput.value = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
+                    // Se está apagando (backspace), ajusta para não pular caracteres especiais
+                    setTimeout(() => {
+                        telefoneInput.setSelectionRange(novaPosicao, novaPosicao);
+                    }, 0);
+                }
+
+                return valorComMascara;
+            }
+
+            // Função para remover máscara (apenas dígitos)
+            function removerMascaraTelefone(valor) {
+                return valor.replace(/\D/g, '');
+            }
+
+            // Aplica máscara enquanto o usuário digita ou apaga
+            telefoneInput.addEventListener('input', function(e) {
+                const posicaoCursor = e.target.selectionStart;
+                const valorComMascara = aplicarMascaraTelefone(e.target.value, posicaoCursor);
+                e.target.value = valorComMascara;
+            });
+
+            // Permite navegar e apagar caracteres especiais
+            telefoneInput.addEventListener('keydown', function(e) {
+                // Se for backspace ou delete, permite apagar mesmo que esteja em caracteres especiais
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    const posicaoCursor = e.target.selectionStart;
+                    const valor = e.target.value;
+
+                    // Se está apagando um caractere especial, remove o dígito anterior/posterior
+                    if (valor[posicaoCursor - 1] && !/\d/.test(valor[posicaoCursor - 1])) {
+                        e.preventDefault();
+                        const apenasDigitos = valor.replace(/\D/g, '');
+                        const digitosAteCursor = valor.substring(0, posicaoCursor).replace(/\D/g, '').length;
+
+                        // Remove o último dígito antes da posição do cursor
+                        if (digitosAteCursor > 0) {
+                            const novosDigitos = apenasDigitos.substring(0, digitosAteCursor - 1) + apenasDigitos.substring(digitosAteCursor);
+                            e.target.value = aplicarMascaraTelefone(novosDigitos);
                         }
                     }
                 }
-            }
+            });
 
-            // Validação de email em tempo real
-            if (emailInput) {
-                emailInput.addEventListener('blur', function(e) {
-                    validateEmail(e.target);
-                });
+            // Aplica máscara quando o campo ganha foco (se já tiver valor)
+            telefoneInput.addEventListener('focus', function(e) {
+                if (e.target.value && !e.target.value.includes('(')) {
+                    e.target.value = aplicarMascaraTelefone(e.target.value);
+                }
+            });
 
-                emailInput.addEventListener('input', function(e) {
-                    // Limpar mensagem de erro se o usuário estiver digitando
-                    clearEmailError();
-                });
+            // Remove máscara antes de enviar o formulário
+            form.addEventListener('submit', function(e) {
+                const valorSemMascara = removerMascaraTelefone(telefoneInput.value);
+                telefoneInput.value = valorSemMascara;
+            });
+
+            // Aplica máscara no valor inicial se houver
+            if (telefoneInput.value) {
+                telefoneInput.value = aplicarMascaraTelefone(telefoneInput.value);
             }
         });
 
-        // Função para validar email
-        function validateEmail(input) {
-            const email = input.value.trim();
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const passwordIcon = document.getElementById(fieldId + '-icon');
 
-            if (email && !emailRegex.test(email)) {
-                showEmailError('Por favor, insira um email válido.');
-                input.classList.add('border-red-500');
-                input.classList.remove('border-gray-300');
-                return false;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
             } else {
-                clearEmailError();
-                input.classList.remove('border-red-500');
-                input.classList.add('border-gray-300');
-                return true;
-            }
-        }
-
-        // Função para mostrar erro de email
-        function showEmailError(message) {
-            clearEmailError();
-
-            const emailInput = document.getElementById('email');
-            const errorDiv = document.createElement('div');
-            errorDiv.id = 'email-error-custom';
-            errorDiv.className = 'mt-2 text-sm text-red-600';
-            errorDiv.textContent = message;
-
-            emailInput.parentNode.appendChild(errorDiv);
-        }
-
-        // Função para limpar erro de email
-        function clearEmailError() {
-            const existingError = document.getElementById('email-error-custom');
-            if (existingError) {
-                existingError.remove();
+                passwordInput.type = 'password';
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
             }
         }
     </script>

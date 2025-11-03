@@ -8,6 +8,7 @@ use App\Models\EmpresaContato;
 use App\Models\EmpresaEndereco;
 use App\Enums\EmpresaStatus;
 use Illuminate\Support\Str;
+use App\Services\AuditService;
 
 class AtualizarEmpresaService
 {
@@ -44,6 +45,9 @@ class AtualizarEmpresaService
         ]);
 
         try {
+            // Capturar valores antigos antes da atualização
+            $oldValues = $empresa->getAttributes();
+
             $empresa->update([
                 'nome_fantasia' => $request->nome_fantasia,
                 'razao_social' => $request->razao_social,
@@ -99,6 +103,11 @@ class AtualizarEmpresaService
                         ]);
                     }
                 }
+            }
+
+            // Registrar no audit log apenas se houve mudanças
+            if ($empresa->wasChanged()) {
+                AuditService::logUpdate($empresa, $oldValues, "Atualizou empresa: {$empresa->nome_fantasia}");
             }
 
             return redirect()->route('empresas.index')

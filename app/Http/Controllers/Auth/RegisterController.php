@@ -6,10 +6,19 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\Usuario;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UsuarioTelefone;
+use App\Models\Grupo;
+use App\Models\Permissao;
+use App\Models\Plano;
+use App\Services\PlanoService;
+use App\Services\Dre\CriarDreService;
+use App\Services\FormaPagamento\CriarFormasPagamentoService;
+use App\Services\PlanoConta\CriarPlanoContaService;
+use App\Services\PHPMailerService;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
@@ -37,31 +46,36 @@ class RegisterController extends Controller
             'senha.confirmed' => 'A confirmação da senha não confere.',
         ]);
 
+        // Verificar se já existe um usuário principal
+        $usuarioPrincipalExistente = Usuario::where('principal', true)->first();
+
         // Criar usuário
         $usuario = Usuario::create([
             'id' => Str::uuid()->toString(),
             'nome' => $request->nome,
             'email' => $request->email,
             'senha' => Hash::make($request->senha),
-                'status' => UsuarioStatusEnum::ATIVO,
+            'status' => UsuarioStatusEnum::ATIVO,
+            'principal' => !$usuarioPrincipalExistente, // Primeiro usuário é principal
             'criado_em' => now(),
             'atualizado_em' => now(),
         ]);
 
-        // Criar empresa
-        $whitelabel = Whitelabel::first(); // Usar o whitelabel principal
-        $empresa = Empresa::create([
-            'id' => Str::uuid()->toString(),
-            'whitelabel_id' => $whitelabel->id,
-            'nome_fantasia' => $request->empresa_nome,
-            'razao_social' => $request->empresa_nome,
-            'tipo' => 'PJ',
+        // Usar a empresa principal existente ou criar uma nova se não existir
+            // Se não há empresa principal, criar uma
+            // Selecionar whitelabel pelo domínio do host ou fallback para dominio NULL
+            $whitelabel = Whitelabel::resolveByRequestDomain();
+            $empresa = Empresa::create([
+                'id' => Str::uuid()->toString(),
+                'whitelabel_id' => $whitelabel->id,
+                'nome_fantasia' => $request->empresa_nome,
+                'razao_social' => $request->empresa_nome,
+                'tipo' => 'PJ',
                 'status' => EmpresaStatusEnum::ATIVA,
-            'principal' => 1,
-            'criado_em' => now(),
-            'atualizado_em' => now(),
-        ]);
-
+                'principal' => 1,
+                'criado_em' => now(),
+                'atualizado_em' => now(),
+            ]);
         // Vincular usuário à empresa
         $usuario->empresas()->attach($empresa->id, [
             'principal' => 1,
@@ -81,9 +95,64 @@ class RegisterController extends Controller
             'atualizado_em' => now(),
         ]);
 
+        // Criar grupo Administrativo para a empresa
+        $grupoAdmin = Grupo::create([
+            'id' => Str::uuid()->toString(),
+            'empresa_id' => $empresa->id,
+            'nome' => 'Administrativo',
+            'descricao' => 'Grupo com acesso total ao sistema',
+            'administrativo' => true,
+            'ativo' => true,
+            'criado_em' => now(),
+            'atualizado_em' => now(),
+        ]);
+
+        // Vincular todas as permissões ao grupo administrativo
+        $todasPermissoes = Permissao::ativas()->get();
+        $grupoAdmin->permissoes()->sync(
+            $todasPermissoes->mapWithKeys(function ($permissao) {
+                return [$permissao->id => ['concedida' => true]];
+            })
+        );
+
+        // Vincular usuário ao grupo administrativo
+        $usuario->grupos()->sync([$grupoAdmin->id]);
+
+        // Criar plano de teste de 10 dias para a empresa
+        $planoService = new PlanoService();
+        $planoTeste = $planoService->ativarTesteGratuito($empresa, 10);
+
+        // Criar estrutura DRE padrão para a empresa
+        $dreService = new CriarDreService();
+        $dreService->criar($empresa->id);
+
+        // Criar formas de pagamento padrão para a empresa
+        $formasPagamentoService = new CriarFormasPagamentoService();
+        $formasPagamentoService->criar($empresa->id);
+
+        // Criar plano de contas padrão para a empresa
+        $planoContaService = new CriarPlanoContaService();
+        $planoContaService->criar($empresa->id);
+
         // Fazer login do usuário
         Auth::login($usuario);
 
-        return redirect()->route('dashboard')->with('success', 'Usuário registrado com sucesso!');
+        // Enviar email de boas-vindas
+        try {
+            $dadosUsuario = [
+                'userName' => $usuario->nome,
+                'userEmail' => $usuario->email,
+                'companyName' => $empresa->nome_fantasia,
+                'createdAt' => now()->format('d/m/Y H:i'),
+                'customMessage' => 'Bem-vindo ao Sistema JAMEES! Sua conta foi criada com sucesso e você já pode começar a usar todas as funcionalidades disponíveis.'
+            ];
+
+            PHPMailerService::sendWelcomeEmail($usuario->email, $dadosUsuario);
+        } catch (\Exception $e) {
+            // Log do erro mas não interrompe o fluxo de registro
+            Log::error('Erro ao enviar email de boas-vindas: ' . $e->getMessage());
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Usuário registrado com sucesso! Você tem 10 dias de teste gratuito.');
     }
 }

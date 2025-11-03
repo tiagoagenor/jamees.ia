@@ -17,18 +17,17 @@ class ListarUsuariosService
         $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
 
         if ($empresaPrincipal) {
-            // Filtrar usuários da empresa principal + empresas filhas
-            $empresaIds = [$empresaPrincipal->id];
-            $empresaIds = array_merge($empresaIds, $empresaPrincipal->empresasFilhas->pluck('id')->toArray());
+            // Buscar todas as empresas do usuário logado (principal + outras)
+            $empresaIds = $user->empresas->pluck('id')->toArray();
 
-            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones')
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones', 'grupos')
                             ->whereHas('empresas', function($q) use ($empresaIds) {
                                 $q->whereIn('empresa.id', $empresaIds);
                             });
         } else {
             // Se não tem empresa principal, mostrar usuários das empresas do usuário logado
             $empresaIds = $user->empresas->pluck('id')->toArray();
-            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones')
+            $query = Usuario::with('empresas', 'geral', 'enderecos', 'telefones', 'grupos')
                             ->whereHas('empresas', function($q) use ($empresaIds) {
                                 $q->whereIn('empresa.id', $empresaIds);
                             });
@@ -65,20 +64,24 @@ class ListarUsuariosService
             });
         }
 
-        // Ordenação
-        $sortBy = $request->get('sort_by', 'nome');
-        $sortDirection = $request->get('sort_direction', 'asc');
-
-        if (in_array($sortBy, ['nome', 'email', 'status', 'criado_em'])) {
+        // Ordenação tri-state: desc -> asc -> sem ordenação
+        $sortBy = $request->get('sort_by');
+        $sortDirectionParam = strtolower($request->get('sort_direction'));
+        $sortDirection = $sortDirectionParam === 'desc' ? 'desc' : ($sortDirectionParam === 'asc' ? 'asc' : null);
+        $sortable = ['nome', 'email', 'status', 'criado_em'];
+        if ($sortBy && in_array($sortBy, $sortable) && $sortDirection) {
             $query->orderBy($sortBy, $sortDirection);
         }
 
         $usuarios = $query->paginate(15)->withQueryString();
-        $empresas = Empresa::all();
+
+        // Filtrar empresas para mostrar apenas as do usuário logado
+        $empresas = $user->empresas;
 
         return view('usuarios.index', [
             'usuarios' => $usuarios,
             'empresas' => $empresas,
+            'empresaPrincipal' => $empresaPrincipal,
             'filtros' => $request->only(['nome', 'email', 'status', 'empresa_id', 'cpf', 'uf']),
             'ordenacao' => [
                 'sort_by' => $sortBy,

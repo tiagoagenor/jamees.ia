@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,14 +33,14 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerate();
 
             // Debug: Verificar se o usuário está autenticado
-            \Log::info('User authenticated', [
+            Log::info('User authenticated', [
                 'user_id' => Auth::id(),
                 'user_email' => Auth::user()->email ?? 'null'
             ]);
 
             return redirect('/dashboard');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Login failed', [
+            Log::error('Login failed', [
                 'errors' => $e->errors(),
                 'email' => $request->input('email')
             ]);
@@ -61,6 +62,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 }
