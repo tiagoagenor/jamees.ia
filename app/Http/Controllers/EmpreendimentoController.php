@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Empreendimento;
 use App\Models\Lote;
 use App\Helpers\PermissionHelper;
+use App\Helpers\PublicPathHelper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -150,11 +151,11 @@ class EmpreendimentoController extends Controller
         $pastaMapa = 'img_empreendimentos/' . $empreendimento->id . '_mapa';
 
         // Criar diretórios se não existirem
-        if (!file_exists(public_path($pastaEmpreendimento))) {
-            mkdir(public_path($pastaEmpreendimento), 0755, true);
+        if (!file_exists(PublicPathHelper::path($pastaEmpreendimento))) {
+            mkdir(PublicPathHelper::path($pastaEmpreendimento), 0755, true);
         }
-        if (!file_exists(public_path($pastaMapa))) {
-            mkdir(public_path($pastaMapa), 0755, true);
+        if (!file_exists(PublicPathHelper::path($pastaMapa))) {
+            mkdir(PublicPathHelper::path($pastaMapa), 0755, true);
         }
 
         // Upload de imagem de capa se houver
@@ -195,7 +196,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 // Verificar se a pasta existe e tem permissão de escrita
-                $pastaPath = public_path($pastaEmpreendimento);
+                $pastaPath = PublicPathHelper::path($pastaEmpreendimento);
                 if (!is_dir($pastaPath)) {
                     Log::error('Pasta de destino não existe', [
                         'empreendimento_id' => $empreendimento->id,
@@ -214,7 +215,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path($pastaEmpreendimento), $fileName);
+                $file->move(PublicPathHelper::path($pastaEmpreendimento), $fileName);
 
                 // Salvar apenas a URL relativa
                 $empreendimento->imagem = $pastaEmpreendimento . '/' . $fileName;
@@ -223,7 +224,7 @@ class EmpreendimentoController extends Controller
                 Log::info('Upload de imagem bem-sucedido', [
                     'empreendimento_id' => $empreendimento->id,
                     'arquivo_salvo' => $empreendimento->imagem,
-                    'tamanho' => filesize(public_path($empreendimento->imagem)),
+                    'tamanho' => filesize(PublicPathHelper::path($empreendimento->imagem)),
                 ]);
             } catch (\Exception $e) {
                 // Log do erro completo
@@ -281,7 +282,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 // Verificar se a pasta existe e tem permissão de escrita
-                $pastaPath = public_path($pastaMapa);
+                $pastaPath = PublicPathHelper::path($pastaMapa);
                 if (!is_dir($pastaPath)) {
                     Log::error('Pasta de destino do mapa não existe', [
                         'empreendimento_id' => $empreendimento->id,
@@ -300,7 +301,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path($pastaMapa), $fileName);
+                $file->move(PublicPathHelper::path($pastaMapa), $fileName);
 
                 // Salvar apenas a URL relativa
                 $empreendimento->imagem_mapa = $pastaMapa . '/' . $fileName;
@@ -309,7 +310,7 @@ class EmpreendimentoController extends Controller
                 Log::info('Upload de imagem do mapa bem-sucedido', [
                     'empreendimento_id' => $empreendimento->id,
                     'arquivo_salvo' => $empreendimento->imagem_mapa,
-                    'tamanho' => filesize(public_path($empreendimento->imagem_mapa)),
+                    'tamanho' => filesize(PublicPathHelper::path($empreendimento->imagem_mapa)),
                 ]);
             } catch (\Exception $e) {
                 // Log do erro completo
@@ -369,7 +370,7 @@ class EmpreendimentoController extends Controller
         }
 
         // Verificar se existe imagem do mapa
-        if (!$empreendimento->imagem_mapa || empty($empreendimento->imagem_mapa) || !file_exists(public_path($empreendimento->imagem_mapa))) {
+        if (!$empreendimento->imagem_mapa || empty($empreendimento->imagem_mapa) || !file_exists(PublicPathHelper::path($empreendimento->imagem_mapa))) {
             return view('empreendimento.mapa-sem-imagem', compact('empreendimento'));
         }
 
@@ -482,11 +483,11 @@ class EmpreendimentoController extends Controller
         $pastaMapa = 'img_empreendimentos/' . $empreendimento->id . '_mapa';
 
         // Criar diretórios se não existirem
-        if (!file_exists(public_path($pastaEmpreendimento))) {
-            mkdir(public_path($pastaEmpreendimento), 0755, true);
+        if (!file_exists(PublicPathHelper::path($pastaEmpreendimento))) {
+            mkdir(PublicPathHelper::path($pastaEmpreendimento), 0755, true);
         }
-        if (!file_exists(public_path($pastaMapa))) {
-            mkdir(public_path($pastaMapa), 0755, true);
+        if (!file_exists(PublicPathHelper::path($pastaMapa))) {
+            mkdir(PublicPathHelper::path($pastaMapa), 0755, true);
         }
 
         // Upload de imagem de capa se houver
@@ -494,7 +495,7 @@ class EmpreendimentoController extends Controller
             try {
                 // Deletar imagem antiga se existir (pode estar em pasta antiga ou nova)
                 if ($empreendimento->imagem) {
-                    $oldFilePath = public_path($empreendimento->imagem);
+                    $oldFilePath = PublicPathHelper::path($empreendimento->imagem);
                     if (file_exists($oldFilePath)) {
                         unlink($oldFilePath);
                     }
@@ -530,7 +531,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 // Verificar se a pasta existe e tem permissão de escrita
-                $pastaPath = public_path($pastaEmpreendimento);
+                $pastaPath = PublicPathHelper::path($pastaEmpreendimento);
                 if (!is_dir($pastaPath)) {
                     Log::error('Pasta de destino não existe (update)', [
                         'empreendimento_id' => $empreendimento->id,
@@ -549,7 +550,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path($pastaEmpreendimento), $fileName);
+                $file->move(PublicPathHelper::path($pastaEmpreendimento), $fileName);
 
                 // Salvar apenas a URL relativa
                 $validated['imagem'] = $pastaEmpreendimento . '/' . $fileName;
@@ -576,7 +577,7 @@ class EmpreendimentoController extends Controller
             try {
                 // Deletar imagem antiga se existir (pode estar em pasta antiga ou nova)
                 if ($empreendimento->imagem_mapa) {
-                    $oldFilePath = public_path($empreendimento->imagem_mapa);
+                    $oldFilePath = PublicPathHelper::path($empreendimento->imagem_mapa);
                     if (file_exists($oldFilePath)) {
                         unlink($oldFilePath);
                     }
@@ -612,7 +613,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 // Verificar se a pasta existe e tem permissão de escrita
-                $pastaPath = public_path($pastaMapa);
+                $pastaPath = PublicPathHelper::path($pastaMapa);
                 if (!is_dir($pastaPath)) {
                     Log::error('Pasta de destino do mapa não existe (update)', [
                         'empreendimento_id' => $empreendimento->id,
@@ -631,7 +632,7 @@ class EmpreendimentoController extends Controller
                 }
 
                 $fileName = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path($pastaMapa), $fileName);
+                $file->move(PublicPathHelper::path($pastaMapa), $fileName);
 
                 // Salvar apenas a URL relativa
                 $validated['imagem_mapa'] = $pastaMapa . '/' . $fileName;
@@ -705,7 +706,7 @@ class EmpreendimentoController extends Controller
 
         // Deletar imagem de capa se existir
         if ($empreendimento->imagem) {
-            $imagePath = public_path($empreendimento->imagem);
+            $imagePath = PublicPathHelper::path($empreendimento->imagem);
             if (file_exists($imagePath)) {
                 unlink($imagePath);
             }
@@ -713,14 +714,14 @@ class EmpreendimentoController extends Controller
 
         // Deletar imagem do mapa se existir
         if ($empreendimento->imagem_mapa) {
-            $mapaPath = public_path($empreendimento->imagem_mapa);
+            $mapaPath = PublicPathHelper::path($empreendimento->imagem_mapa);
             if (file_exists($mapaPath)) {
                 unlink($mapaPath);
             }
         }
 
         // Deletar pastas se estiverem vazias
-        $pastaCoverPath = public_path($pastaEmpreendimento);
+        $pastaCoverPath = PublicPathHelper::path($pastaEmpreendimento);
         if (file_exists($pastaCoverPath) && is_dir($pastaCoverPath)) {
             // Verificar se a pasta está vazia
             if (count(scandir($pastaCoverPath)) == 2) { // 2 = . e ..
@@ -728,7 +729,7 @@ class EmpreendimentoController extends Controller
             }
         }
 
-        $pastaMapaPath = public_path($pastaMapa);
+        $pastaMapaPath = PublicPathHelper::path($pastaMapa);
         if (file_exists($pastaMapaPath) && is_dir($pastaMapaPath)) {
             // Verificar se a pasta está vazia
             if (count(scandir($pastaMapaPath)) == 2) { // 2 = . e ..

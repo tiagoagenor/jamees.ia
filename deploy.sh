@@ -113,11 +113,11 @@ echo ""
 # PARTE 3: Enviar parte pública para /home/bxfcgip2/www
 # ============================================
 echo -e "${YELLOW}[1/2] Enviando parte pública para $PUBLIC_PATH...${NC}"
+echo -e "${YELLOW}Será solicitada a senha do servidor...${NC}"
 scp "$TEMP_DIR/public.tar.gz" "$SERVER:$PUBLIC_PATH/"
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Erro ao enviar parte pública via SCP!${NC}"
-    echo -e "${YELLOW}Verifique se a senha está correta: 1Ti04fv3vW${NC}"
     rm -rf "$TEMP_DIR"
     exit 1
 fi
@@ -127,6 +127,7 @@ echo ""
 
 # Descompactar parte pública no servidor (arquivos diretamente em www, sem pasta public)
 echo -e "${YELLOW}Descompactando parte pública no servidor...${NC}"
+echo -e "${YELLOW}Será solicitada a senha do servidor...${NC}"
 ssh "$SERVER" "cd $PUBLIC_PATH && tar -xzf public.tar.gz && rm -f public.tar.gz"
 
 if [ $? -ne 0 ]; then
@@ -142,11 +143,11 @@ echo ""
 # PARTE 4: Enviar parte privada para /home/bxfcgip2/app_jamees
 # ============================================
 echo -e "${YELLOW}[2/2] Enviando parte privada para $APP_PATH...${NC}"
+echo -e "${YELLOW}Será solicitada a senha do servidor...${NC}"
 scp "$TEMP_DIR/app.tar.gz" "$SERVER:$APP_PATH/"
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}Erro ao enviar parte privada via SCP!${NC}"
-    echo -e "${YELLOW}Verifique se a senha está correta: 1Ti04fv3vW${NC}"
     rm -rf "$TEMP_DIR"
     exit 1
 fi
@@ -156,6 +157,7 @@ echo ""
 
 # Descompactar parte privada no servidor
 echo -e "${YELLOW}Descompactando parte privada no servidor...${NC}"
+echo -e "${YELLOW}Será solicitada a senha do servidor...${NC}"
 ssh "$SERVER" "cd $APP_PATH && tar -xzf app.tar.gz && rm -f app.tar.gz"
 
 if [ $? -ne 0 ]; then
@@ -202,6 +204,7 @@ TEMP_INDEX=$(mktemp)
 echo "$INDEX_PHP_CONTENT" > "$TEMP_INDEX"
 
 # Enviar e configurar o index.php no servidor
+echo -e "${YELLOW}Será solicitada a senha do servidor...${NC}"
 scp "$TEMP_INDEX" "$SERVER:$PUBLIC_PATH/index.php"
 
 if [ $? -ne 0 ]; then
