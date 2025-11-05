@@ -379,11 +379,10 @@
                                     <div>
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox"
-                                                   name="ativar_parcelamento"
-                                                   value="1"
-                                                   checked
-                                                   class="toggle-parcelamento sr-only peer">
-                                            <div class="w-11 h-6 bg-blue-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                            name="ativar_parcelamento"
+                                            value="1"
+                                            class="toggle-parcelamento sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                             <span class="ml-3 text-sm font-medium text-gray-700">Ativar Parcelamento/Recorrência</span>
                                         </label>
                                     </div>
@@ -598,7 +597,7 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     // Dados das entidades
     const entidades = {
         1: @json($clientes),
@@ -611,119 +610,102 @@ document.addEventListener('DOMContentLoaded', function() {
     const formasPagamento = @json($formasPagamento);
 
     // Sistema de Tabs
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+    $('.tab-button').on('click', function() {
+        const targetTab = $(this).data('tab');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
+        // Remover active de todos os botões
+        $('.tab-button').removeClass('active border-blue-500 text-blue-600').addClass('border-transparent text-gray-500');
 
-            // Remover active de todos os botões
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500');
-            });
+        // Adicionar active ao botão clicado
+        $(this).addClass('active border-blue-500 text-blue-600').removeClass('border-transparent text-gray-500');
 
-            // Adicionar active ao botão clicado
-            this.classList.add('active', 'border-blue-500', 'text-blue-600');
-            this.classList.remove('border-transparent', 'text-gray-500');
+        // Ocultar todos os conteúdos
+        $('.tab-content').addClass('hidden');
 
-            // Ocultar todos os conteúdos
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            // Mostrar conteúdo da tab selecionada
-            document.getElementById('tab-' + targetTab).classList.remove('hidden');
-        });
+        // Mostrar conteúdo da tab selecionada
+        $('#tab-' + targetTab).removeClass('hidden');
     });
 
     // Controle de select de entidades
-    const entidadeTipoSelect = document.getElementById('entidade_tipo');
-    const entidadeSelectContainer = document.getElementById('entidade_select_container');
-    const entidadeSelect = document.getElementById('entidade_id');
+    const $entidadeTipoSelect = $('#entidade_tipo');
+    const $entidadeSelectContainer = $('#entidade_select_container');
+    const $entidadeSelect = $('#entidade_id');
 
-    entidadeTipoSelect.addEventListener('change', function() {
-        const tipo = this.value;
-        const entidadeSelectDiv = entidadeSelectContainer.querySelector('div') || entidadeSelectContainer;
+    $entidadeTipoSelect.on('change', function() {
+        const tipo = $(this).val();
 
         if (tipo && entidades[tipo]) {
             // Limpar select
-            entidadeSelect.innerHTML = '<option value="">Selecione a entidade</option>';
+            $entidadeSelect.html('<option value="">Selecione a entidade</option>');
 
             // Preencher com entidades do tipo selecionado
             entidades[tipo].forEach(entidade => {
-                const option = document.createElement('option');
-                option.value = entidade.id;
-                option.textContent = entidade.nome || entidade.nome_fantasia || entidade.razao_social;
-                entidadeSelect.appendChild(option);
+                const $option = $('<option></option>');
+                $option.val(entidade.id);
+                $option.text(entidade.nome || entidade.nome_fantasia || entidade.razao_social);
+                $entidadeSelect.append($option);
             });
 
             // Mostrar container
-            entidadeSelectContainer.classList.remove('hidden');
+            $entidadeSelectContainer.removeClass('hidden');
         } else {
             // Ocultar container
-            entidadeSelectContainer.classList.add('hidden');
-            entidadeSelect.innerHTML = '<option value="">Selecione a entidade</option>';
+            $entidadeSelectContainer.addClass('hidden');
+            $entidadeSelect.html('<option value="">Selecione a entidade</option>');
         }
     });
 
     // Carregar entidade se já existir no old
     @if(old('entidade_tipo'))
-        entidadeTipoSelect.value = '{{ old('entidade_tipo') }}';
-        entidadeTipoSelect.dispatchEvent(new Event('change'));
+        $entidadeTipoSelect.val('{{ old('entidade_tipo') }}');
+        $entidadeTipoSelect.trigger('change');
         @if(old('entidade_id'))
             setTimeout(() => {
-                entidadeSelect.value = '{{ old('entidade_id') }}';
+                $entidadeSelect.val('{{ old('entidade_id') }}');
             }, 100);
         @endif
     @endif
 
     // Pagamento Quitado - habilitar/desabilitar Data de Compensação quando for "Sim"
-    const pagamentoQuitado = document.getElementById('pagamento_quitado');
-    const dataCompensacao = document.getElementById('data_compensacao');
+    const $pagamentoQuitado = $('#pagamento_quitado');
+    const $dataCompensacao = $('#data_compensacao');
 
-    pagamentoQuitado.addEventListener('change', function() {
-        if (this.value === '1') { // Sim
-            dataCompensacao.disabled = false;
-            dataCompensacao.classList.remove('bg-gray-100');
-            if (!dataCompensacao.value) {
-                dataCompensacao.value = new Date().toISOString().split('T')[0];
+    $pagamentoQuitado.on('change', function() {
+        if ($(this).val() === '1') { // Sim
+            $dataCompensacao.prop('disabled', false).removeClass('bg-gray-100');
+            if (!$dataCompensacao.val()) {
+                $dataCompensacao.val(new Date().toISOString().split('T')[0]);
             }
         } else {
-            dataCompensacao.disabled = true;
-            dataCompensacao.classList.add('bg-gray-100');
+            $dataCompensacao.prop('disabled', true).addClass('bg-gray-100');
         }
     });
 
     // Verificar valor inicial
-    if (pagamentoQuitado.value === '1') {
-        dataCompensacao.disabled = false;
-        dataCompensacao.classList.remove('bg-gray-100');
+    if ($pagamentoQuitado.val() === '1') {
+        $dataCompensacao.prop('disabled', false).removeClass('bg-gray-100');
     }
 
     // Toggle Parcelamento/Recorrência - Controlar visibilidade dos modos
-    const togglesParcelamento = document.querySelectorAll('.toggle-parcelamento');
-    const modoNormal = document.getElementById('modo-normal');
-    const modoParcelamento = document.getElementById('modo-parcelamento');
+    const $togglesParcelamento = $('.toggle-parcelamento');
+    const $modoNormal = $('#modo-normal');
+    const $modoParcelamento = $('#modo-parcelamento');
 
     // Pegar o primeiro toggle (modo normal) e o segundo (modo parcelamento) para referência
-    const toggleParcelamento = togglesParcelamento[0] || null;
-    const toggleParcelamentoParcelamento = togglesParcelamento[1] || null;
+    const $toggleParcelamento = $togglesParcelamento.eq(0);
+    const $toggleParcelamentoParcelamento = $togglesParcelamento.eq(1);
 
     // Flag para evitar loop de eventos
     let sincronizandoToggle = false;
 
     function alternarModo(isAtivo) {
         if (isAtivo) {
-            modoNormal.classList.add('hidden');
-            modoParcelamento.classList.remove('hidden');
+            $modoNormal.addClass('hidden');
+            $modoParcelamento.removeClass('hidden');
 
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
-            togglesParcelamento.forEach(toggle => {
-                toggle.checked = true;
-            });
+            $togglesParcelamento.prop('checked', true);
             sincronizandoToggle = false;
 
             // Remover atributo name dos campos do modo normal para não serem enviados
@@ -734,21 +716,21 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
             camposModoNormalParaDesabilitar.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) {
-                    campo.dataset.originalName = campo.name;
-                    campo.removeAttribute('name');
-                    campo.disabled = true;
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    $campo.data('originalName', $campo.attr('name'));
+                    $campo.removeAttr('name');
+                    $campo.prop('disabled', true);
                 }
             });
 
             // Remover atributo name dos campos valor, juros, desconto mas NÃO desabilitar
             const camposValoresCompartilhados = ['valor', 'juros', 'desconto'];
             camposValoresCompartilhados.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) {
-                    campo.dataset.originalName = campo.name;
-                    campo.removeAttribute('name');
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    $campo.data('originalName', $campo.attr('name'));
+                    $campo.removeAttr('name');
                     // NÃO desabilitar - campos permanecem editáveis
                 }
             });
@@ -761,14 +743,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 anexarListenerGerarParcelas();
             }, 100);
         } else {
-            modoNormal.classList.remove('hidden');
-            modoParcelamento.classList.add('hidden');
+            $modoNormal.removeClass('hidden');
+            $modoParcelamento.addClass('hidden');
 
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
-            togglesParcelamento.forEach(toggle => {
-                toggle.checked = false;
-            });
+            $togglesParcelamento.prop('checked', false);
             sincronizandoToggle = false;
 
             // Restaurar atributo name dos campos do modo normal
@@ -778,27 +758,28 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
             camposModoNormalParaRestaurar.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) {
-                    if (campo.dataset.originalName) {
-                        campo.name = campo.dataset.originalName;
-                        delete campo.dataset.originalName;
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    const originalName = $campo.data('originalName');
+                    if (originalName) {
+                        $campo.attr('name', originalName);
+                        $campo.removeData('originalName');
                     }
                     // Restaurar required se necessário
                     if (campoId === 'vencimento' || campoId === 'forma_pagamento_id' || campoId === 'conta_empresa_id') {
-                        campo.required = true;
+                        $campo.prop('required', true);
                     }
-                    campo.disabled = false;
+                    $campo.prop('disabled', false);
                 }
             });
 
             // Restaurar atributo name dos campos valor, juros, desconto
             const camposValoresCompartilhados = ['valor', 'juros', 'desconto'];
             camposValoresCompartilhados.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo && campo.dataset.originalName) {
-                    campo.name = campo.dataset.originalName;
-                    delete campo.dataset.originalName;
+                const $campo = $('#' + campoId);
+                if ($campo.length && $campo.data('originalName')) {
+                    $campo.attr('name', $campo.data('originalName'));
+                    $campo.removeData('originalName');
                     // Campos já estão habilitados (não foram desabilitados)
                 }
             });
@@ -811,35 +792,31 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
             camposModoParcelamentoParaDesabilitar.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) {
-                    campo.dataset.originalName = campo.name;
-                    campo.removeAttribute('name');
-                    campo.disabled = true;
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    $campo.data('originalName', $campo.attr('name'));
+                    $campo.removeAttr('name');
+                    $campo.prop('disabled', true);
                 }
             });
 
             // Remover atributo name dos campos valor, juros, desconto do modo parcelamento mas NÃO desabilitar
             const camposValoresParcelamento = ['valor_parcelamento', 'juros_parcelamento', 'desconto_parcelamento'];
             camposValoresParcelamento.forEach(campoId => {
-                const campo = document.getElementById(campoId);
-                if (campo) {
-                    campo.dataset.originalName = campo.name;
-                    campo.removeAttribute('name');
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    $campo.data('originalName', $campo.attr('name'));
+                    $campo.removeAttr('name');
                     // NÃO desabilitar - campos permanecem editáveis
                 }
             });
 
             // Limpar tabela de parcelas geradas se existir
-            const parcelasTbody = document.getElementById('parcelas_tbody');
-            const tabelaParcelasContainer = document.getElementById('tabela_parcelas_container');
+            const $parcelasTbody = $('#parcelas_tbody');
+            const $tabelaParcelasContainer = $('#tabela_parcelas_container');
 
-            if (parcelasTbody) {
-                parcelasTbody.innerHTML = '';
-            }
-            if (tabelaParcelasContainer) {
-                tabelaParcelasContainer.classList.add('hidden');
-            }
+            $parcelasTbody.html('');
+            $tabelaParcelasContainer.addClass('hidden');
 
             // Sincronizar valores dos campos de volta
             sincronizarCamposParaNormal();
@@ -847,92 +824,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function sincronizarCamposParaParcelamento() {
-        const descricao = document.getElementById('descricao').value;
-        const planoContaId = document.getElementById('plano_conta_id').value;
-        const centroCustoId = document.getElementById('centro_custo_id').value;
-        const contaEmpresaId = document.getElementById('conta_empresa_id').value;
-        const valor = document.getElementById('valor').value;
-        const juros = document.getElementById('juros').value;
-        const desconto = document.getElementById('desconto').value;
+        const descricao = $('#descricao').val();
+        const planoContaId = $('#plano_conta_id').val();
+        const centroCustoId = $('#centro_custo_id').val();
+        const contaEmpresaId = $('#conta_empresa_id').val();
+        const valor = $('#valor').val();
+        const juros = $('#juros').val();
+        const desconto = $('#desconto').val();
 
-        document.getElementById('descricao_parcelamento').value = descricao;
-        document.getElementById('plano_conta_id_parcelamento').value = planoContaId;
-        document.getElementById('centro_custo_id_parcelamento').value = centroCustoId;
-        document.getElementById('conta_empresa_id_parcelamento').value = contaEmpresaId;
-        document.getElementById('valor_parcelamento').value = valor;
-        document.getElementById('juros_parcelamento').value = juros;
-        document.getElementById('desconto_parcelamento').value = desconto;
+        $('#descricao_parcelamento').val(descricao);
+        $('#plano_conta_id_parcelamento').val(planoContaId);
+        $('#centro_custo_id_parcelamento').val(centroCustoId);
+        $('#conta_empresa_id_parcelamento').val(contaEmpresaId);
+        $('#valor_parcelamento').val(valor);
+        $('#juros_parcelamento').val(juros);
+        $('#desconto_parcelamento').val(desconto);
     }
 
     function sincronizarCamposParaNormal() {
-        const descricao = document.getElementById('descricao_parcelamento').value;
-        const planoContaId = document.getElementById('plano_conta_id_parcelamento').value;
-        const centroCustoId = document.getElementById('centro_custo_id_parcelamento').value;
-        const contaEmpresaId = document.getElementById('conta_empresa_id_parcelamento').value;
-        const valor = document.getElementById('valor_parcelamento').value;
-        const juros = document.getElementById('juros_parcelamento').value;
-        const desconto = document.getElementById('desconto_parcelamento').value;
+        const descricao = $('#descricao_parcelamento').val();
+        const planoContaId = $('#plano_conta_id_parcelamento').val();
+        const centroCustoId = $('#centro_custo_id_parcelamento').val();
+        const contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
+        const valor = $('#valor_parcelamento').val();
+        const juros = $('#juros_parcelamento').val();
+        const desconto = $('#desconto_parcelamento').val();
 
-        document.getElementById('descricao').value = descricao;
-        document.getElementById('plano_conta_id').value = planoContaId;
-        document.getElementById('centro_custo_id').value = centroCustoId;
-        document.getElementById('conta_empresa_id').value = contaEmpresaId;
-        document.getElementById('valor').value = valor;
-        document.getElementById('juros').value = juros;
-        document.getElementById('desconto').value = desconto;
+        $('#descricao').val(descricao);
+        $('#plano_conta_id').val(planoContaId);
+        $('#centro_custo_id').val(centroCustoId);
+        $('#conta_empresa_id').val(contaEmpresaId);
+        $('#valor').val(valor);
+        $('#juros').val(juros);
+        $('#desconto').val(desconto);
         calcularTotal();
     }
 
     // Event listener para o toggle principal (modo normal)
-    if (toggleParcelamento) {
-        toggleParcelamento.addEventListener('change', function() {
+    console.log('toggleParcelamentoParcelamento length', $toggleParcelamentoParcelamento.length);
+    if ($toggleParcelamento.length) {
+        $toggleParcelamento.on('change', function() {
+            console.log('toggleParcelamento changed');
             // Ignorar se estiver sincronizando
             if (sincronizandoToggle) {
                 return;
             }
+
+            const isChecked = $(this).prop('checked');
 
             // Sincronizar o toggle do modo parcelamento
             sincronizandoToggle = true;
-            if (toggleParcelamentoParcelamento) {
-                toggleParcelamentoParcelamento.checked = this.checked;
+            if ($toggleParcelamentoParcelamento.length) {
+                $toggleParcelamentoParcelamento.prop('checked', isChecked);
             }
             sincronizandoToggle = false;
 
-            if (!this.checked) {
+            // Alternar o modo baseado no estado do toggle PRIMEIRO
+            alternarModo(isChecked);
+
+            if (!isChecked) {
                 // Se desativar o toggle principal, limpar todos os campos e voltar ao estado inicial
                 limparCamposParaEstadoInicial();
             }
-
-            // Alternar o modo baseado no estado do toggle
-            alternarModo(this.checked);
         });
 
         // Verificar estado inicial
-        alternarModo(toggleParcelamento.checked);
+        alternarModo($toggleParcelamento.prop('checked'));
     }
 
     // Event listener para o toggle do modo parcelamento
-    if (toggleParcelamentoParcelamento) {
-        toggleParcelamentoParcelamento.addEventListener('change', function() {
+    console.log('toggleParcelamentoParcelamento length', $toggleParcelamentoParcelamento.length);
+    if ($toggleParcelamentoParcelamento.length) {
+        $toggleParcelamentoParcelamento.on('change', function(e) {
+            console.log('toggleParcelamentoParcelamento changed');
             // Ignorar se estiver sincronizando
             if (sincronizandoToggle) {
                 return;
             }
 
-            // Sincronizar o toggle principal
-            sincronizandoToggle = true;
-            if (toggleParcelamento) {
-                toggleParcelamento.checked = this.checked;
-            }
-            sincronizandoToggle = false;
+            // Obter o estado atual do toggle ANTES de qualquer mudança
+            const isChecked = $(this).prop('checked');
 
-            if (!this.checked) {
-                // Se desativar o toggle do modo parcelamento, limpar todos os campos e voltar ao estado inicial
+            // Se estiver desativando, garantir que vai voltar ao modo normal
+            if (!isChecked) {
+                // Primeiro, sincronizar o toggle principal
+                sincronizandoToggle = true;
+                if ($toggleParcelamento.length) {
+                    $toggleParcelamento.prop('checked', false);
+                }
+                sincronizandoToggle = false;
+
+                // Alternar para modo normal
+                alternarModo(false);
+
+                // Limpar todos os campos e voltar ao estado inicial
                 limparCamposParaEstadoInicial();
-            }
+            } else {
+                // Se estiver ativando, sincronizar e alternar para modo parcelamento
+                sincronizandoToggle = true;
+                if ($toggleParcelamento.length) {
+                    $toggleParcelamento.prop('checked', true);
+                }
+                sincronizandoToggle = false;
 
-            // Alternar o modo baseado no estado do toggle
-            alternarModo(this.checked);
+                // Alternar para modo parcelamento
+                alternarModo(true);
+            }
         });
     }
 
@@ -945,14 +942,14 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         camposModoNormal.forEach(campoId => {
-            const campo = document.getElementById(campoId);
-            if (campo) {
-                if (campo.tagName === 'SELECT') {
-                    campo.value = '';
-                } else if (campo.type === 'checkbox') {
-                    campo.checked = false;
+            const $campo = $('#' + campoId);
+            if ($campo.length) {
+                if ($campo.is('select')) {
+                    $campo.val('');
+                } else if ($campo.is(':checkbox')) {
+                    $campo.prop('checked', false);
                 } else {
-                    campo.value = '';
+                    $campo.val('');
                 }
             }
         });
@@ -960,10 +957,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Limpar campos de valores (valor, juros, desconto)
         const camposValores = ['valor', 'juros', 'desconto'];
         camposValores.forEach(campoId => {
-            const campo = document.getElementById(campoId);
-            if (campo) {
-                campo.value = '';
-            }
+            $('#' + campoId).val('');
         });
 
         // Limpar campos do modo parcelamento
@@ -974,88 +968,69 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         camposModoParcelamento.forEach(campoId => {
-            const campo = document.getElementById(campoId);
-            if (campo) {
-                if (campo.tagName === 'SELECT') {
-                    campo.value = '';
+            const $campo = $('#' + campoId);
+            if ($campo.length) {
+                if ($campo.is('select')) {
+                    $campo.val('');
                 } else {
-                    campo.value = '';
+                    $campo.val('');
                 }
             }
         });
 
         // Limpar tabela de parcelas geradas
-        const parcelasTbody = document.getElementById('parcelas_tbody');
-        const tabelaParcelasContainer = document.getElementById('tabela_parcelas_container');
-
-        if (parcelasTbody) {
-            parcelasTbody.innerHTML = '';
-        }
-        if (tabelaParcelasContainer) {
-            tabelaParcelasContainer.classList.add('hidden');
-        }
+        $('#parcelas_tbody').html('');
+        $('#tabela_parcelas_container').addClass('hidden');
 
         // Resetar o total
-        const totalInput = document.getElementById('valor_total');
-        const totalHiddenInput = document.getElementById('valor_total_hidden');
-        if (totalInput) {
-            totalInput.value = 'R$ 0,00';
-        }
-        if (totalHiddenInput) {
-            totalHiddenInput.value = '0.00';
-        }
+        $('#valor_total').val('R$ 0,00');
+        $('#valor_total_hidden').val('0.00');
 
         // Resetar campo intervalo_dias
-        const intervaloDiasContainer = document.getElementById('intervalo_dias_container');
-        if (intervaloDiasContainer) {
-            intervaloDiasContainer.classList.add('hidden');
-        }
+        $('#intervalo_dias_container').addClass('hidden');
 
         // Restaurar data padrão para "Data 1ª parcela"
-        const dataPrimeiraParcelaInput = document.getElementById('data_primeira_parcela');
-        if (dataPrimeiraParcelaInput) {
-            const hoje = new Date();
-            const ano = hoje.getFullYear();
-            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-            const dia = String(hoje.getDate()).padStart(2, '0');
-            dataPrimeiraParcelaInput.value = `${ano}-${mes}-${dia}`;
-        }
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        $('#data_primeira_parcela').val(`${ano}-${mes}-${dia}`);
 
         // Recalcular total
         calcularTotal();
     }
 
     // Definir data padrão para "Data 1ª parcela" como hoje (usando timezone local do navegador)
-    const dataPrimeiraParcelaInput = document.getElementById('data_primeira_parcela');
-    if (dataPrimeiraParcelaInput) {
+    const $dataPrimeiraParcelaInput = $('#data_primeira_parcela');
+    if ($dataPrimeiraParcelaInput.length) {
         // Sempre definir a data de hoje usando o timezone local do navegador
         const hoje = new Date();
         const ano = hoje.getFullYear();
         const mes = String(hoje.getMonth() + 1).padStart(2, '0');
         const dia = String(hoje.getDate()).padStart(2, '0');
-        dataPrimeiraParcelaInput.value = `${ano}-${mes}-${dia}`;
+        $dataPrimeiraParcelaInput.val(`${ano}-${mes}-${dia}`);
     }
 
     // Controlar campo intervalo_dias quando repetição for "intervalo"
-    const repeticaoSelect = document.getElementById('repeticao');
-    const intervaloDiasContainer = document.getElementById('intervalo_dias_container');
+    const $repeticaoSelect = $('#repeticao');
+    const $intervaloDiasContainer = $('#intervalo_dias_container');
 
-    if (repeticaoSelect && intervaloDiasContainer) {
-        repeticaoSelect.addEventListener('change', function() {
-            if (this.value === 'intervalo') {
-                intervaloDiasContainer.classList.remove('hidden');
+    if ($repeticaoSelect.length && $intervaloDiasContainer.length) {
+        $repeticaoSelect.on('change', function() {
+            if ($(this).val() === 'intervalo') {
+                $intervaloDiasContainer.removeClass('hidden');
             } else {
-                intervaloDiasContainer.classList.add('hidden');
+                $intervaloDiasContainer.addClass('hidden');
             }
         });
     }
 
     // Calcular Total automaticamente (modo normal)
-    const valorInput = document.getElementById('valor');
-    const jurosInput = document.getElementById('juros');
-    const descontoInput = document.getElementById('desconto');
-    const totalInput = document.getElementById('valor_total');
-    const totalHiddenInput = document.getElementById('valor_total_hidden');
+    const $valorInput = $('#valor');
+    const $jurosInput = $('#juros');
+    const $descontoInput = $('#desconto');
+    const $totalInput = $('#valor_total');
+    const $totalHiddenInput = $('#valor_total_hidden');
 
     function formatarMoeda(valor) {
         return new Intl.NumberFormat('pt-BR', {
@@ -1065,30 +1040,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calcularTotal() {
-        const valor = parseFloat(valorInput.value) || 0;
-        const juros = parseFloat(jurosInput.value) || 0;
-        const desconto = parseFloat(descontoInput.value) || 0;
+        const valor = parseFloat($valorInput.val()) || 0;
+        const juros = parseFloat($jurosInput.val()) || 0;
+        const desconto = parseFloat($descontoInput.val()) || 0;
 
         const total = valor + juros - desconto;
 
-        totalInput.value = formatarMoeda(total);
-        totalHiddenInput.value = total.toFixed(2);
+        $totalInput.val(formatarMoeda(total));
+        $totalHiddenInput.val(total.toFixed(2));
     }
 
-    if (valorInput && jurosInput && descontoInput) {
-    valorInput.addEventListener('input', calcularTotal);
-    jurosInput.addEventListener('input', calcularTotal);
-    descontoInput.addEventListener('input', calcularTotal);
+    if ($valorInput.length && $jurosInput.length && $descontoInput.length) {
+        $valorInput.on('input', calcularTotal);
+        $jurosInput.on('input', calcularTotal);
+        $descontoInput.on('input', calcularTotal);
         calcularTotal();
     }
 
     // Gerar Parcelas
     function renderizarParcelas(parcelas) {
         // Buscar elementos diretamente quando a função for chamada
-        const parcelasTbody = document.getElementById('parcelas_tbody');
-        const tabelaParcelasContainer = document.getElementById('tabela_parcelas_container');
+        const $parcelasTbody = $('#parcelas_tbody');
+        const $tabelaParcelasContainer = $('#tabela_parcelas_container');
 
-        if (!parcelasTbody || !tabelaParcelasContainer) {
+        if (!$parcelasTbody.length || !$tabelaParcelasContainer.length) {
             console.error('Elementos da tabela de parcelas não encontrados');
             return;
         }
@@ -1099,97 +1074,80 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        parcelasTbody.innerHTML = '';
+        $parcelasTbody.html('');
 
         parcelas.forEach((parcela, index) => {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-gray-50';
+            const $tr = $('<tr></tr>').addClass('hover:bg-gray-50');
 
-            const dataTd = document.createElement('td');
-            dataTd.className = 'px-4 py-3 whitespace-nowrap';
-            const dataInput = document.createElement('input');
-            dataInput.type = 'date';
-            dataInput.name = `parcelas[${index}][data]`;
-            dataInput.value = parcela.data;
-            dataInput.className = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-            dataTd.appendChild(dataInput);
+            const $dataTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
+            const $dataInput = $('<input>').attr({
+                type: 'date',
+                name: `parcelas[${index}][data]`
+            }).val(parcela.data).addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+            $dataTd.append($dataInput);
 
-            const valorTd = document.createElement('td');
-            valorTd.className = 'px-4 py-3 whitespace-nowrap';
-            const valorInput = document.createElement('input');
-            valorInput.type = 'number';
-            valorInput.step = '0.01';
-            valorInput.min = '0.01';
-            valorInput.name = `parcelas[${index}][valor]`;
-            valorInput.value = parcela.valor;
-            valorInput.className = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-            valorTd.appendChild(valorInput);
+            const $valorTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
+            const $valorInput = $('<input>').attr({
+                type: 'number',
+                step: '0.01',
+                min: '0.01',
+                name: `parcelas[${index}][valor]`
+            }).val(parcela.valor).addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+            $valorTd.append($valorInput);
 
-            const formaPagamentoTd = document.createElement('td');
-            formaPagamentoTd.className = 'px-4 py-3 whitespace-nowrap';
-            const formaPagamentoSelect = document.createElement('select');
-            formaPagamentoSelect.name = `parcelas[${index}][forma_pagamento_id]`;
-            formaPagamentoSelect.className = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-            formaPagamentoSelect.innerHTML = '<option value="">Selecione</option>';
+            const $formaPagamentoTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
+            const $formaPagamentoSelect = $('<select></select>').attr({
+                name: `parcelas[${index}][forma_pagamento_id]`
+            }).addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+            $formaPagamentoSelect.html('<option value="">Selecione</option>');
             formasPagamento.forEach(forma => {
-                const option = document.createElement('option');
-                option.value = forma.id;
-                option.textContent = forma.nome;
+                const $option = $('<option></option>').val(forma.id).text(forma.nome);
                 if (parcela.forma_pagamento_id && parcela.forma_pagamento_id === forma.id) {
-                    option.selected = true;
+                    $option.prop('selected', true);
                 }
-                formaPagamentoSelect.appendChild(option);
+                $formaPagamentoSelect.append($option);
             });
-            formaPagamentoTd.appendChild(formaPagamentoSelect);
+            $formaPagamentoTd.append($formaPagamentoSelect);
 
-            const pagoTd = document.createElement('td');
-            pagoTd.className = 'px-4 py-3 whitespace-nowrap';
-            const pagoCheckbox = document.createElement('input');
-            pagoCheckbox.type = 'checkbox';
-            pagoCheckbox.name = `parcelas[${index}][pago]`;
-            pagoCheckbox.value = '1';
-            pagoCheckbox.checked = parcela.pago || false;
-            pagoCheckbox.className = 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded';
-            pagoTd.appendChild(pagoCheckbox);
+            const $pagoTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
+            const $pagoCheckbox = $('<input>').attr({
+                type: 'checkbox',
+                name: `parcelas[${index}][pago]`,
+                value: '1'
+            }).prop('checked', parcela.pago || false).addClass('h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded');
+            $pagoTd.append($pagoCheckbox);
 
-            const observacaoTd = document.createElement('td');
-            observacaoTd.className = 'px-4 py-3 whitespace-nowrap';
-            const observacaoInput = document.createElement('input');
-            observacaoInput.type = 'text';
-            observacaoInput.name = `parcelas[${index}][observacao]`;
-            observacaoInput.value = parcela.observacao || '';
-            observacaoInput.className = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
-            observacaoInput.placeholder = 'Observação';
-            observacaoTd.appendChild(observacaoInput);
+            const $observacaoTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
+            const $observacaoInput = $('<input>').attr({
+                type: 'text',
+                name: `parcelas[${index}][observacao]`,
+                placeholder: 'Observação'
+            }).val(parcela.observacao || '').addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+            $observacaoTd.append($observacaoInput);
 
-            tr.appendChild(dataTd);
-            tr.appendChild(valorTd);
-            tr.appendChild(formaPagamentoTd);
-            tr.appendChild(pagoTd);
-            tr.appendChild(observacaoTd);
-
-            parcelasTbody.appendChild(tr);
+            $tr.append($dataTd).append($valorTd).append($formaPagamentoTd).append($pagoTd).append($observacaoTd);
+            $parcelasTbody.append($tr);
         });
 
-        tabelaParcelasContainer.classList.remove('hidden');
+        $tabelaParcelasContainer.removeClass('hidden');
     }
 
     function anexarListenerGerarParcelas() {
-        const btnGerarParcelas = document.getElementById('btn_gerar_parcelas');
-        if (btnGerarParcelas && !btnGerarParcelas.hasAttribute('data-listener-anexado')) {
-            btnGerarParcelas.setAttribute('data-listener-anexado', 'true');
-            btnGerarParcelas.addEventListener('click', async function(e) {
+        const $btnGerarParcelas = $('#btn_gerar_parcelas');
+        if ($btnGerarParcelas.length && !$btnGerarParcelas.data('listener-anexado')) {
+            $btnGerarParcelas.data('listener-anexado', true);
+            $btnGerarParcelas.on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const valor = parseFloat(document.getElementById('valor_parcelamento').value) || 0;
-                const juros = parseFloat(document.getElementById('juros_parcelamento').value) || 0;
-                const desconto = parseFloat(document.getElementById('desconto_parcelamento').value) || 0;
-                const tipoParcela = document.getElementById('tipo_parcela').value;
-                const repeticao = document.getElementById('repeticao').value;
-                const quantidade = parseInt(document.getElementById('quantidade_parcelas').value) || 0;
-                const dataPrimeiraParcela = document.getElementById('data_primeira_parcela').value;
-                const intervaloDias = document.getElementById('intervalo_dias').value;
+                const valor = parseFloat($('#valor_parcelamento').val()) || 0;
+                const juros = parseFloat($('#juros_parcelamento').val()) || 0;
+                const desconto = parseFloat($('#desconto_parcelamento').val()) || 0;
+                const tipoParcela = $('#tipo_parcela').val();
+                const repeticao = $('#repeticao').val();
+                const quantidade = parseInt($('#quantidade_parcelas').val()) || 0;
+                const dataPrimeiraParcela = $('#data_primeira_parcela').val();
+                const intervaloDias = $('#intervalo_dias').val();
 
                 // Validações
                 if (!valor || valor <= 0) {
@@ -1217,181 +1175,152 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                try {
-                    btnGerarParcelas.disabled = true;
-                    btnGerarParcelas.textContent = 'Gerando...';
+                $btnGerarParcelas.prop('disabled', true).text('Gerando...');
 
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                    if (!csrfToken) {
-                        throw new Error('Token CSRF não encontrado');
+                $.ajax({
+                    url: '{{ route("movimentacao.gerar-parcelas") }}',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    },
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        valor: valor,
+                        juros: juros,
+                        desconto: desconto,
+                        tipo_parcela: tipoParcela,
+                        repeticao: repeticao,
+                        quantidade: quantidade,
+                        data_primeira_parcela: dataPrimeiraParcela,
+                        intervalo_dias: repeticao === 'intervalo' ? parseInt(intervaloDias) : null
+                    }),
+                    success: function(result) {
+                        // Renderizar tabela de parcelas
+                        renderizarParcelas(result.parcelas);
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : 'Erro ao gerar parcelas';
+                        console.error('Erro ao gerar parcelas:', errorMsg);
+                        alert('Erro ao gerar parcelas: ' + errorMsg);
+                    },
+                    complete: function() {
+                        $btnGerarParcelas.prop('disabled', false).text('Gerar');
                     }
-
-                    const response = await fetch('{{ route("movimentacao.gerar-parcelas") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken.content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            valor: valor,
-                            juros: juros,
-                            desconto: desconto,
-                            tipo_parcela: tipoParcela,
-                            repeticao: repeticao,
-                            quantidade: quantidade,
-                            data_primeira_parcela: dataPrimeiraParcela,
-                            intervalo_dias: repeticao === 'intervalo' ? parseInt(intervaloDias) : null
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.message || 'Erro ao gerar parcelas');
-                    }
-
-                    // Renderizar tabela de parcelas
-                    renderizarParcelas(result.parcelas);
-
-                } catch (error) {
-                    console.error('Erro ao gerar parcelas:', error);
-                    alert('Erro ao gerar parcelas: ' + error.message);
-                } finally {
-                    btnGerarParcelas.disabled = false;
-                    btnGerarParcelas.textContent = 'Gerar';
-                }
+                });
             });
         }
     }
 
     // Usar event delegation para garantir que o botão funcione
-    document.addEventListener('click', function(e) {
-        // Verificar se o clique foi no botão gerar parcelas ou em um elemento filho dele
-        const btnGerarParcelas = e.target.id === 'btn_gerar_parcelas' ? e.target : e.target.closest('button[id="btn_gerar_parcelas"]');
-        if (btnGerarParcelas) {
-            e.preventDefault();
-            e.stopPropagation();
+    $(document).on('click', '#btn_gerar_parcelas', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-            // Executar a função de gerar parcelas
-            const valor = parseFloat(document.getElementById('valor_parcelamento').value) || 0;
-            const juros = parseFloat(document.getElementById('juros_parcelamento').value) || 0;
-            const desconto = parseFloat(document.getElementById('desconto_parcelamento').value) || 0;
-            const tipoParcela = document.getElementById('tipo_parcela').value;
-            const repeticao = document.getElementById('repeticao').value;
-            const quantidade = parseInt(document.getElementById('quantidade_parcelas').value) || 0;
-            const dataPrimeiraParcela = document.getElementById('data_primeira_parcela').value;
-            const intervaloDias = document.getElementById('intervalo_dias').value;
+        // Executar a função de gerar parcelas
+        const valor = parseFloat($('#valor_parcelamento').val()) || 0;
+        const juros = parseFloat($('#juros_parcelamento').val()) || 0;
+        const desconto = parseFloat($('#desconto_parcelamento').val()) || 0;
+        const tipoParcela = $('#tipo_parcela').val();
+        const repeticao = $('#repeticao').val();
+        const quantidade = parseInt($('#quantidade_parcelas').val()) || 0;
+        const dataPrimeiraParcela = $('#data_primeira_parcela').val();
+        const intervaloDias = $('#intervalo_dias').val();
 
-            // Validações
-            if (!valor || valor <= 0) {
-                alert('Por favor, informe o Valor Bruto.');
-                return;
-            }
-
-            if (!repeticao) {
-                alert('Por favor, selecione a Repetição.');
-                return;
-            }
-
-            if (repeticao === 'intervalo' && (!intervaloDias || intervaloDias <= 0)) {
-                alert('Por favor, informe o intervalo em dias.');
-                return;
-            }
-
-            if (!quantidade || quantidade <= 0) {
-                alert('Por favor, informe a Quantidade de parcelas.');
-                return;
-            }
-
-            if (!dataPrimeiraParcela) {
-                alert('Por favor, informe a Data da 1ª parcela.');
-                return;
-            }
-
-            (async function() {
-                try {
-                    btnGerarParcelas.disabled = true;
-                    const textoOriginal = btnGerarParcelas.textContent;
-                    btnGerarParcelas.textContent = 'Gerando...';
-
-                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                    if (!csrfToken) {
-                        throw new Error('Token CSRF não encontrado');
-                    }
-
-                    const response = await fetch('{{ route("movimentacao.gerar-parcelas") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken.content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            valor: valor,
-                            juros: juros,
-                            desconto: desconto,
-                            tipo_parcela: tipoParcela,
-                            repeticao: repeticao,
-                            quantidade: quantidade,
-                            data_primeira_parcela: dataPrimeiraParcela,
-                            intervalo_dias: repeticao === 'intervalo' ? parseInt(intervaloDias) : null
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(result.message || 'Erro ao gerar parcelas');
-                    }
-
-                    // Renderizar tabela de parcelas
-                    renderizarParcelas(result.parcelas);
-
-                } catch (error) {
-                    console.error('Erro ao gerar parcelas:', error);
-                    alert('Erro ao gerar parcelas: ' + error.message);
-                } finally {
-                    btnGerarParcelas.disabled = false;
-                    btnGerarParcelas.textContent = 'Gerar';
-                }
-            })();
+        // Validações
+        if (!valor || valor <= 0) {
+            alert('Por favor, informe o Valor Bruto.');
+            return;
         }
+
+        if (!repeticao) {
+            alert('Por favor, selecione a Repetição.');
+            return;
+        }
+
+        if (repeticao === 'intervalo' && (!intervaloDias || intervaloDias <= 0)) {
+            alert('Por favor, informe o intervalo em dias.');
+            return;
+        }
+
+        if (!quantidade || quantidade <= 0) {
+            alert('Por favor, informe a Quantidade de parcelas.');
+            return;
+        }
+
+        if (!dataPrimeiraParcela) {
+            alert('Por favor, informe a Data da 1ª parcela.');
+            return;
+        }
+
+        const $btnGerarParcelas = $(this);
+        $btnGerarParcelas.prop('disabled', true).text('Gerando...');
+
+        $.ajax({
+            url: '{{ route("movimentacao.gerar-parcelas") }}',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                valor: valor,
+                juros: juros,
+                desconto: desconto,
+                tipo_parcela: tipoParcela,
+                repeticao: repeticao,
+                quantidade: quantidade,
+                data_primeira_parcela: dataPrimeiraParcela,
+                intervalo_dias: repeticao === 'intervalo' ? parseInt(intervaloDias) : null
+            }),
+            success: function(result) {
+                // Renderizar tabela de parcelas
+                renderizarParcelas(result.parcelas);
+            },
+            error: function(xhr) {
+                const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Erro ao gerar parcelas';
+                console.error('Erro ao gerar parcelas:', errorMsg);
+                alert('Erro ao gerar parcelas: ' + errorMsg);
+            },
+            complete: function() {
+                $btnGerarParcelas.prop('disabled', false).text('Gerar');
+            }
+        });
     });
 
     // Coletar dados das parcelas antes do submit
-    const form = document.getElementById('movimentacaoForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            // Buscar elementos diretamente quando o formulário for submetido
-            const parcelasTbody = document.getElementById('parcelas_tbody');
+    $('#movimentacaoForm').on('submit', function(e) {
+        // Buscar elementos diretamente quando o formulário for submetido
+        const $parcelasTbody = $('#parcelas_tbody');
 
-            // Se estiver no modo parcelamento e tiver parcelas geradas, garantir que os dados estão corretos
-            if (toggleParcelamento && toggleParcelamento.checked && parcelasTbody && parcelasTbody.children.length > 0) {
-                // Validar se todas as parcelas têm forma de pagamento
-                let todasParcelasValidas = true;
-                const parcelasRows = parcelasTbody.querySelectorAll('tr');
-
-                parcelasRows.forEach((row, index) => {
-                    const formaPagamentoSelect = row.querySelector('select[name^="parcelas"][name$="[forma_pagamento_id]"]');
-                    if (!formaPagamentoSelect || !formaPagamentoSelect.value) {
-                        todasParcelasValidas = false;
-                    }
-                });
-
-                if (!todasParcelasValidas) {
-                    e.preventDefault();
-                    alert('Por favor, selecione a forma de pagamento para todas as parcelas.');
-                    return false;
+        // Se estiver no modo parcelamento e tiver parcelas geradas, garantir que os dados estão corretos
+        if ($toggleParcelamento.length && $toggleParcelamento.prop('checked') && $parcelasTbody.length && $parcelasTbody.children().length > 0) {
+            // Validar se todas as parcelas têm forma de pagamento
+            let todasParcelasValidas = true;
+            $parcelasTbody.find('tr').each(function() {
+                const $formaPagamentoSelect = $(this).find('select[name^="parcelas"][name$="[forma_pagamento_id]"]');
+                if (!$formaPagamentoSelect.length || !$formaPagamentoSelect.val()) {
+                    todasParcelasValidas = false;
                 }
-            } else if (toggleParcelamento && toggleParcelamento.checked) {
-                // Se estiver no modo parcelamento mas não tiver parcelas geradas
+            });
+
+            if (!todasParcelasValidas) {
                 e.preventDefault();
-                alert('Por favor, gere as parcelas antes de salvar.');
+                alert('Por favor, selecione a forma de pagamento para todas as parcelas.');
                 return false;
             }
-        });
-    }
+        } else if ($toggleParcelamento.length && $toggleParcelamento.prop('checked')) {
+            // Se estiver no modo parcelamento mas não tiver parcelas geradas
+            e.preventDefault();
+            alert('Por favor, gere as parcelas antes de salvar.');
+            return false;
+        }
+    });
 });
 </script>
 @endsection
