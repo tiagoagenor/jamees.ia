@@ -208,6 +208,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/contas-a-pagar', [App\Http\Controllers\MovimentacaoController::class, 'index'])->name('contas-a-pagar.index')->middleware('permission:movimentacao,listar')->defaults('tipo', 1);
     Route::get('/contas-a-pagar/create', [App\Http\Controllers\MovimentacaoController::class, 'create'])->name('contas-a-pagar.create')->middleware('permission:movimentacao,criar')->defaults('tipo', 1);
     Route::post('/contas-a-pagar', [App\Http\Controllers\MovimentacaoController::class, 'store'])->name('contas-a-pagar.store')->middleware('permission:movimentacao,criar')->defaults('tipo', 1);
+    Route::post('/movimentacao/gerar-parcelas', [App\Http\Controllers\MovimentacaoController::class, 'gerarParcelas'])->name('movimentacao.gerar-parcelas')->middleware('permission:movimentacao,criar');
     Route::get('/contas-a-pagar/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'show'])->name('contas-a-pagar.show')->middleware('permission:movimentacao,visualizar')->defaults('tipo', 1);
     Route::get('/contas-a-pagar/{movimentacao}/edit', [App\Http\Controllers\MovimentacaoController::class, 'edit'])->name('contas-a-pagar.edit')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);
     Route::put('/contas-a-pagar/{movimentacao}', [App\Http\Controllers\MovimentacaoController::class, 'update'])->name('contas-a-pagar.update')->middleware('permission:movimentacao,editar')->defaults('tipo', 1);

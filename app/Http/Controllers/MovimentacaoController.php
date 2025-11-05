@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -146,7 +147,12 @@ class MovimentacaoController extends Controller
         $centroCustos = CentroCusto::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
         $contasEmpresa = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
-        $entidades = Entidade::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+
+        // Buscar entidades separadas por tipo
+        $clientes = \App\Models\Cliente::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
 
         $titulo = 'Nova ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -156,7 +162,10 @@ class MovimentacaoController extends Controller
             'centroCustos',
             'formasPagamento',
             'contasEmpresa',
-            'entidades',
+            'clientes',
+            'fornecedores',
+            'funcionarios',
+            'transportadoras',
             'titulo',
             'tipoCor',
             'tipo'
@@ -184,62 +193,151 @@ class MovimentacaoController extends Controller
             abort(404, 'Tipo de movimentação inválido.');
         }
 
-        $request->validate([
-            'plano_conta_id' => 'required|exists:plano_conta,id',
-            'centro_custo_id' => 'nullable|exists:centro_custo,id',
-            'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
-            'conta_empresa_id' => 'required|exists:conta_empresa,id',
-            'entidade_id' => 'nullable|exists:entidade,id',
-            'descricao' => 'required|string|max:255',
-            'vencimento' => 'required|date',
-            'observacao' => 'nullable|string',
-            'informacao_complementar' => 'nullable|string',
-            'valor' => 'required|numeric|min:0.01',
-            'juros' => 'nullable|numeric|min:0',
-            'desconto' => 'nullable|numeric|min:0',
-        ]);
+        // Verificar se é parcelamento
+        $isParcelamento = $request->has('parcelas') && is_array($request->parcelas) && count($request->parcelas) > 0;
+
+        if ($isParcelamento) {
+            // Validação para parcelamento
+            $request->validate([
+                'plano_conta_id' => 'required|exists:plano_conta,id',
+                'centro_custo_id' => 'nullable|exists:centro_custo,id',
+                'conta_empresa_id' => 'required|exists:conta_empresa,id',
+                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_id' => 'nullable|string',
+                'descricao' => 'required|string|max:255',
+                'informacao_complementar' => 'nullable|string',
+                'valor' => 'required|numeric|min:0.01',
+                'juros' => 'nullable|numeric|min:0',
+                'desconto' => 'nullable|numeric|min:0',
+                'parcelas' => 'required|array|min:1',
+                'parcelas.*.data' => 'required|date',
+                'parcelas.*.valor' => 'required|numeric|min:0.01',
+                'parcelas.*.forma_pagamento_id' => 'required|exists:forma_pagamento,id',
+                'parcelas.*.pago' => 'nullable',
+                'parcelas.*.observacao' => 'nullable|string',
+            ]);
+        } else {
+            // Validação para movimentação normal
+            $request->validate([
+                'plano_conta_id' => 'required|exists:plano_conta,id',
+                'centro_custo_id' => 'nullable|exists:centro_custo,id',
+                'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
+                'conta_empresa_id' => 'required|exists:conta_empresa,id',
+                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_id' => 'nullable|string',
+                'descricao' => 'required|string|max:255',
+                'vencimento' => 'required|date',
+                'observacao' => 'nullable|string',
+                'informacao_complementar' => 'nullable|string',
+                'valor' => 'required|numeric|min:0.01',
+                'juros' => 'nullable|numeric|min:0',
+                'desconto' => 'nullable|numeric|min:0',
+                'data_compensacao' => 'nullable|date',
+                'pagamento_quitado' => 'nullable|integer|in:0,1',
+            ]);
+        }
 
         try {
             DB::beginTransaction();
 
-            $valorTotal = $request->valor;
-            if ($request->juros) {
-                $valorTotal += $request->juros;
-            }
-            if ($request->desconto) {
-                $valorTotal -= $request->desconto;
-            }
+            if ($isParcelamento) {
+                // Gerar código único para todas as parcelas
+                $parcelaCodigo = Str::uuid();
 
-            $movimentacao = Movimentacao::create([
-                'id' => Str::uuid(),
-                'empresa_id' => $empresaAtual->id,
-                'plano_conta_id' => $request->plano_conta_id,
-                'centro_custo_id' => $request->centro_custo_id,
-                'forma_pagamento_id' => $request->forma_pagamento_id,
-                'conta_empresa_id' => $request->conta_empresa_id,
-                'situacao' => MovimentacaoSituacaoEnum::PENDENTE,
-                'tipo' => $tipoEnum,
-                'entidade_id' => $request->entidade_id,
-                'descricao' => $request->descricao,
-                'vencimento' => $request->vencimento,
-                'observacao' => $request->observacao,
-                'informacao_complementar' => $request->informacao_complementar,
-                'valor' => $request->valor,
-                'juros' => $request->juros,
-                'desconto' => $request->desconto,
-                'valor_total' => $valorTotal,
-                'criado_em' => now(),
-                'atualizado_em' => now(),
-            ]);
+                // Criar uma movimentação para cada parcela
+                foreach ($request->parcelas as $index => $parcelaData) {
+                    $pago = isset($parcelaData['pago']) && ($parcelaData['pago'] === '1' || $parcelaData['pago'] === 1 || $parcelaData['pago'] === true);
+                    $situacao = $pago
+                        ? MovimentacaoSituacaoEnum::PAGA
+                        : MovimentacaoSituacaoEnum::PENDENTE;
+
+                    $valorParcela = floatval($parcelaData['valor']);
+                    $jurosParcela = floatval($request->juros ?? 0);
+                    $descontoParcela = floatval($request->desconto ?? 0);
+
+                    // Calcular valor total da parcela (se juros/desconto devem ser aplicados por parcela)
+                    // Por enquanto, vamos usar apenas o valor da parcela como valor_total
+                    $valorTotalParcela = $valorParcela;
+
+                    $movimentacao = Movimentacao::create([
+                        'id' => Str::uuid(),
+                        'empresa_id' => $empresaAtual->id,
+                        'plano_conta_id' => $request->plano_conta_id,
+                        'centro_custo_id' => $request->centro_custo_id,
+                        'forma_pagamento_id' => $parcelaData['forma_pagamento_id'],
+                        'conta_empresa_id' => $request->conta_empresa_id,
+                        'situacao' => $situacao,
+                        'tipo' => $tipoEnum,
+                        'parcela_codigo' => $parcelaCodigo,
+                        'numero_parcela' => $index + 1,
+                        'entidade_tipo' => $request->entidade_tipo,
+                        'entidade_id' => $request->entidade_id,
+                        'descricao' => $request->descricao,
+                        'vencimento' => $parcelaData['data'],
+                        'observacao' => $parcelaData['observacao'] ?? null,
+                        'informacao_complementar' => $request->informacao_complementar,
+                        'valor' => $valorParcela,
+                        'juros' => $jurosParcela,
+                        'desconto' => $descontoParcela,
+                        'valor_total' => $valorTotalParcela,
+                        'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? now()->toDateString() : null,
+                        'criado_em' => now(),
+                        'atualizado_em' => now(),
+                    ]);
+
+                    // Registrar no audit log
+                    AuditService::logCreate($movimentacao, "Criada parcela {$movimentacao->numero_parcela} de {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
+                }
+            } else {
+                // Lógica normal (não parcelado)
+                $valorTotal = $request->valor;
+                if ($request->juros) {
+                    $valorTotal += $request->juros;
+                }
+                if ($request->desconto) {
+                    $valorTotal -= $request->desconto;
+                }
+
+                // Determinar situação baseado no pagamento quitado
+                $situacao = ($request->pagamento_quitado == 1) ? MovimentacaoSituacaoEnum::PAGA : MovimentacaoSituacaoEnum::PENDENTE;
+
+                $movimentacao = Movimentacao::create([
+                    'id' => Str::uuid(),
+                    'empresa_id' => $empresaAtual->id,
+                    'plano_conta_id' => $request->plano_conta_id,
+                    'centro_custo_id' => $request->centro_custo_id,
+                    'forma_pagamento_id' => $request->forma_pagamento_id,
+                    'conta_empresa_id' => $request->conta_empresa_id,
+                    'situacao' => $situacao,
+                    'tipo' => $tipoEnum,
+                    'entidade_tipo' => $request->entidade_tipo,
+                    'entidade_id' => $request->entidade_id,
+                    'descricao' => $request->descricao,
+                    'vencimento' => $request->vencimento,
+                    'observacao' => $request->observacao,
+                    'informacao_complementar' => $request->informacao_complementar,
+                    'valor' => $request->valor,
+                    'juros' => $request->juros ?? 0,
+                    'desconto' => $request->desconto ?? 0,
+                    'valor_total' => $valorTotal,
+                    'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ]);
+
+                // Registrar no audit log
+                AuditService::logCreate($movimentacao, "Criada {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
+            }
 
             DB::commit();
 
-            // Registrar no audit log
-            AuditService::logCreate($movimentacao, "Criada {$tipoEnum->getLabel()}: {$movimentacao->descricao}");
+            $mensagem = $isParcelamento
+                ? 'Parcelas criadas com sucesso!'
+                : 'Movimentação criada com sucesso!';
 
             return redirect()
                 ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
-                ->with('success', 'Movimentação criada com sucesso!');
+                ->with('success', $mensagem);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -247,6 +345,120 @@ class MovimentacaoController extends Controller
                 ->back()
                 ->withInput()
                 ->with('error', 'Erro ao criar movimentação: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Gerar parcelas baseado nos parâmetros fornecidos
+     */
+    public function gerarParcelas(Request $request)
+    {
+        // Verificar permissão
+        if (!Auth::user()->temPermissao('movimentacao', 'criar')) {
+            return response()->json(['message' => 'Você não tem permissão para criar movimentações.'], 403);
+        }
+
+        $request->validate([
+            'valor' => 'required|numeric|min:0.01',
+            'juros' => 'nullable|numeric|min:0',
+            'desconto' => 'nullable|numeric|min:0',
+            'tipo_parcela' => 'required|in:dividir,multiplicar',
+            'repeticao' => 'required|in:quinzenal,mensal,trimestral,semestral,anual,intervalo',
+            'quantidade' => 'required|integer|min:1',
+            'data_primeira_parcela' => 'required|date',
+            'intervalo_dias' => 'nullable|integer|min:1|required_if:repeticao,intervalo',
+        ]);
+
+        try {
+            $valor = floatval($request->valor);
+            $juros = floatval($request->juros ?? 0);
+            $desconto = floatval($request->desconto ?? 0);
+            $valorTotal = $valor + $juros - $desconto;
+
+            // Calcular valor por parcela
+            $valorParcela = 0;
+            if ($request->tipo_parcela === 'dividir') {
+                $valorParcela = $valorTotal / $request->quantidade;
+            } else { // multiplicar
+                $valorParcela = $valorTotal * $request->quantidade;
+            }
+
+            // Calcular intervalo em dias baseado na repetição
+            $intervaloDias = 0;
+            switch ($request->repeticao) {
+                case 'quinzenal':
+                    $intervaloDias = 15;
+                    break;
+                case 'mensal':
+                    $intervaloDias = 30;
+                    break;
+                case 'trimestral':
+                    $intervaloDias = 90;
+                    break;
+                case 'semestral':
+                    $intervaloDias = 180;
+                    break;
+                case 'anual':
+                    $intervaloDias = 365;
+                    break;
+                case 'intervalo':
+                    $intervaloDias = intval($request->intervalo_dias);
+                    break;
+            }
+
+            // Gerar parcelas
+            $parcelas = [];
+            $dataAtual = Carbon::parse($request->data_primeira_parcela);
+            $totalDistribuido = 0; // Para controlar o total distribuído quando dividir
+
+            for ($i = 1; $i <= $request->quantidade; $i++) {
+                // Ajustar data baseado na repetição (usar Carbon para calcular corretamente meses)
+                if ($request->repeticao === 'mensal') {
+                    $dataParcela = $dataAtual->copy()->addMonths($i - 1);
+                } elseif ($request->repeticao === 'trimestral') {
+                    $dataParcela = $dataAtual->copy()->addMonths(($i - 1) * 3);
+                } elseif ($request->repeticao === 'semestral') {
+                    $dataParcela = $dataAtual->copy()->addMonths(($i - 1) * 6);
+                } elseif ($request->repeticao === 'anual') {
+                    $dataParcela = $dataAtual->copy()->addYears($i - 1);
+                } else {
+                    // quinzenal ou intervalo
+                    $dataParcela = $dataAtual->copy()->addDays(($i - 1) * $intervaloDias);
+                }
+
+                // Calcular valor da parcela
+                $valorParcelaCalculado = 0;
+                if ($request->tipo_parcela === 'dividir') {
+                    if ($i === $request->quantidade) {
+                        // Última parcela: recebe o que falta para completar o valor total
+                        $valorParcelaCalculado = round($valorTotal - $totalDistribuido, 2);
+                    } else {
+                        // Demais parcelas: valor arredondado
+                        $valorParcelaCalculado = round($valorParcela, 2);
+                        $totalDistribuido += $valorParcelaCalculado;
+                    }
+                } else {
+                    // Multiplicar: cada parcela tem o valor total
+                    $valorParcelaCalculado = round($valorParcela, 2);
+                }
+
+                $parcelas[] = [
+                    'data' => $dataParcela->format('Y-m-d'),
+                    'valor' => $valorParcelaCalculado,
+                    'forma_pagamento_id' => null,
+                    'pago' => false,
+                    'observacao' => ''
+                ];
+            }
+
+            return response()->json([
+                'parcelas' => $parcelas
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao gerar parcelas: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -311,7 +523,12 @@ class MovimentacaoController extends Controller
         $centroCustos = CentroCusto::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
         $contasEmpresa = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
-        $entidades = Entidade::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+
+        // Buscar entidades separadas por tipo
+        $clientes = \App\Models\Cliente::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
 
         $titulo = 'Editar ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -320,9 +537,12 @@ class MovimentacaoController extends Controller
             'movimentacao',
             'planoContas',
             'centroCustos',
+            'clientes',
+            'fornecedores',
+            'funcionarios',
+            'transportadoras',
             'formasPagamento',
             'contasEmpresa',
-            'entidades',
             'titulo',
             'tipoCor',
             'tipo'
@@ -359,7 +579,8 @@ class MovimentacaoController extends Controller
             'centro_custo_id' => 'nullable|exists:centro_custo,id',
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
             'conta_empresa_id' => 'required|exists:conta_empresa,id',
-            'entidade_id' => 'nullable|exists:entidade,id',
+            'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+            'entidade_id' => 'nullable|string',
             'descricao' => 'required|string|max:255',
             'vencimento' => 'required|date',
             'observacao' => 'nullable|string',
@@ -367,7 +588,9 @@ class MovimentacaoController extends Controller
             'valor' => 'required|numeric|min:0.01',
             'juros' => 'nullable|numeric|min:0',
             'desconto' => 'nullable|numeric|min:0',
-            'situacao' => 'required|integer',
+            'situacao' => 'required|integer|in:1,2,3,4',
+            'data_compensacao' => 'nullable|date',
+            'pagamento_quitado' => 'nullable|integer|in:0,1',
         ]);
 
         try {
@@ -384,21 +607,31 @@ class MovimentacaoController extends Controller
                 $valorTotal -= $request->desconto;
             }
 
+            // Determinar situação baseado no pagamento quitado ou do campo situacao
+            // Se pagamento_quitado for enviado, usar ele; senão usar o campo situacao
+            if ($request->has('pagamento_quitado')) {
+                $situacao = ($request->pagamento_quitado == 1) ? MovimentacaoSituacaoEnum::PAGA : MovimentacaoSituacaoEnum::PENDENTE;
+            } else {
+                $situacao = MovimentacaoSituacaoEnum::from($request->situacao);
+            }
+
             $movimentacao->update([
                 'plano_conta_id' => $request->plano_conta_id,
                 'centro_custo_id' => $request->centro_custo_id,
                 'forma_pagamento_id' => $request->forma_pagamento_id,
                 'conta_empresa_id' => $request->conta_empresa_id,
-                'situacao' => MovimentacaoSituacaoEnum::from($request->situacao),
+                'situacao' => $situacao,
+                'entidade_tipo' => $request->entidade_tipo,
                 'entidade_id' => $request->entidade_id,
                 'descricao' => $request->descricao,
                 'vencimento' => $request->vencimento,
                 'observacao' => $request->observacao,
                 'informacao_complementar' => $request->informacao_complementar,
                 'valor' => $request->valor,
-                'juros' => $request->juros,
-                'desconto' => $request->desconto,
+                'juros' => $request->juros ?? 0,
+                'desconto' => $request->desconto ?? 0,
                 'valor_total' => $valorTotal,
+                'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
                 'atualizado_em' => now(),
             ]);
 
