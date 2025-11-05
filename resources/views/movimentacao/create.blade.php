@@ -65,7 +65,7 @@
                                             <input type="date"
                                                    name="vencimento"
                                                    id="vencimento"
-                                                   value="{{ old('vencimento') }}"
+                                                   value="{{ old('vencimento', \Carbon\Carbon::now()->format('Y-m-d')) }}"
                                                    required
                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('vencimento') border-red-500 @enderror">
                                             @error('vencimento')
@@ -687,25 +687,66 @@ $(document).ready(function() {
     }
 
     // Toggle Parcelamento/Recorrência - Controlar visibilidade dos modos
-    const $togglesParcelamento = $('.toggle-parcelamento');
     const $modoNormal = $('#modo-normal');
     const $modoParcelamento = $('#modo-parcelamento');
 
-    // Pegar o primeiro toggle (modo normal) e o segundo (modo parcelamento) para referência
-    const $toggleParcelamento = $togglesParcelamento.eq(0);
-    const $toggleParcelamentoParcelamento = $togglesParcelamento.eq(1);
+    // Pegar os toggles - buscar novamente quando necessário
+    function getToggleParcelamento() {
+        return $('.toggle-parcelamento').eq(0);
+    }
+
+    function getToggleParcelamentoParcelamento() {
+        return $('.toggle-parcelamento').eq(1);
+    }
 
     // Flag para evitar loop de eventos
     let sincronizandoToggle = false;
 
+    // Calcular Total automaticamente (modo normal) - Declarar variáveis ANTES das funções que as usam
+    const $valorInput = $('#valor');
+    const $jurosInput = $('#juros');
+    const $descontoInput = $('#desconto');
+    const $totalInput = $('#valor_total');
+    const $totalHiddenInput = $('#valor_total_hidden');
+
+    function formatarMoeda(valor) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(valor);
+    }
+
+    function calcularTotal() {
+        const valor = parseFloat($valorInput.val()) || 0;
+        const juros = parseFloat($jurosInput.val()) || 0;
+        const desconto = parseFloat($descontoInput.val()) || 0;
+
+        const total = valor + juros - desconto;
+
+        $totalInput.val(formatarMoeda(total));
+        $totalHiddenInput.val(total.toFixed(2));
+    }
+
+    // Configurar event listeners para calcular total
+    if ($valorInput.length && $jurosInput.length && $descontoInput.length) {
+        $valorInput.on('input', calcularTotal);
+        $jurosInput.on('input', calcularTotal);
+        $descontoInput.on('input', calcularTotal);
+        calcularTotal();
+    }
+
     function alternarModo(isAtivo) {
         if (isAtivo) {
+            // Sincronizar valores dos campos ANTES de desabilitar os campos do modo normal
+            // Isso garante que os valores sejam copiados corretamente
+            sincronizarCamposParaParcelamento();
+
             $modoNormal.addClass('hidden');
             $modoParcelamento.removeClass('hidden');
 
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
-            $togglesParcelamento.prop('checked', true);
+            $('.toggle-parcelamento').prop('checked', true);
             sincronizandoToggle = false;
 
             // Remover atributo name dos campos do modo normal para não serem enviados
@@ -719,8 +760,10 @@ $(document).ready(function() {
                 const $campo = $('#' + campoId);
                 if ($campo.length) {
                     $campo.data('originalName', $campo.attr('name'));
+                    $campo.data('originalRequired', $campo.prop('required'));
                     $campo.removeAttr('name');
                     $campo.prop('disabled', true);
+                    $campo.prop('required', false); // Remover required no modo parcelamento
                 }
             });
 
@@ -735,20 +778,34 @@ $(document).ready(function() {
                 }
             });
 
-            // Sincronizar valores dos campos
-            sincronizarCamposParaParcelamento();
+            // Garantir que os campos do modo parcelamento estejam habilitados
+            const camposModoParcelamentoParaHabilitar = [
+                'descricao_parcelamento', 'plano_conta_id_parcelamento',
+                'centro_custo_id_parcelamento', 'conta_empresa_id_parcelamento'
+            ];
+
+            camposModoParcelamentoParaHabilitar.forEach(campoId => {
+                const $campo = $('#' + campoId);
+                if ($campo.length) {
+                    $campo.prop('disabled', false);
+                }
+            });
 
             // Anotar listener do botão gerar parcelas quando o modo parcelamento for ativado
             setTimeout(() => {
                 anexarListenerGerarParcelas();
             }, 100);
         } else {
+            // Sincronizar valores dos campos ANTES de desabilitar os campos do modo parcelamento
+            // Isso garante que os valores sejam copiados corretamente
+            sincronizarCamposParaNormal();
+
             $modoNormal.removeClass('hidden');
             $modoParcelamento.addClass('hidden');
 
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
-            $togglesParcelamento.prop('checked', false);
+            $('.toggle-parcelamento').prop('checked', false);
             sincronizandoToggle = false;
 
             // Restaurar atributo name dos campos do modo normal
@@ -766,8 +823,15 @@ $(document).ready(function() {
                         $campo.removeData('originalName');
                     }
                     // Restaurar required se necessário
-                    if (campoId === 'vencimento' || campoId === 'forma_pagamento_id' || campoId === 'conta_empresa_id') {
-                        $campo.prop('required', true);
+                    const originalRequired = $campo.data('originalRequired');
+                    if (originalRequired !== undefined) {
+                        $campo.prop('required', originalRequired);
+                        $campo.removeData('originalRequired');
+                    } else {
+                        // Fallback para campos que sempre devem ser required
+                        if (campoId === 'vencimento' || campoId === 'forma_pagamento_id' || campoId === 'conta_empresa_id') {
+                            $campo.prop('required', true);
+                        }
                     }
                     $campo.prop('disabled', false);
                 }
@@ -817,9 +881,6 @@ $(document).ready(function() {
 
             $parcelasTbody.html('');
             $tabelaParcelasContainer.addClass('hidden');
-
-            // Sincronizar valores dos campos de volta
-            sincronizarCamposParaNormal();
         }
     }
 
@@ -860,77 +921,35 @@ $(document).ready(function() {
         calcularTotal();
     }
 
-    // Event listener para o toggle principal (modo normal)
-    console.log('toggleParcelamentoParcelamento length', $toggleParcelamentoParcelamento.length);
+    // Usar event delegation para garantir que os eventos funcionem mesmo quando os elementos estão ocultos
+    $(document).on('change', '.toggle-parcelamento', function() {
+        // Ignorar se estiver sincronizando
+        if (sincronizandoToggle) {
+            return;
+        }
+
+        const $toggle = $(this);
+        const isChecked = $toggle.prop('checked');
+        const toggleIndex = $('.toggle-parcelamento').index($toggle);
+
+        console.log('Toggle changed:', toggleIndex, 'isChecked:', isChecked);
+
+        // Sincronizar todos os toggles
+        sincronizandoToggle = true;
+        $('.toggle-parcelamento').prop('checked', isChecked);
+        sincronizandoToggle = false;
+
+        // Alternar o modo baseado no estado do toggle
+        alternarModo(isChecked);
+
+        // Não limpar campos automaticamente - a sincronização já foi feita em alternarModo()
+        // A função limparCamposParaEstadoInicial() pode ser chamada manualmente se necessário
+    });
+
+    // Verificar estado inicial
+    const $toggleParcelamento = getToggleParcelamento();
     if ($toggleParcelamento.length) {
-        $toggleParcelamento.on('change', function() {
-            console.log('toggleParcelamento changed');
-            // Ignorar se estiver sincronizando
-            if (sincronizandoToggle) {
-                return;
-            }
-
-            const isChecked = $(this).prop('checked');
-
-            // Sincronizar o toggle do modo parcelamento
-            sincronizandoToggle = true;
-            if ($toggleParcelamentoParcelamento.length) {
-                $toggleParcelamentoParcelamento.prop('checked', isChecked);
-            }
-            sincronizandoToggle = false;
-
-            // Alternar o modo baseado no estado do toggle PRIMEIRO
-            alternarModo(isChecked);
-
-            if (!isChecked) {
-                // Se desativar o toggle principal, limpar todos os campos e voltar ao estado inicial
-                limparCamposParaEstadoInicial();
-            }
-        });
-
-        // Verificar estado inicial
         alternarModo($toggleParcelamento.prop('checked'));
-    }
-
-    // Event listener para o toggle do modo parcelamento
-    console.log('toggleParcelamentoParcelamento length', $toggleParcelamentoParcelamento.length);
-    if ($toggleParcelamentoParcelamento.length) {
-        $toggleParcelamentoParcelamento.on('change', function(e) {
-            console.log('toggleParcelamentoParcelamento changed');
-            // Ignorar se estiver sincronizando
-            if (sincronizandoToggle) {
-                return;
-            }
-
-            // Obter o estado atual do toggle ANTES de qualquer mudança
-            const isChecked = $(this).prop('checked');
-
-            // Se estiver desativando, garantir que vai voltar ao modo normal
-            if (!isChecked) {
-                // Primeiro, sincronizar o toggle principal
-                sincronizandoToggle = true;
-                if ($toggleParcelamento.length) {
-                    $toggleParcelamento.prop('checked', false);
-                }
-                sincronizandoToggle = false;
-
-                // Alternar para modo normal
-                alternarModo(false);
-
-                // Limpar todos os campos e voltar ao estado inicial
-                limparCamposParaEstadoInicial();
-            } else {
-                // Se estiver ativando, sincronizar e alternar para modo parcelamento
-                sincronizandoToggle = true;
-                if ($toggleParcelamento.length) {
-                    $toggleParcelamento.prop('checked', true);
-                }
-                sincronizandoToggle = false;
-
-                // Alternar para modo parcelamento
-                alternarModo(true);
-            }
-        });
     }
 
     // Função para limpar campos e voltar ao estado inicial
@@ -1000,6 +1019,16 @@ $(document).ready(function() {
         calcularTotal();
     }
 
+    // Definir data padrão para "Vencimento" como hoje (usando timezone local do navegador)
+    const $vencimentoInput = $('#vencimento');
+    if ($vencimentoInput.length && !$vencimentoInput.val()) {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoje.getDate()).padStart(2, '0');
+        $vencimentoInput.val(`${ano}-${mes}-${dia}`);
+    }
+
     // Definir data padrão para "Data 1ª parcela" como hoje (usando timezone local do navegador)
     const $dataPrimeiraParcelaInput = $('#data_primeira_parcela');
     if ($dataPrimeiraParcelaInput.length) {
@@ -1025,37 +1054,6 @@ $(document).ready(function() {
         });
     }
 
-    // Calcular Total automaticamente (modo normal)
-    const $valorInput = $('#valor');
-    const $jurosInput = $('#juros');
-    const $descontoInput = $('#desconto');
-    const $totalInput = $('#valor_total');
-    const $totalHiddenInput = $('#valor_total_hidden');
-
-    function formatarMoeda(valor) {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(valor);
-    }
-
-    function calcularTotal() {
-        const valor = parseFloat($valorInput.val()) || 0;
-        const juros = parseFloat($jurosInput.val()) || 0;
-        const desconto = parseFloat($descontoInput.val()) || 0;
-
-        const total = valor + juros - desconto;
-
-        $totalInput.val(formatarMoeda(total));
-        $totalHiddenInput.val(total.toFixed(2));
-    }
-
-    if ($valorInput.length && $jurosInput.length && $descontoInput.length) {
-        $valorInput.on('input', calcularTotal);
-        $jurosInput.on('input', calcularTotal);
-        $descontoInput.on('input', calcularTotal);
-        calcularTotal();
-    }
 
     // Gerar Parcelas
     function renderizarParcelas(parcelas) {
@@ -1297,6 +1295,7 @@ $(document).ready(function() {
     $('#movimentacaoForm').on('submit', function(e) {
         // Buscar elementos diretamente quando o formulário for submetido
         const $parcelasTbody = $('#parcelas_tbody');
+        const $toggleParcelamento = getToggleParcelamento();
 
         // Se estiver no modo parcelamento e tiver parcelas geradas, garantir que os dados estão corretos
         if ($toggleParcelamento.length && $toggleParcelamento.prop('checked') && $parcelasTbody.length && $parcelasTbody.children().length > 0) {
