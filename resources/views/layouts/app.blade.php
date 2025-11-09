@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Jamees')</title>
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    @include('components.favicon')
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link href="{{ asset('css/menu.css') }}" rel="stylesheet">
@@ -104,6 +104,12 @@
                                 <a href="{{ route('lote-status.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('lote-status.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
                                     <i class="fas fa-tags mr-3 {{ request()->routeIs('lote-status.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
                                     Status
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('loteamentos.mapa.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('loteamentos.mapa.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-map-marked-alt mr-3 {{ request()->routeIs('loteamentos.mapa.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
+                                    Mapa
                                 </a>
                             </li>
                         </ul>

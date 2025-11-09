@@ -5,6 +5,8 @@ namespace App\Services\v1\Usuario;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Empresa;
 use App\Models\Grupo;
+use App\Models\Funcionario;
+use App\Helpers\PermissionHelper;
 
 class FormularioCriarUsuarioService
 {
@@ -51,9 +53,20 @@ class FormularioCriarUsuarioService
                 ->get();
         }
 
+        // Buscar funcionários disponíveis para vincular (sem usuário vinculado)
+        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $funcionarios = collect();
+        if ($empresaPrincipal) {
+            $funcionarios = Funcionario::daEmpresa($empresaPrincipal->id)
+                ->whereNull('usuario_id')
+                ->orderBy('nome')
+                ->get();
+        }
+
         return view('usuarios.create', [
             'empresas' => $empresas,
-            'grupos' => $grupos
+            'grupos' => $grupos,
+            'funcionarios' => $funcionarios
         ]);
     }
 }

@@ -6,6 +6,11 @@
     php_value max_input_time 300
 </IfModule>
 
+# Para PHP-FPM (FastCGI)
+<IfModule mod_fcgid.c>
+    FcgidMaxRequestLen 12582912
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

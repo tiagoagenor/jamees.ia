@@ -12,6 +12,8 @@ use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 use App\Services\AuditService;
+use App\Models\Funcionario;
+use App\Models\UsuarioHorarioAcesso;
 
 class CriarUsuarioService
 {
@@ -44,6 +46,15 @@ class CriarUsuarioService
             'complemento' => 'nullable|string|max:255',
             'bairro' => 'nullable|string|max:255',
             'uf' => 'nullable|string|max:2',
+            'funcionario_id' => 'nullable|exists:funcionario,id',
+            // Horários de acesso
+            'horario_acesso_ativo' => 'nullable|boolean',
+            'hora_entrada' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i',
+            'hora_almoco_inicio' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_entrada',
+            'hora_almoco_fim' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_almoco_inicio',
+            'hora_saida' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_almoco_fim',
+            'dias_permitidos' => 'nullable|required_with:horario_acesso_ativo|array|min:1',
+            'dias_permitidos.*' => 'nullable|in:domingo,segunda,terça,quarta,quinta,sexta,sabado',
         ]);
 
         try {
@@ -117,6 +128,33 @@ class CriarUsuarioService
                     'uf' => $request->uf,
                     'criado_em' => now(),
                     'atualizado_em' => now(),
+                ]);
+            }
+
+            // Vincular funcionário se fornecido
+            if ($request->filled('funcionario_id')) {
+                $funcionario = Funcionario::find($request->funcionario_id);
+                if ($funcionario && is_null($funcionario->usuario_id)) {
+                    // Verificar se não há outro usuário vinculado a este funcionário
+                    if (!$funcionario->usuario_id) {
+                        $funcionario->update(['usuario_id' => $usuario->id]);
+                    } else {
+                        throw new \Exception('Este funcionário já está vinculado a outro usuário.');
+                    }
+                }
+            }
+
+            // Criar horário de acesso se fornecido
+            if ($request->filled('horario_acesso_ativo') && $request->horario_acesso_ativo) {
+                UsuarioHorarioAcesso::create([
+                    'id' => Str::uuid()->toString(),
+                    'usuario_id' => $usuario->id,
+                    'ativo' => true,
+                    'hora_entrada' => $request->hora_entrada,
+                    'hora_almoco_inicio' => $request->hora_almoco_inicio,
+                    'hora_almoco_fim' => $request->hora_almoco_fim,
+                    'hora_saida' => $request->hora_saida,
+                    'dias_permitidos' => $request->dias_permitidos ?? [],
                 ]);
             }
 

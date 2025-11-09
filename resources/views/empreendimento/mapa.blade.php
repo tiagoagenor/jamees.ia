@@ -957,7 +957,7 @@
         <div id="mapContainer" class="map-container">
             <div id="mapWrapper" class="map-wrapper">
                 <img id="mapImage" class="map-image"
-                    src="{{ $empreendimento->imagem_mapa ? asset('storage/' . $empreendimento->imagem_mapa) : asset('map/mapa-dos-lotes-1637671897.webp') }}"
+                    src="{{ $empreendimento->imagem_mapa ? asset($empreendimento->imagem_mapa) : asset('map/mapa-dos-lotes-1637671897.webp') }}"
                     alt="Mapa do Loteamento"
                      draggable="false">
             </div>
@@ -1045,7 +1045,8 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-content">
+            <div class="modal-content" id="detailModalContent">
+                <!-- Conteúdo será preenchido via JavaScript -->
                 <div class="modal-grid">
                     <div class="modal-field">
                         <svg class="modal-field-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1485,7 +1486,7 @@
             e.stopPropagation();
             // Buscar o pino completo do array para garantir que tenha todos os dados
             const fullPin = pins.find(p => p.id === pin.id) || pin;
-            mostrarDetalhesLoteNaSidebar(fullPin);
+            mostrarDetalhesLoteNoModal(fullPin);
         });
 
         return pinElement;
@@ -2008,7 +2009,7 @@
         }
     }
 
-    function mostrarDetalhesLoteNaSidebar(pin) {
+    function mostrarDetalhesLoteNoModal(pin) {
         if (!pin) {
             console.error('Pino não encontrado');
             return;
@@ -2016,211 +2017,177 @@
 
         currentPinForModal = pin;
 
-        // Esconder outras seções
-        const addPinSection = document.getElementById('addPinSection');
-        const modalContentSidebar = document.getElementById('modalContentSidebar');
-        const controlsSection = document.getElementById('controlsSection');
-        const loteDetailSection = document.getElementById('loteDetailSection');
-        const sidebarTitle = document.querySelector('.sidebar-title');
-
-        if (addPinSection) addPinSection.style.display = 'none';
-        if (modalContentSidebar) modalContentSidebar.style.display = 'none';
-        if (controlsSection) controlsSection.style.display = 'none';
-        if (loteDetailSection) loteDetailSection.style.display = 'block';
-
-        // Atualizar título da sidebar
-        if (sidebarTitle) {
-            const pinData = pin.data || {};
-            let loteCompleto = null;
-            if (pin.lote_id) {
-                loteCompleto = lotesFromDatabase.find(l => l.id === pin.lote_id);
-            }
-            const nomeLote = loteCompleto ? loteCompleto.nome : (pinData.title || 'Detalhes do Lote');
-            sidebarTitle.innerHTML = `
-                <i class="fas fa-edit"></i>
-                Editar ${nomeLote}
-            `;
+        // Buscar lote completo do banco de dados
+        let loteCompleto = null;
+        if (pin.lote_id) {
+            loteCompleto = lotesFromDatabase.find(l => l.id === pin.lote_id);
         }
 
-        // Preencher informações do lote
-        const loteDetailContent = document.getElementById('loteDetailContent');
-        if (loteDetailContent) {
-            // Buscar lote completo do banco de dados
-            let loteCompleto = null;
-            if (pin.lote_id) {
-                loteCompleto = lotesFromDatabase.find(l => l.id === pin.lote_id);
+        const pinData = pin.data || {};
+        const statusColor = pin.type === 'available' ? '#10b981' : '#ef4444';
+        const nomeLote = loteCompleto ? loteCompleto.nome : (pinData.title || 'Detalhes do Lote');
+
+        // Atualizar título do modal
+        const detailTitle = document.getElementById('detailTitle');
+        if (detailTitle) {
+            detailTitle.textContent = nomeLote;
+        }
+
+        // Função auxiliar para formatar valores
+        const formatarValor = (valor) => {
+            if (!valor || valor === null || valor === undefined) return 'Não informado';
+            if (typeof valor === 'number') {
+                return 'R$ ' + parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
+            return valor;
+        };
 
+        const formatarArea = (valor) => {
+            if (!valor || valor === null || valor === undefined) return 'Não informado';
+            if (typeof valor === 'number') {
+                return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m²';
+            }
+            return valor;
+        };
+
+        const formatarMedida = (valor) => {
+            if (!valor || valor === null || valor === undefined) return '-';
+            return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m';
+        };
+
+        // Preencher informações do lote no modal
+        const detailModalContent = document.getElementById('detailModalContent');
+        if (detailModalContent) {
             const pinData = pin.data || {};
-            const statusColor = pin.type === 'available' ? '#10b981' : '#ef4444';
+            const statusAtual = loteCompleto && loteCompleto.status ? loteCompleto.status.nome : (pinData.status || 'Não definido');
+            const statusColor = loteCompleto && loteCompleto.status && loteCompleto.status.cor ? loteCompleto.status.cor : (pin.type === 'available' ? '#10b981' : '#ef4444');
 
-            // Função auxiliar para formatar valores
-            const formatarValor = (valor) => {
-                if (!valor || valor === null || valor === undefined) return 'Não informado';
-                if (typeof valor === 'number') {
-                    return 'R$ ' + parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                }
-                return valor;
-            };
-
-            const formatarArea = (valor) => {
-                if (!valor || valor === null || valor === undefined) return 'Não informado';
-                if (typeof valor === 'number') {
-                    return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m²';
-                }
-                return valor;
-            };
-
-            const formatarMedida = (valor) => {
-                if (!valor || valor === null || valor === undefined) return '-';
-                return parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' m';
-            };
-
-            loteDetailContent.innerHTML = `
-                ${loteCompleto && loteCompleto.nome ? `
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                            <i class="fas fa-tag mr-1"></i>
-                            Nome do Lote
-                        </label>
-                        <p style="font-size: 15px; color: #1e293b; font-weight: 600;">
-                            ${loteCompleto.nome}
-                        </p>
+            // Criar conteúdo completo do modal com todas as informações
+            let modalHTML = `
+                <div class="modal-grid">
+                    <div class="modal-field">
+                        <svg class="modal-field-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        <div class="modal-field-content">
+                            <p>Preço</p>
+                            <p>${loteCompleto && loteCompleto.valor ? formatarValor(loteCompleto.valor) : (pinData.price || 'Não informado')}</p>
+                        </div>
                     </div>
-                ` : ''}
 
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Status *
-                    </label>
-                    <select id="selectStatusLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer; border-left: 4px solid ${statusColor};" onchange="atualizarCorStatus(this)">
-                        ${statusLotes.map(status => {
-                            const isSelected = loteCompleto && loteCompleto.lote_status_id === status.id;
-                            return `<option value="${status.id}" data-cor="${status.cor || '#10b981'}" ${isSelected ? 'selected' : ''}>${status.nome}</option>`;
-                        }).join('')}
-                    </select>
+                    <div class="modal-field">
+                        <svg class="modal-field-icon" style="color: #3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <div class="modal-field-content">
+                            <p>Área</p>
+                            <p>${loteCompleto && loteCompleto.m2 ? formatarArea(loteCompleto.m2) : (pinData.area || 'Não informado')}</p>
+                        </div>
+                    </div>
                 </div>
 
                 ${loteCompleto && loteCompleto.quadra ? `
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                            <i class="fas fa-th mr-1"></i>
-                            Quadra
-                        </label>
-                        <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
-                            ${loteCompleto.quadra.nome || 'Não informado'}
-                        </p>
+                    <div class="modal-field" style="margin-bottom: 16px;">
+                        <svg class="modal-field-icon" style="color: #f59e0b;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                            <line x1="15" y1="3" x2="15" y2="21"></line>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="3" y1="15" x2="21" y2="15"></line>
+                        </svg>
+                        <div class="modal-field-content">
+                            <p>Quadra</p>
+                            <p>${loteCompleto.quadra.nome || 'Não informado'}</p>
+                        </div>
                     </div>
                 ` : ''}
 
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                        <i class="fas fa-dollar-sign mr-1"></i>
-                        Preço
-                    </label>
-                    <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
-                        ${loteCompleto && loteCompleto.valor ? formatarValor(loteCompleto.valor) : (pinData.price || 'Não informado')}
-                    </p>
-                </div>
-
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                        <i class="fas fa-ruler-combined mr-1"></i>
-                        Área (m²)
-                    </label>
-                    <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
-                        ${loteCompleto && loteCompleto.m2 ? formatarArea(loteCompleto.m2) : (pinData.area || 'Não informado')}
-                    </p>
+                <div class="modal-field" style="margin-bottom: 16px;">
+                    <svg class="modal-field-icon" style="color: ${statusColor};" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <div class="modal-field-content">
+                        <p>Status</p>
+                        <p style="color: ${statusColor}; font-weight: 600; margin-top: 4px;">${statusAtual}</p>
+                    </div>
                 </div>
 
                 ${loteCompleto && (loteCompleto.frente || loteCompleto.fundo || loteCompleto.lateral_direita || loteCompleto.lateral_esquerda) ? `
-                    <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 8px;">
-                            <i class="fas fa-expand-arrows-alt mr-1"></i>
-                            Dimensões
-                        </label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                            ${loteCompleto.frente ? `
-                                <div>
-                                    <span style="font-size: 11px; color: #94a3b8;">Frente</span>
-                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
-                                        ${formatarMedida(loteCompleto.frente)}
-                                    </p>
-                                </div>
-                            ` : ''}
-                            ${loteCompleto.fundo ? `
-                                <div>
-                                    <span style="font-size: 11px; color: #94a3b8;">Fundo</span>
-                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
-                                        ${formatarMedida(loteCompleto.fundo)}
-                                    </p>
-                                </div>
-                            ` : ''}
-                            ${loteCompleto.lateral_direita ? `
-                                <div>
-                                    <span style="font-size: 11px; color: #94a3b8;">Lateral Direita</span>
-                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
-                                        ${formatarMedida(loteCompleto.lateral_direita)}
-                                    </p>
-                                </div>
-                            ` : ''}
-                            ${loteCompleto.lateral_esquerda ? `
-                                <div>
-                                    <span style="font-size: 11px; color: #94a3b8;">Lateral Esquerda</span>
-                                    <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">
-                                        ${formatarMedida(loteCompleto.lateral_esquerda)}
-                                    </p>
-                                </div>
-                            ` : ''}
+                    <div class="modal-field" style="margin-bottom: 16px;">
+                        <svg class="modal-field-icon" style="color: #8b5cf6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                            <line x1="15" y1="3" x2="15" y2="21"></line>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="3" y1="15" x2="21" y2="15"></line>
+                        </svg>
+                        <div class="modal-field-content">
+                            <p>Dimensões</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                                ${loteCompleto.frente ? `
+                                    <div>
+                                        <span style="font-size: 11px; color: #94a3b8;">Frente</span>
+                                        <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">${formatarMedida(loteCompleto.frente)}</p>
+                                    </div>
+                                ` : ''}
+                                ${loteCompleto.fundo ? `
+                                    <div>
+                                        <span style="font-size: 11px; color: #94a3b8;">Fundo</span>
+                                        <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">${formatarMedida(loteCompleto.fundo)}</p>
+                                    </div>
+                                ` : ''}
+                                ${loteCompleto.lateral_direita ? `
+                                    <div>
+                                        <span style="font-size: 11px; color: #94a3b8;">Lateral Direita</span>
+                                        <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">${formatarMedida(loteCompleto.lateral_direita)}</p>
+                                    </div>
+                                ` : ''}
+                                ${loteCompleto.lateral_esquerda ? `
+                                    <div>
+                                        <span style="font-size: 11px; color: #94a3b8;">Lateral Esquerda</span>
+                                        <p style="font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 2px;">${formatarMedida(loteCompleto.lateral_esquerda)}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                 ` : ''}
 
                 ${loteCompleto && loteCompleto.valor_m2 ? `
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                            <i class="fas fa-tag mr-1"></i>
-                            Valor por m²
-                        </label>
-                        <p style="font-size: 14px; color: #1e293b; font-weight: 500;">
-                            ${formatarValor(loteCompleto.valor_m2)}
-                        </p>
+                    <div class="modal-field" style="margin-bottom: 16px;">
+                        <svg class="modal-field-icon" style="color: #10b981;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        <div class="modal-field-content">
+                            <p>Valor por m²</p>
+                            <p>${formatarValor(loteCompleto.valor_m2)}</p>
+                        </div>
                     </div>
                 ` : ''}
 
-                ${loteCompleto && loteCompleto.observacao ? `
-                    <div style="margin-bottom: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
-                        <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">
-                            <i class="fas fa-align-left mr-1"></i>
-                            Observação
-                        </label>
-                        <p style="font-size: 13px; color: #475569; line-height: 1.5;">
-                            ${loteCompleto.observacao}
-                        </p>
-                    </div>
-                ` : ''}
-
-                <div style="margin-top: 16px; display: flex; gap: 8px;">
-                    ${loteCompleto ? `
-                        <a href="/lotes/${loteCompleto.id}/edit" class="btn btn-primary" style="flex: 1; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-edit mr-2"></i>
-                            Editar
-                        </a>
-                    ` : ''}
-                    <button onclick="salvarStatusLote()" class="btn" style="flex: 1; background-color: #10b981; color: white; border: none;">
-                        <i class="fas fa-save mr-2"></i>
-                        Salvar Status
-                    </button>
+                <div class="description">
+                    <p>Observação</p>
+                    <p>${loteCompleto && loteCompleto.observacao ? loteCompleto.observacao : (pinData.description || 'Lote cadastrado no sistema.')}</p>
                 </div>
 
-                <div style="margin-top: 12px;">
-                    <button onclick="removerPinoAtual()" class="btn" style="width: 100%; background-color: #ef4444; color: white; border: none;">
+                <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="removeCurrentPin()" style="flex: 1;">
                         <i class="fas fa-trash mr-2"></i>
                         Remover Pino
                     </button>
                 </div>
             `;
+
+            detailModalContent.innerHTML = modalHTML;
+
+            // Mostrar o modal
+            detailModal.classList.add('show');
         }
     }
 
@@ -2248,84 +2215,9 @@
     function removerPinoAtual() {
         if (!currentPinForModal) return;
         removeCurrentPin();
-        fecharDetalhesLote();
+        closeDetailModal();
     }
 
-    function atualizarCorStatus(select) {
-        const selectedOption = select.options[select.selectedIndex];
-        const cor = selectedOption.getAttribute('data-cor') || '#10b981';
-        select.style.borderLeftColor = cor;
-    }
-
-    function salvarStatusLote() {
-        if (!currentPinForModal || !currentPinForModal.lote_id) {
-            alert('Erro: Lote não encontrado.');
-            return;
-        }
-
-        const selectStatus = document.getElementById('selectStatusLote');
-        if (!selectStatus) {
-            alert('Erro: Select de status não encontrado.');
-            return;
-        }
-
-        const novoStatusId = selectStatus.value;
-        if (!novoStatusId) {
-            alert('Por favor, selecione um status.');
-            return;
-        }
-
-        // Enviar requisição AJAX para atualizar o status
-        fetch(`/lotes/${currentPinForModal.lote_id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                lote_status_id: novoStatusId,
-                _method: 'PUT'
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || 'Erro ao atualizar status');
-                });
-            }
-            return response.json().catch(() => ({ success: true }));
-        })
-        .then(data => {
-            // Atualizar o lote no array local
-            const loteIndex = lotesFromDatabase.findIndex(l => l.id === currentPinForModal.lote_id);
-            if (loteIndex !== -1) {
-                lotesFromDatabase[loteIndex].lote_status_id = novoStatusId;
-                // Atualizar o status no objeto
-                const novoStatus = statusLotes.find(s => s.id === novoStatusId);
-                if (novoStatus) {
-                    lotesFromDatabase[loteIndex].status = novoStatus;
-                    // Atualizar o pino
-                    const pinIndex = pins.findIndex(p => p.lote_id === currentPinForModal.lote_id);
-                    if (pinIndex !== -1) {
-                        pins[pinIndex].type = novoStatus.tipo === 2 ? 'sold' : 'available';
-                        pins[pinIndex].data.status = novoStatus.nome;
-                        pins[pinIndex].statusCor = novoStatus.cor || '#10b981';
-                    }
-                    // Recriar o pino no mapa
-                    atualizarPinoNoMapa(currentPinForModal.lote_id);
-                }
-            }
-            // Atualizar a sidebar com os dados atualizados
-            const pinAtualizado = pins.find(p => p.lote_id === currentPinForModal.lote_id) || currentPinForModal;
-            mostrarDetalhesLoteNaSidebar(pinAtualizado);
-            alert('Status atualizado com sucesso!');
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao atualizar status: ' + error.message);
-        });
-    }
 
     function atualizarPinoNoMapa(loteId) {
         const pinIndex = pins.findIndex(p => p.lote_id === loteId);

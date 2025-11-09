@@ -164,6 +164,71 @@
                     </div>
                 </div>
 
+                <!-- Parcelas (se houver parcelamento) -->
+                @if($movimentacao->parcela_codigo && $parcelas->count() > 0)
+                    <div class="mt-6 bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">
+                            <i class="fas fa-list-ol mr-2"></i>
+                            Parcelas ({{ $movimentacao->numero_parcela ?? 1 }}/{{ $totalParcelas }})
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Parcela</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Descrição</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Data de Vencimento</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Valor</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Situação</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($parcelas as $parcela)
+                                        <tr class="hover:bg-gray-50 {{ $parcela->id === $movimentacao->id ? 'bg-blue-50 border-l-4 border-blue-500' : '' }}">
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                <span class="font-medium">{{ $parcela->numero_parcela ?? 1 }}</span>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-900">
+                                                {{ $parcela->descricao }}
+                                                @if($parcela->id === $movimentacao->id)
+                                                    <span class="ml-2 text-xs text-blue-600 font-medium">(Atual)</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                {{ $parcela->vencimento->format('d/m/Y') }}
+                                                @if($parcela->isVencidaPorData())
+                                                    <span class="ml-2 text-red-600 text-xs font-medium">VENCIDA</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                R$ {{ number_format($parcela->valor_total, 2, ',', '.') }}
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                    @if($parcela->situacao->value === 1) bg-yellow-100 text-yellow-800
+                                                    @elseif($parcela->situacao->value === 2) bg-green-100 text-green-800
+                                                    @elseif($parcela->situacao->value === 3) bg-red-100 text-red-800
+                                                    @else bg-gray-100 text-gray-800 @endif">
+                                                    <i class="{{ $parcela->getSituacaoIcon() }} mr-1"></i>
+                                                    {{ $parcela->getSituacaoLabel() }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                                <a href="{{ route($tipo == 1 ? 'contas-a-pagar.show' : 'contas-a-receber.show', $parcela) }}" 
+                                                   class="text-indigo-600 hover:text-indigo-900">
+                                                    <i class="fas fa-eye"></i>
+                                                    Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Observações -->
                 @if($movimentacao->observacao || $movimentacao->informacao_complementar)
                     <div class="mt-6 bg-gray-50 rounded-lg p-6">

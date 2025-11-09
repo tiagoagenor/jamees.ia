@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Usuario;
 use App\Models\Empresa;
 use App\Models\Grupo;
+use App\Models\Funcionario;
+use App\Helpers\PermissionHelper;
 
 class FormularioEditarUsuarioService
 {
     public function execute(Usuario $usuario)
     {
-        $usuario->load('empresas', 'geral', 'enderecos', 'telefones', 'grupos');
+        $usuario->load('empresas', 'geral', 'enderecos', 'telefones', 'grupos', 'horarioAcesso');
 
         $user = Auth::user();
 
@@ -54,10 +56,27 @@ class FormularioEditarUsuarioService
                 ->get();
         }
 
+        // Buscar funcionários disponíveis para vincular (sem usuário vinculado ou o próprio funcionário vinculado a este usuário)
+        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        $funcionarios = collect();
+        if ($empresaPrincipal) {
+            $funcionarioVinculado = $usuario->funcionario;
+            $funcionarios = Funcionario::daEmpresa($empresaPrincipal->id)
+                ->where(function($query) use ($funcionarioVinculado) {
+                    $query->whereNull('usuario_id');
+                    if ($funcionarioVinculado) {
+                        $query->orWhere('id', $funcionarioVinculado->id);
+                    }
+                })
+                ->orderBy('nome')
+                ->get();
+        }
+
         return view('usuarios.edit', [
             'usuario' => $usuario,
             'empresas' => $empresas,
-            'grupos' => $grupos
+            'grupos' => $grupos,
+            'funcionarios' => $funcionarios
         ]);
     }
 }

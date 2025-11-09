@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detalhes do ' . ucfirst(strtolower($entidade->tipo_relacionamento->name)))
+@section('title', 'Detalhes do ' . $entidade->getTipoRelacionamentoLabel())
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
@@ -9,14 +9,16 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center">
                 @php
-                    $tipoString = $entidade->tipo_relacionamento->name;
-                    $routeName = match($tipoString) {
-                        'CLIENTE' => 'clientes',
-                        'FORNECEDOR' => 'fornecedores',
-                        'FUNCIONARIO' => 'funcionarios',
-                        'TRANSPORTADORA' => 'transportadoras',
-                        default => strtolower($tipoString) . 's'
+                    // Determinar o tipo baseado na classe do modelo
+                    $modelClass = get_class($entidade);
+                    $routeName = match($modelClass) {
+                        'App\Models\Cliente' => 'clientes',
+                        'App\Models\Fornecedor' => 'fornecedores',
+                        'App\Models\Funcionario' => 'funcionarios',
+                        'App\Models\Transportadora' => 'transportadoras',
+                        default => 'clientes' // fallback
                     };
+                    $tipoString = strtoupper(class_basename($entidade));
                 @endphp
                 <a href="{{ route($routeName . '.index') }}"
                    class="text-blue-600 hover:text-blue-800 mr-4">
@@ -521,10 +523,16 @@ function confirmarToggleStatus(entidadeId, nomeEntidade, routeName, isAtivo) {
 
 // Funções para gerenciar modais de contatos
 function abrirModalContato() {
-    document.getElementById('modalContato').classList.remove('hidden');
-    document.getElementById('tituloModalContato').textContent = 'Adicionar Contato';
-    document.getElementById('formContato').action = '{{ route("entidades.contatos.store", $entidade) }}';
-    document.getElementById('formContato').reset();
+    Swal.fire({
+        title: 'Informação',
+        text: 'Para adicionar contatos, edite a entidade e adicione os contatos desejados.',
+        icon: 'info',
+        confirmButtonText: 'Ir para edição'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{{ route($routeName . ".edit", $entidade) }}';
+        }
+    });
 }
 
 function fecharModalContato() {
@@ -543,49 +551,28 @@ function editarContato(contatoId) {
 
 function excluirContato(contatoId, nomeContato) {
     Swal.fire({
-        title: 'Tem certeza?',
-        text: `Deseja realmente excluir o contato "${nomeContato}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sim, excluir!',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Criar formulário dinâmico para exclusão
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `{{ route("entidades.contatos.destroy", $entidade) }}/${contatoId}`;
-
-            // Adicionar token CSRF
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-
-            // Adicionar método DELETE
-            const methodField = document.createElement('input');
-            methodField.type = 'hidden';
-            methodField.name = '_method';
-            methodField.value = 'DELETE';
-            form.appendChild(methodField);
-
-            // Adicionar ao DOM e submeter
-            document.body.appendChild(form);
-            form.submit();
-        }
+        title: 'Informação',
+        text: 'Para excluir contatos, edite a entidade e remova o contato desejado.',
+        icon: 'info',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        // Redirecionar para a tela de edição
+        window.location.href = '{{ route($routeName . ".edit", $entidade) }}';
     });
 }
 
 // Funções para gerenciar modais de endereços
 function abrirModalEndereco() {
-    document.getElementById('modalEndereco').classList.remove('hidden');
-    document.getElementById('tituloModalEndereco').textContent = 'Adicionar Endereço';
-    document.getElementById('formEndereco').action = '{{ route("entidades.enderecos.store", $entidade) }}';
-    document.getElementById('formEndereco').reset();
+    Swal.fire({
+        title: 'Informação',
+        text: 'Para adicionar endereços, edite a entidade e adicione os endereços desejados.',
+        icon: 'info',
+        confirmButtonText: 'Ir para edição'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{{ route($routeName . ".edit", $entidade) }}';
+        }
+    });
 }
 
 function fecharModalEndereco() {
@@ -604,40 +591,13 @@ function editarEndereco(enderecoId) {
 
 function excluirEndereco(enderecoId) {
     Swal.fire({
-        title: 'Tem certeza?',
-        text: 'Deseja realmente excluir este endereço?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sim, excluir!',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Criar formulário dinâmico para exclusão
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `{{ route("entidades.enderecos.destroy", $entidade) }}/${enderecoId}`;
-
-            // Adicionar token CSRF
-            const csrfToken = document.createElement('input');
-            csrfToken.type = 'hidden';
-            csrfToken.name = '_token';
-            csrfToken.value = '{{ csrf_token() }}';
-            form.appendChild(csrfToken);
-
-            // Adicionar método DELETE
-            const methodField = document.createElement('input');
-            methodField.type = 'hidden';
-            methodField.name = '_method';
-            methodField.value = 'DELETE';
-            form.appendChild(methodField);
-
-            // Adicionar ao DOM e submeter
-            document.body.appendChild(form);
-            form.submit();
-        }
+        title: 'Informação',
+        text: 'Para excluir endereços, edite a entidade e remova o endereço desejado.',
+        icon: 'info',
+        confirmButtonText: 'OK'
+    }).then(() => {
+        // Redirecionar para a tela de edição
+        window.location.href = '{{ route($routeName . ".edit", $entidade) }}';
     });
 }
 

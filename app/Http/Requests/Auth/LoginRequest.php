@@ -42,9 +42,21 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         // Tentar autenticação personalizada
-        $user = \App\Models\Usuario::where('email', $this->input('email'))->first();
+        $user = \App\Models\Usuario::with('horarioAcesso')->where('email', $this->input('email'))->first();
 
         if ($user && \Hash::check($this->input('password'), $user->senha)) {
+            // Verificar horário de acesso antes de fazer login
+            $horarioAcessoService = new \App\Services\UsuarioHorarioAcessoService();
+
+            if (!$horarioAcessoService->validarAcesso($user)) {
+                // Usuário não pode fazer login no momento
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => $horarioAcessoService->obterMensagemErro($user),
+                ]);
+            }
+
             Auth::login($user, $this->boolean('remember'));
 
             // Debug: Verificar se o login funcionou
