@@ -7,11 +7,28 @@
             <div class="p-6 text-gray-900">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-900">{{ $titulo }}</h2>
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.create' : 'contas-a-receber.create') }}"
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                        <i class="fas fa-plus mr-2"></i>
-                        Nova {{ $titulo }}
-                    </a>
+                    @php
+                        // Verificar se há filtros aplicados (exceto o filtro do card que é padrão)
+                        $temFiltros = !empty($filtroDescricao) || 
+                                     $filtroSituacao !== 'todos' || 
+                                     !empty($filtroVencimentoInicio) || 
+                                     !empty($filtroVencimentoFim) || 
+                                     !empty($filtroParcelaCodigo) || 
+                                     !empty($filtroEntidadeTipo);
+                    @endphp
+                    @if($temFiltros)
+                        <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}"
+                           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-times mr-2"></i>
+                            Limpar Filtro
+                        </a>
+                    @else
+                        <a href="{{ route($tipo == 1 ? 'contas-a-pagar.create' : 'contas-a-receber.create') }}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-plus mr-2"></i>
+                            Nova {{ $titulo }}
+                        </a>
+                    @endif
                 </div>
 
                 <!-- Cards de Resumo Clicáveis -->
@@ -611,9 +628,14 @@ function confirmarExclusaoSweetAlert(id, nome) {
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
+            // Preservar query parameters da URL atual
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryString = urlParams.toString();
+            const actionUrl = `/{{ $tipo == 1 ? 'contas-a-pagar' : 'contas-a-receber' }}/${id}${queryString ? '?' + queryString : ''}`;
+
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/{{ $tipo == 1 ? 'contas-a-pagar' : 'contas-a-receber' }}/${id}`;
+            form.action = actionUrl;
 
             const csrfToken = document.createElement('input');
             csrfToken.type = 'hidden';

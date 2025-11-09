@@ -52,8 +52,8 @@ class Movimentacao extends Model
         'vencimento' => 'date',
         'data_compensacao' => 'date',
         'valor' => 'decimal:2',
-        'juros' => 'decimal:2',
-        'multa' => 'decimal:2',
+        'juros' => 'float', // Usar float para preservar exatamente o valor do banco sem zeros à direita
+        'multa' => 'float', // Usar float para preservar exatamente o valor do banco sem zeros à direita
         'desconto' => 'decimal:2',
         'valor_total' => 'decimal:2',
         'criado_em' => 'datetime',
@@ -125,6 +125,7 @@ class Movimentacao extends Model
             2 => Fornecedor::find($this->entidade_id),
             3 => Funcionario::find($this->entidade_id),
             4 => Transportadora::find($this->entidade_id),
+            5 => Entidade::find($this->entidade_id), // Loteamento
             default => null,
         };
     }

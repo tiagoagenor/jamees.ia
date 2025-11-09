@@ -236,7 +236,7 @@ class MovimentacaoController extends Controller
                 'plano_conta_id' => 'required|exists:plano_conta,id',
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'informacao_complementar' => 'nullable|string',
@@ -273,7 +273,7 @@ class MovimentacaoController extends Controller
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'vencimento' => 'required|date',
@@ -752,7 +752,7 @@ class MovimentacaoController extends Controller
             'centro_custo_id' => 'nullable|exists:centro_custo,id',
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
             'conta_empresa_id' => 'required|exists:conta_empresa,id',
-            'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+            'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
             'entidade_id' => 'nullable|string',
             'descricao' => 'required|string|max:255',
             'vencimento' => 'required|date',
@@ -760,6 +760,10 @@ class MovimentacaoController extends Controller
             'informacao_complementar' => 'nullable|string',
             'valor' => 'required|numeric|min:0.01',
             'juros' => 'nullable|numeric',
+            'juros_tipo' => 'nullable|string|in:fixo,por_dia',
+            'juros_forma' => 'nullable|string|in:valor,porcentagem',
+            'multa' => 'nullable|numeric',
+            'multa_forma' => 'nullable|string|in:valor,porcentagem',
             'desconto' => 'nullable|numeric|min:0',
             'situacao' => 'required|integer|in:1,2,3,4',
             'data_compensacao' => 'nullable|date',
@@ -774,23 +778,49 @@ class MovimentacaoController extends Controller
 
             $valorTotal = $request->valor;
 
-            // Aplicar juros apenas se:
-            // - Tipo for "fixo" (sempre aplica)
-            // - Tipo for "por_dia" E a movimentação estiver vencida
+            // Calcular juros baseado na forma
             $jurosTipo = $request->juros_tipo ?? 'fixo';
+            $jurosForma = $request->juros_forma ?? 'valor';
+            $multaForma = $request->multa_forma ?? 'valor';
             $vencimento = Carbon::parse($request->vencimento);
             $hoje = Carbon::now()->startOfDay();
             $estaVencida = $vencimento->lt($hoje);
 
-            if ($request->juros) {
+            // Calcular juros baseado na forma (valor original do input)
+            $jurosValor = floatval($request->juros ?? 0);
+            $jurosCalculado = 0;
+
+            if ($jurosValor > 0) {
+                // Se for porcentagem, calcular o valor baseado no valor principal
+                if ($jurosForma === 'porcentagem') {
+                    $jurosCalculado = ($request->valor * $jurosValor) / 100;
+                } else {
+                    $jurosCalculado = $jurosValor;
+                }
+
+                // Aplicar juros apenas se:
+                // - Tipo for "fixo" (sempre aplica)
+                // - Tipo for "por_dia" E a movimentação estiver vencida
                 if ($jurosTipo === 'fixo' || ($jurosTipo === 'por_dia' && $estaVencida)) {
-                    $valorTotal += $request->juros;
+                    $valorTotal += $jurosCalculado;
                 }
             }
 
-            if ($request->multa) {
-                $valorTotal += $request->multa;
+            // Calcular multa baseado na forma (valor original do input)
+            $multaValor = floatval($request->multa ?? 0);
+            $multaCalculada = 0;
+
+            if ($multaValor > 0) {
+                // Se for porcentagem, calcular o valor baseado no valor principal
+                if ($multaForma === 'porcentagem') {
+                    $multaCalculada = ($request->valor * $multaValor) / 100;
+                } else {
+                    $multaCalculada = $multaValor;
+                }
+
+                $valorTotal += $multaCalculada;
             }
+
             if ($request->desconto) {
                 $valorTotal -= $request->desconto;
             }
@@ -816,9 +846,11 @@ class MovimentacaoController extends Controller
                 'observacao' => $request->observacao,
                 'informacao_complementar' => $request->informacao_complementar,
                 'valor' => $request->valor,
-                'juros' => $request->juros ?? 0,
+                'juros' => $jurosValor, // Salvar o valor original do input, não o calculado
                 'juros_tipo' => $request->juros_tipo ?? null,
-                'multa' => $request->multa ?? 0,
+                'juros_forma' => $jurosForma,
+                'multa' => $multaValor, // Salvar o valor original do input, não o calculado
+                'multa_forma' => $multaForma,
                 'desconto' => $request->desconto ?? 0,
                 'valor_total' => $valorTotal,
                 'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
@@ -846,7 +878,7 @@ class MovimentacaoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Movimentacao $movimentacao, $tipo)
+    public function destroy(Request $request, Movimentacao $movimentacao, $tipo)
     {
         // Verificar permissão
         if (!Auth::user()->temPermissao('movimentacao', 'deletar')) {
@@ -870,13 +902,25 @@ class MovimentacaoController extends Controller
 
             $movimentacao->delete();
 
+            // Preservar filtros da URL anterior
+            $queryParams = $request->query();
+
+            // Remover parâmetros que não são filtros
+            unset($queryParams['_token']);
+            unset($queryParams['_method']);
+
             return redirect()
-                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
+                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $queryParams)
                 ->with('success', 'Movimentação excluída com sucesso!');
 
         } catch (\Exception $e) {
+            // Preservar filtros mesmo em caso de erro
+            $queryParams = $request->query();
+            unset($queryParams['_token']);
+            unset($queryParams['_method']);
+
             return redirect()
-                ->back()
+                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $queryParams)
                 ->with('error', 'Erro ao excluir movimentação: ' . $e->getMessage());
         }
     }
@@ -1257,3 +1301,4 @@ class MovimentacaoController extends Controller
         }
     }
 }
+

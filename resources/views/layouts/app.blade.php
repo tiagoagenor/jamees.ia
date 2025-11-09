@@ -112,6 +112,12 @@
                                     Mapa
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('loteamentos.vendas.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('loteamentos.vendas.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-shopping-cart mr-3 {{ request()->routeIs('loteamentos.vendas.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
+                                    Vendas
+                                </a>
+                            </li>
                         </ul>
                     </li>
 

@@ -16,7 +16,7 @@
             <p class="text-blue-800 font-semibold mb-2">
                 <strong>Informações do Lote:</strong>
             </p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-blue-700">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-blue-700">
                 @if($lote->valor)
                     <div>
                         <span class="text-sm">Valor:</span>
@@ -33,6 +33,12 @@
                     <div>
                         <span class="text-sm">Status:</span>
                         <strong class="block text-lg">{{ $lote->status->nome }}</strong>
+                    </div>
+                @endif
+                @if($empreendimento->juros_por_parcela)
+                    <div>
+                        <span class="text-sm">Juros por Parcela:</span>
+                        <strong class="block text-lg">{{ number_format($empreendimento->juros_por_parcela, 2, ',', '.') }}%</strong>
                     </div>
                 @endif
             </div>
@@ -73,6 +79,19 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Data da Primeira Parcela -->
+                <div>
+                    <label for="data_primeira_parcela" class="block text-sm font-medium text-gray-700 mb-2">
+                        Data da Primeira Parcela
+                    </label>
+                    <input type="date" 
+                           name="data_primeira_parcela" 
+                           id="data_primeira_parcela" 
+                           value="{{ date('Y-m-d', strtotime('+1 month')) }}"
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           required>
+                </div>
+
                 <!-- Valor de Entrada -->
                 <div>
                     <label for="valor_entrada" class="block text-sm font-medium text-gray-700 mb-2">
@@ -159,8 +178,17 @@
             <div class="bg-white border border-gray-200 rounded-lg p-6 mb-4">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
                     <h2 class="text-xl font-semibold text-gray-800">Parcelas Geradas</h2>
-                    <div id="resumoValores" class="flex flex-wrap items-center gap-4 text-sm">
-                        <!-- Valores serão inseridos aqui via JavaScript -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div id="resumoValores" class="flex flex-wrap items-center gap-4 text-sm">
+                            <!-- Valores serão inseridos aqui via JavaScript -->
+                        </div>
+                        <button id="salvarVendaBtn" 
+                                class="inline-flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Salvar Venda
+                        </button>
                     </div>
                 </div>
                 
@@ -519,10 +547,25 @@
             });
         }
         
+        // Obter data da primeira parcela
+        const dataPrimeiraParcela = document.getElementById('data_primeira_parcela').value;
+        
+        if (!dataPrimeiraParcela) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Por favor, selecione a data da primeira parcela.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
         // Preparar dados para enviar ao backend
         const dados = {
             cliente_id: clienteId,
             quantidade_parcelas: quantidade,
+            data_primeira_parcela: dataPrimeiraParcela,
             valor_entrada: valorEntrada,
             parcela_anual: temParcelaAnual,
             parcelas_anuais: parcelasAnuais
@@ -593,10 +636,27 @@
                tr.className = 'hover:bg-gray-50';
                
                // Contar total de parcelas do mesmo tipo para exibição
-               const totalMesmoTipo = todasParcelas.filter(p => p.tipo === parcela.tipo).length;
+               const parcelasMesmoTipo = todasParcelas.filter(p => p.tipo === parcela.tipo);
+               const totalMesmoTipo = parcelasMesmoTipo.length;
+               
+               // Encontrar a posição real da parcela dentro do mesmo tipo
+               // Ordenar por número para garantir ordem correta
+               const parcelasOrdenadas = parcelasMesmoTipo.sort((a, b) => {
+                   // Ordenar por data de vencimento para garantir ordem correta
+                   return new Date(a.vencimento) - new Date(b.vencimento);
+               });
+               
+               // Encontrar o índice da parcela atual na lista ordenada
+               const indiceParcela = parcelasOrdenadas.findIndex(p => 
+                   p.numero === parcela.numero && 
+                   p.vencimento === parcela.vencimento &&
+                   p.valor === parcela.valor
+               );
+               
+               // O número de exibição será o índice + 1 (começa em 1)
                const numeroExibicao = parcela.tipo === 'Mensal' 
-                   ? `${parcela.numero}/${totalMesmoTipo}` 
-                   : `Anual ${parcela.numero}/${totalMesmoTipo}`;
+                   ? `${indiceParcela + 1}/${totalMesmoTipo}` 
+                   : `Anual ${indiceParcela + 1}/${totalMesmoTipo}`;
                
                // Cor diferente para parcela anual
                const tipoClass = parcela.tipo === 'Anual' 
@@ -786,6 +846,106 @@
                 <span class="text-base font-semibold text-gray-800">R$ ${formatarMoeda(somaTotalParcelas)}</span>
             </div>
         `;
+    }
+
+    // Event listener para botão Salvar Venda
+    document.getElementById('salvarVendaBtn').addEventListener('click', function() {
+        const clienteId = document.getElementById('cliente_id').value;
+        
+        if (!clienteId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Por favor, selecione um cliente.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
+        if (!todasParcelas || todasParcelas.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Por favor, gere as parcelas antes de salvar.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirmar Venda',
+            text: 'Deseja realmente salvar esta venda? As parcelas serão criadas em contas-a-receber.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, salvar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                salvarVenda();
+            }
+        });
+    });
+
+    function salvarVenda() {
+        const btnSalvar = document.getElementById('salvarVendaBtn');
+        btnSalvar.disabled = true;
+        btnSalvar.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Salvando...';
+
+        const dados = {
+            cliente_id: document.getElementById('cliente_id').value,
+            parcelas: todasParcelas
+        };
+
+        fetch('{{ route("loteamentos.lote.salvar-venda", [$empreendimento->id, $lote->id]) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(dados)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: data.error,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444'
+                });
+                btnSalvar.disabled = false;
+                btnSalvar.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Salvar Venda';
+                return;
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: data.message || 'Venda salva com sucesso!',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#10b981'
+            }).then(() => {
+                // Redirecionar para a página de vendas ou mapa
+                window.location.href = '{{ route("loteamentos.mapa.view", $empreendimento->id) }}';
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao salvar venda:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Erro ao salvar venda. Por favor, tente novamente.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ef4444'
+            });
+            btnSalvar.disabled = false;
+            btnSalvar.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Salvar Venda';
+        });
     }
 </script>
 @endpush

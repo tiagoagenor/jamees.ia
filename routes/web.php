@@ -259,8 +259,10 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::post('/loteamentos/{empreendimento}/salvar-posicoes-pinos', [App\Http\Controllers\EmpreendimentoController::class, 'salvarPosicoesPinos'])->name('loteamentos.salvar-posicoes-pinos');
 
     // Loteamento - Vender e Reservar
+    Route::get('/loteamentos/vendas', [App\Http\Controllers\EmpreendimentoController::class, 'vendasIndex'])->name('loteamentos.vendas.index');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/vender', [App\Http\Controllers\EmpreendimentoController::class, 'venderLote'])->name('loteamentos.lote.vender');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/gerar-parcelas', [App\Http\Controllers\EmpreendimentoController::class, 'gerarParcelasVenda'])->name('loteamentos.lote.gerar-parcelas');
+    Route::post('/loteamentos/{empreendimento}/lote/{lote}/salvar-venda', [App\Http\Controllers\EmpreendimentoController::class, 'salvarVenda'])->name('loteamentos.lote.salvar-venda');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'reservarLote'])->name('loteamentos.lote.reservar');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'salvarReserva'])->name('loteamentos.lote.salvar-reserva');
     
