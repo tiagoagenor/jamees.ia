@@ -124,6 +124,11 @@ class EmpreendimentoController extends Controller
                 'sinal' => 'required|in:1,2',
                 'sinal_tipo' => 'nullable|in:1,2',
                 'sinal_valor' => 'nullable|numeric|min:0',
+                'juros_forma' => 'nullable|in:valor,porcentagem',
+                'juros' => 'nullable|numeric',
+                'multa_forma' => 'nullable|in:valor,porcentagem',
+                'multa' => 'nullable|numeric',
+                'juros_por_parcela' => 'nullable|numeric',
                 'status' => 'required|in:0,1',
                 'quadra_numeracao_tipo' => 'required|in:1,2',
             ]);
@@ -460,6 +465,11 @@ class EmpreendimentoController extends Controller
                 'sinal' => 'required|in:1,2',
                 'sinal_tipo' => 'nullable|in:1,2',
                 'sinal_valor' => 'nullable|numeric|min:0',
+                'juros_forma' => 'nullable|in:valor,porcentagem',
+                'juros' => 'nullable|numeric',
+                'multa_forma' => 'nullable|in:valor,porcentagem',
+                'multa' => 'nullable|numeric',
+                'juros_por_parcela' => 'nullable|numeric',
                 'status' => 'required|in:0,1',
                 'quadra_numeracao_tipo' => 'required|in:1,2',
             ]);
@@ -889,7 +899,7 @@ class EmpreendimentoController extends Controller
     /**
      * Exibir tela de vender lote
      */
-    public function venderLote(Empreendimento $empreendimento, Lote $lote)
+public function venderLote(Empreendimento $empreendimento, Lote $lote)
     {
         if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
             abort(403, 'Você não tem permissão para visualizar empreendimentos.');
@@ -905,7 +915,260 @@ class EmpreendimentoController extends Controller
             abort(404, 'Lote não encontrado neste empreendimento.');
         }
 
-        return view('loteamento.lote.vender', compact('empreendimento', 'lote'));
+        // Carregar relacionamentos do lote
+        $lote->load(['quadra', 'status', 'cliente']);
+
+        // Buscar clientes ativos da empresa
+        $clientes = \App\Models\Cliente::where('empresa_id', $empresaAtual->id)
+            ->where('status', true)
+            ->orderBy('nome')
+            ->get();
+
+        // Obter quantidade máxima de parcelas do empreendimento
+        $maxParcelas = $empreendimento->maximo_parcelas ?? 1;
+
+        return view('loteamento.lote.vender', compact('empreendimento', 'lote', 'clientes', 'maxParcelas'));
+    }
+
+    /**
+     * Gerar parcelas para venda de lote
+     */
+    public function gerarParcelasVenda(Request $request, Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            return response()->json(['error' => 'Você não tem permissão para visualizar empreendimentos.'], 403);
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            return response()->json(['error' => 'Empreendimento não encontrado.'], 403);
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            return response()->json(['error' => 'Lote não encontrado neste empreendimento.'], 404);
+        }
+
+        $validated = $request->validate([
+            'cliente_id' => 'required|exists:cliente,id',
+            'quantidade_parcelas' => 'required|integer|min:1',
+            'valor_entrada' => 'required|numeric|min:0',
+            'parcela_anual' => 'nullable|boolean',
+            'parcelas_anuais' => 'nullable|array',
+        ]);
+        
+        // Validar estrutura do array de parcelas anuais manualmente
+        if (isset($validated['parcelas_anuais']) && is_array($validated['parcelas_anuais'])) {
+            foreach ($validated['parcelas_anuais'] as $index => $parcela) {
+                if (!isset($parcela['ano']) || !is_numeric($parcela['ano'])) {
+                    unset($validated['parcelas_anuais'][$index]);
+                    continue;
+                }
+                if (!isset($parcela['valor']) || !is_numeric($parcela['valor'])) {
+                    $validated['parcelas_anuais'][$index]['valor'] = 0;
+                }
+                if (!isset($parcela['ativa'])) {
+                    $validated['parcelas_anuais'][$index]['ativa'] = false;
+                }
+            }
+            $validated['parcelas_anuais'] = array_values($validated['parcelas_anuais']);
+        }
+
+        $valorLote = $lote->valor ?? 0;
+        if ($valorLote <= 0) {
+            return response()->json(['error' => 'O lote não possui valor definido.'], 400);
+        }
+
+        $quantidade = $validated['quantidade_parcelas'];
+        $valorEntrada = floatval($validated['valor_entrada']);
+        $temParcelaAnual = $validated['parcela_anual'] ?? false;
+
+        // Calcular valor total das parcelas anuais (se houver)
+        $valorTotalParcelasAnuais = 0;
+        if ($temParcelaAnual && isset($validated['parcelas_anuais'])) {
+            foreach ($validated['parcelas_anuais'] as $parcelaAnual) {
+                if (isset($parcelaAnual['ativa']) && $parcelaAnual['ativa'] && 
+                    isset($parcelaAnual['valor']) && floatval($parcelaAnual['valor']) > 0) {
+                    $valorTotalParcelasAnuais += floatval($parcelaAnual['valor']);
+                }
+            }
+        }
+
+        // Verificar se entrada + parcelas anuais não ultrapassam o valor do lote
+        $valorTotalJaPago = $valorEntrada + $valorTotalParcelasAnuais;
+        if ($valorTotalJaPago > $valorLote) {
+            return response()->json([
+                'error' => 'A soma da entrada e das parcelas anuais (R$ ' . number_format($valorTotalJaPago, 2, ',', '.') . ') ultrapassa o valor do lote (R$ ' . number_format($valorLote, 2, ',', '.') . '). Por favor, ajuste os valores.'
+            ], 400);
+        }
+
+        // Calcular valor base para as parcelas (valor do lote - entrada - parcelas anuais)
+        $valorBase = $valorLote - $valorEntrada - $valorTotalParcelasAnuais;
+        
+        // Obter juros por parcela do empreendimento (em porcentagem)
+        $jurosPorParcela = floatval($empreendimento->juros_por_parcela ?? 0);
+        if ($jurosPorParcela < 0) {
+            $jurosPorParcela = 0;
+        }
+        
+        // Se o valor base for negativo ou zero, não há parcelas mensais
+        if ($valorBase <= 0) {
+            $valorParcela = 0;
+        } else {
+            // Calcular valor da parcela mensal
+            $valorParcela = $valorBase / $quantidade;
+        }
+
+        $parcelas = [];
+        $hoje = now();
+        
+        // Gerar parcelas mensais
+        for ($i = 1; $i <= $quantidade; $i++) {
+            $vencimento = $hoje->copy()->addMonths($i);
+            
+            // Calcular valor da parcela com juros (se houver)
+            // Juros por parcela é aplicado como porcentagem sobre o valor da parcela
+            $valorParcelaComJuros = $valorParcela;
+            $valorJuros = 0;
+            if ($jurosPorParcela > 0) {
+                $valorJuros = ($valorParcela * $jurosPorParcela) / 100;
+                $valorParcelaComJuros = $valorParcela + $valorJuros;
+            }
+            
+            $parcelas[] = [
+                'numero' => $i,
+                'tipo' => 'Mensal',
+                'valor' => round($valorParcelaComJuros, 2),
+                'valor_sem_juros' => round($valorParcela, 2),
+                'valor_juros' => round($valorJuros, 2),
+                'vencimento' => $vencimento->format('Y-m-d'),
+                'status' => 'Pendente'
+            ];
+        }
+
+        // Adicionar parcelas anuais se marcado
+        if ($temParcelaAnual && isset($validated['parcelas_anuais'])) {
+            $contadorAnual = 1;
+            
+            foreach ($validated['parcelas_anuais'] as $parcelaAnual) {
+                if (isset($parcelaAnual['ativa']) && $parcelaAnual['ativa'] && 
+                    isset($parcelaAnual['valor']) && floatval($parcelaAnual['valor']) > 0) {
+                    
+                    $anoParcela = intval($parcelaAnual['ano'] ?? ($hoje->year + $contadorAnual));
+                    $vencimentoAnual = $hoje->copy()->setDate($anoParcela, $hoje->month, $hoje->day);
+                    
+                    $valorAnual = round(floatval($parcelaAnual['valor']), 2);
+                    $parcelas[] = [
+                        'numero' => $contadorAnual++,
+                        'tipo' => 'Anual',
+                        'valor' => $valorAnual,
+                        'valor_sem_juros' => $valorAnual, // Parcelas anuais não têm juros por parcela
+                        'valor_juros' => 0,
+                        'vencimento' => $vencimentoAnual->format('Y-m-d'),
+                        'status' => 'Pendente'
+                    ];
+                }
+            }
+        }
+
+        // Ordenar parcelas por data de vencimento
+        usort($parcelas, function($a, $b) {
+            return strcmp($a['vencimento'], $b['vencimento']);
+        });
+
+        // Calcular o valor total que deve ser pago em parcelas (valor do lote - entrada)
+        $valorTotalPagar = $valorLote - $valorEntrada;
+        
+        // Calcular a soma atual de todas as parcelas
+        $somaAtualParcelas = 0;
+        foreach ($parcelas as $parcela) {
+            $somaAtualParcelas += $parcela['valor'];
+        }
+        
+        // Calcular a diferença (pode ser positiva ou negativa devido a arredondamentos)
+        $diferenca = $valorTotalPagar - $somaAtualParcelas;
+        
+        // Se houver diferença, ajustar na primeira parcela mensal
+        if (abs($diferenca) > 0.001) { // Tolerância de 0.001 para evitar problemas de ponto flutuante
+            // Encontrar a primeira parcela mensal (com data mais próxima)
+            $primeiraParcelaMensalIndex = null;
+            $primeiraDataMensal = null;
+            
+            foreach ($parcelas as $index => $parcela) {
+                if ($parcela['tipo'] === 'Mensal') {
+                    // Verificar se é a primeira parcela mensal (data mais próxima)
+                    if ($primeiraDataMensal === null || $parcela['vencimento'] < $primeiraDataMensal) {
+                        $primeiraDataMensal = $parcela['vencimento'];
+                        $primeiraParcelaMensalIndex = $index;
+                    }
+                }
+            }
+            
+            // Se encontrou a primeira parcela mensal, ajustar seu valor
+            if ($primeiraParcelaMensalIndex !== null) {
+                $valorAtualPrimeira = $parcelas[$primeiraParcelaMensalIndex]['valor'];
+                $valorNovoPrimeira = $valorAtualPrimeira + $diferenca;
+                
+                // Garantir que não seja negativa
+                if ($valorNovoPrimeira < 0) {
+                    $valorNovoPrimeira = 0;
+                }
+                
+                // Atualizar o valor da primeira parcela
+                $parcelas[$primeiraParcelaMensalIndex]['valor'] = round($valorNovoPrimeira, 2);
+                
+                // Recalcular valor_sem_juros e valor_juros da primeira parcela
+                if ($jurosPorParcela > 0) {
+                    // Reverter o cálculo para obter o valor base
+                    // valorComJuros = valorBase * (1 + jurosPorParcela / 100)
+                    // valorBase = valorComJuros / (1 + jurosPorParcela / 100)
+                    $valorBasePrimeira = $valorNovoPrimeira / (1 + ($jurosPorParcela / 100));
+                    $valorJurosPrimeira = $valorNovoPrimeira - $valorBasePrimeira;
+                    
+                    $parcelas[$primeiraParcelaMensalIndex]['valor_sem_juros'] = round($valorBasePrimeira, 2);
+                    $parcelas[$primeiraParcelaMensalIndex]['valor_juros'] = round($valorJurosPrimeira, 2);
+                } else {
+                    $parcelas[$primeiraParcelaMensalIndex]['valor_sem_juros'] = round($valorNovoPrimeira, 2);
+                    $parcelas[$primeiraParcelaMensalIndex]['valor_juros'] = 0;
+                }
+            }
+        }
+
+        // Renumerar parcelas mensais e anuais após ordenação
+        $contadorMensal = 1;
+        $contadorAnual = 1;
+        foreach ($parcelas as &$parcela) {
+            if ($parcela['tipo'] === 'Mensal') {
+                $parcela['numero'] = $contadorMensal++;
+            } else {
+                $parcela['numero'] = $contadorAnual++;
+            }
+        }
+
+        // Calcular soma total de todas as parcelas (com juros)
+        $somaTotalParcelas = 0;
+        foreach ($parcelas as $parcela) {
+            $somaTotalParcelas += $parcela['valor'];
+        }
+        
+        // Calcular valor total (entrada + soma de todas as parcelas)
+        $valorTotal = $valorEntrada + $somaTotalParcelas;
+        
+        return response()->json([
+            'parcelas' => $parcelas,
+            'resumo' => [
+                'valor_lote' => $valorLote,
+                'valor_entrada' => $valorEntrada,
+                'valor_parcelas_anuais' => $valorTotalParcelasAnuais,
+                'valor_base' => $valorBase,
+                'quantidade_parcelas' => $quantidade,
+                'valor_parcela' => round($valorParcela, 2),
+                'juros_por_parcela' => $jurosPorParcela,
+                'total_parcelas' => count($parcelas),
+                'soma_total_parcelas' => round($somaTotalParcelas, 2),
+                'valor_total' => round($valorTotal, 2)
+            ]
+        ]);
     }
 
     /**

@@ -260,6 +260,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
 
     // Loteamento - Vender e Reservar
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/vender', [App\Http\Controllers\EmpreendimentoController::class, 'venderLote'])->name('loteamentos.lote.vender');
+    Route::post('/loteamentos/{empreendimento}/lote/{lote}/gerar-parcelas', [App\Http\Controllers\EmpreendimentoController::class, 'gerarParcelasVenda'])->name('loteamentos.lote.gerar-parcelas');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'reservarLote'])->name('loteamentos.lote.reservar');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'salvarReserva'])->name('loteamentos.lote.salvar-reserva');
     

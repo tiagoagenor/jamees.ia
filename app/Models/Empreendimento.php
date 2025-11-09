@@ -26,6 +26,11 @@ class Empreendimento extends Model
         'sinal',
         'sinal_tipo',
         'sinal_valor',
+        'juros_forma',
+        'juros',
+        'multa_forma',
+        'multa',
+        'juros_por_parcela',
         'status',
         'quadra_numeracao_tipo',
     ];
@@ -37,6 +42,9 @@ class Empreendimento extends Model
         'atualizado_em' => 'datetime',
         'valor_m2' => 'float',
         'sinal_valor' => 'float',
+        'juros' => 'float',
+        'multa' => 'float',
+        'juros_por_parcela' => 'float',
     ];
 
     protected static function boot()

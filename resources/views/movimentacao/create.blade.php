@@ -214,8 +214,8 @@
                             @enderror
                         </div>
 
-                                            <!-- Linha 2: Tipo de Juros e Juros -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- Linha 2: Tipo de Juros, Forma de Juros e Juros -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label for="juros_tipo" class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="flex items-center">
@@ -243,6 +243,32 @@
                                 @enderror
                             </div>
                             <div>
+                                <label for="juros_forma" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="flex items-center">
+                                        Forma de Juros
+                                        <div class="relative group ml-2">
+                                            <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                <strong>Valor:</strong> Juros aplicado como valor fixo (ex: R$ 50,00).<br><br>
+                                                <strong>Porcentagem:</strong> Juros aplicado como percentual do valor principal (ex: 5% sobre R$ 1.000,00 = R$ 50,00).
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                    <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </span>
+                                </label>
+                                <select name="juros_forma"
+                                        id="juros_forma"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros_forma') border-red-500 @enderror">
+                                    <option value="valor" {{ old('juros_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                    <option value="porcentagem" {{ old('juros_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                                </select>
+                                @error('juros_forma')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
                                 <label for="juros" class="block text-sm font-medium text-gray-700 mb-2">
                                     Juros
                                 </label>
@@ -250,8 +276,7 @@
                                        name="juros"
                                        id="juros"
                                        value="{{ old('juros', 0) }}"
-                                       step="0.01"
-                                       min="0"
+                                       step="any"
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
                                        placeholder="0,00">
                                 @error('juros')
@@ -260,8 +285,34 @@
                             </div>
                         </div>
 
-                                            <!-- Linha 3: Multa por Atraso e Desconto -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- Linha 3: Forma de Multa, Multa por Atraso e Desconto -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="multa_forma" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="flex items-center">
+                                        Forma de Multa
+                                        <div class="relative group ml-2">
+                                            <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                <strong>Valor:</strong> Multa aplicada como valor fixo (ex: R$ 30,00).<br><br>
+                                                <strong>Porcentagem:</strong> Multa aplicada como percentual do valor principal (ex: 2% sobre R$ 1.000,00 = R$ 20,00).
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                    <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </span>
+                                </label>
+                                <select name="multa_forma"
+                                        id="multa_forma"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa_forma') border-red-500 @enderror">
+                                    <option value="valor" {{ old('multa_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                    <option value="porcentagem" {{ old('multa_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                                </select>
+                                @error('multa_forma')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                             <div>
                                 <label for="multa" class="block text-sm font-medium text-gray-700 mb-2">
                                     <span class="flex items-center">
@@ -281,8 +332,7 @@
                                        name="multa"
                                        id="multa"
                                        value="{{ old('multa', 0) }}"
-                                       step="0.01"
-                                       min="0"
+                                       step="any"
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa') border-red-500 @enderror"
                                        placeholder="0,00">
                                 @error('multa')
@@ -470,8 +520,8 @@
                             @enderror
                         </div>
                     </div>
-                                    <!-- Linha 3: Tipo de Juros, Juros e Multa por Atraso -->
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Linha 3: Tipo de Juros, Forma de Juros, Juros, Forma de Multa e Multa por Atraso -->
+                                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                         <div>
                                             <label for="juros_tipo_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                                 <span class="flex items-center">
@@ -499,6 +549,32 @@
                                             @enderror
                                         </div>
                                         <div>
+                                            <label for="juros_forma_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
+                                                <span class="flex items-center">
+                                                    Forma de Juros
+                                                    <div class="relative group ml-2">
+                                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                            <strong>Valor:</strong> Juros aplicado como valor fixo (ex: R$ 50,00).<br><br>
+                                                            <strong>Porcentagem:</strong> Juros aplicado como percentual do valor principal (ex: 5% sobre R$ 1.000,00 = R$ 50,00).
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </label>
+                                            <select name="juros_forma"
+                                                    id="juros_forma_parcelamento"
+                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros_forma') border-red-500 @enderror">
+                                                <option value="valor" {{ old('juros_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                                <option value="porcentagem" {{ old('juros_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                                            </select>
+                                            @error('juros_forma')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
                                             <label for="juros_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                                 Juros
                                             </label>
@@ -506,11 +582,36 @@
                                                    name="juros"
                                                    id="juros_parcelamento"
                                                    value="{{ old('juros', 0) }}"
-                                                   step="0.01"
-                                                   min="0"
+                                                   step="any"
                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
                                                    placeholder="0,00">
                                             @error('juros')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label for="multa_forma_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
+                                                <span class="flex items-center">
+                                                    Forma de Multa
+                                                    <div class="relative group ml-2">
+                                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                            <strong>Valor:</strong> Multa aplicada como valor fixo (ex: R$ 30,00).<br><br>
+                                                            <strong>Porcentagem:</strong> Multa aplicada como percentual do valor principal (ex: 2% sobre R$ 1.000,00 = R$ 20,00).
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </label>
+                                            <select name="multa_forma"
+                                                    id="multa_forma_parcelamento"
+                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa_forma') border-red-500 @enderror">
+                                                <option value="valor" {{ old('multa_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                                <option value="porcentagem" {{ old('multa_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                                            </select>
+                                            @error('multa_forma')
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
@@ -533,8 +634,7 @@
                                                    name="multa"
                                                    id="multa_parcelamento"
                                                    value="{{ old('multa', 0) }}"
-                                                   step="0.01"
-                                                   min="0"
+                                                   step="any"
                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa') border-red-500 @enderror"
                                                    placeholder="0,00">
                                             @error('multa')
@@ -826,15 +926,25 @@ $(document).ready(function() {
         const multa = parseFloat($multaInput.val()) || 0;
         const desconto = parseFloat($descontoInput.val()) || 0;
         const jurosTipo = $('#juros_tipo').val() || 'fixo';
+        const jurosForma = $('#juros_forma').val() || 'valor';
+        const multaForma = $('#multa_forma').val() || 'valor';
         const vencimento = $('#vencimento').val();
 
-        // Aplicar juros apenas se:
-        // - Tipo for "fixo" (sempre aplica)
-        // - Tipo for "por_dia" E a movimentação estiver vencida
+        // Calcular juros baseado na forma
         let jurosAplicar = 0;
         if (juros > 0) {
+            let valorJuros = juros;
+
+            // Se for porcentagem, calcular o valor baseado no valor principal
+            if (jurosForma === 'porcentagem') {
+                valorJuros = (valor * juros) / 100;
+            }
+
+            // Aplicar juros apenas se:
+            // - Tipo for "fixo" (sempre aplica)
+            // - Tipo for "por_dia" E a movimentação estiver vencida
             if (jurosTipo === 'fixo') {
-                jurosAplicar = juros;
+                jurosAplicar = valorJuros;
             } else if (jurosTipo === 'por_dia' && vencimento) {
                 // Verificar se está vencida
                 const dataVencimento = new Date(vencimento);
@@ -843,12 +953,22 @@ $(document).ready(function() {
                 dataVencimento.setHours(0, 0, 0, 0);
 
                 if (dataVencimento < hoje) {
-                    jurosAplicar = juros;
+                    jurosAplicar = valorJuros;
                 }
             }
         }
 
-        const total = valor + jurosAplicar + multa - desconto;
+        // Calcular multa baseado na forma
+        let multaAplicar = 0;
+        if (multa > 0) {
+            if (multaForma === 'porcentagem') {
+                multaAplicar = (valor * multa) / 100;
+            } else {
+                multaAplicar = multa;
+            }
+        }
+
+        const total = valor + jurosAplicar + multaAplicar - desconto;
 
         $totalInput.val(formatarMoeda(total));
         $totalHiddenInput.val(total.toFixed(2));
@@ -861,6 +981,8 @@ $(document).ready(function() {
         $multaInput.on('input', calcularTotal);
         $descontoInput.on('input', calcularTotal);
         $('#juros_tipo').on('change', calcularTotal);
+        $('#juros_forma').on('change', calcularTotal);
+        $('#multa_forma').on('change', calcularTotal);
         $('#vencimento').on('change', calcularTotal);
         calcularTotal();
     }
@@ -895,8 +1017,8 @@ $(document).ready(function() {
                 }
             });
 
-            // Remover atributo name dos campos valor, juros, multa, desconto, juros_tipo mas NÃO desabilitar
-            const camposValoresCompartilhados = ['valor', 'juros', 'multa', 'desconto', 'juros_tipo'];
+            // Remover atributo name dos campos valor, juros, multa, desconto, juros_tipo, juros_forma, multa_forma mas NÃO desabilitar
+            const camposValoresCompartilhados = ['valor', 'juros', 'multa', 'desconto', 'juros_tipo', 'juros_forma', 'multa_forma'];
             camposValoresCompartilhados.forEach(campoId => {
                 const $campo = $('#' + campoId);
                 if ($campo.length) {
@@ -1011,6 +1133,8 @@ $(document).ready(function() {
         const multa = $('#multa').val();
         const desconto = $('#desconto').val();
         const jurosTipo = $('#juros_tipo').val();
+        const jurosForma = $('#juros_forma').val();
+        const multaForma = $('#multa_forma').val();
 
         $('#descricao_parcelamento').val(descricao);
         $('#plano_conta_id_parcelamento').val(planoContaId);
@@ -1020,6 +1144,8 @@ $(document).ready(function() {
         $('#juros_parcelamento').val(juros);
         $('#multa_parcelamento').val(multa);
         $('#juros_tipo_parcelamento').val(jurosTipo);
+        $('#juros_forma_parcelamento').val(jurosForma);
+        $('#multa_forma_parcelamento').val(multaForma);
         $('#desconto_parcelamento').val(desconto);
     }
 
@@ -1033,6 +1159,8 @@ $(document).ready(function() {
         const multa = $('#multa_parcelamento').val();
         const desconto = $('#desconto_parcelamento').val();
         const jurosTipo = $('#juros_tipo_parcelamento').val();
+        const jurosForma = $('#juros_forma_parcelamento').val();
+        const multaForma = $('#multa_forma_parcelamento').val();
 
         $('#descricao').val(descricao);
         $('#plano_conta_id').val(planoContaId);
@@ -1042,6 +1170,8 @@ $(document).ready(function() {
         $('#juros').val(juros);
         $('#multa').val(multa);
         $('#juros_tipo').val(jurosTipo);
+        $('#juros_forma').val(jurosForma);
+        $('#multa_forma').val(multaForma);
         $('#desconto').val(desconto);
         calcularTotal();
     }
@@ -1305,7 +1435,9 @@ $(document).ready(function() {
                 const valor = parseFloat($('#valor_parcelamento').val()) || 0;
                 const juros = parseFloat($('#juros_parcelamento').val()) || 0;
                 const jurosTipo = $('#juros_tipo_parcelamento').val() || 'fixo';
+                const jurosForma = $('#juros_forma_parcelamento').val() || 'valor';
                 const multa = parseFloat($('#multa_parcelamento').val()) || 0;
+                const multaForma = $('#multa_forma_parcelamento').val() || 'valor';
                 const desconto = parseFloat($('#desconto_parcelamento').val()) || 0;
                 const tipoParcela = $('#tipo_parcela').val();
                 const repeticao = $('#repeticao').val();
@@ -1353,7 +1485,9 @@ $(document).ready(function() {
                         valor: valor,
                         juros: juros,
                         juros_tipo: jurosTipo,
+                        juros_forma: jurosForma,
                         multa: multa,
+                        multa_forma: multaForma,
                         desconto: desconto,
                         tipo_parcela: tipoParcela,
                         repeticao: repeticao,
@@ -1604,3 +1738,4 @@ $(document).ready(function() {
 });
 </script>
 @endsection
+

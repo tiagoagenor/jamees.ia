@@ -241,7 +241,7 @@ class MovimentacaoController extends Controller
                 'descricao' => 'required|string|max:255',
                 'informacao_complementar' => 'nullable|string',
                 'valor' => 'nullable|numeric|min:0', // No parcelamento, o valor pode vir do formulário mas não é obrigatório
-                'juros' => 'nullable|numeric|min:0',
+                'juros' => 'nullable|numeric',
                 'desconto' => 'nullable|numeric|min:0',
                 'parcelas' => 'required|array|min:1',
                 'parcelas.*.data' => 'required|date',
@@ -280,7 +280,7 @@ class MovimentacaoController extends Controller
                 'observacao' => 'nullable|string',
                 'informacao_complementar' => 'nullable|string',
                 'valor' => 'required|numeric|min:0.01',
-                'juros' => 'nullable|numeric|min:0',
+                'juros' => 'nullable|numeric',
                 'desconto' => 'nullable|numeric|min:0',
                 'data_compensacao' => 'nullable|date',
                 'pagamento_quitado' => 'nullable|integer|in:0,1',
@@ -315,9 +315,23 @@ class MovimentacaoController extends Controller
                         : MovimentacaoSituacaoEnum::PENDENTE;
 
                     $valorParcela = floatval($parcelaData['valor']);
-                    $jurosParcela = floatval($request->juros ?? 0);
-                    $multaParcela = floatval($request->multa ?? 0);
+                    $jurosValor = floatval($request->juros ?? 0);
+                    $multaValor = floatval($request->multa ?? 0);
                     $descontoParcela = floatval($request->desconto ?? 0);
+                    $jurosForma = $request->juros_forma ?? 'valor';
+                    $multaForma = $request->multa_forma ?? 'valor';
+
+                    // Calcular juros baseado na forma
+                    $jurosParcela = $jurosValor;
+                    if ($jurosForma === 'porcentagem' && $jurosValor > 0) {
+                        $jurosParcela = ($valorParcela * $jurosValor) / 100;
+                    }
+
+                    // Calcular multa baseado na forma
+                    $multaParcela = $multaValor;
+                    if ($multaForma === 'porcentagem' && $multaValor > 0) {
+                        $multaParcela = ($valorParcela * $multaValor) / 100;
+                    }
 
                     // Calcular valor total da parcela
                     $valorTotalParcela = $valorParcela;
@@ -364,7 +378,9 @@ class MovimentacaoController extends Controller
                         'valor' => $valorParcela,
                         'juros' => $jurosParcela,
                         'juros_tipo' => $request->juros_tipo ?? null,
+                        'juros_forma' => $jurosForma,
                         'multa' => $multaParcela,
+                        'multa_forma' => $multaForma,
                         'desconto' => $descontoParcela,
                         'valor_total' => $valorTotalParcela,
                         'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? now()->toDateString() : null,
@@ -378,6 +394,20 @@ class MovimentacaoController extends Controller
             } else {
                 // Lógica normal (não parcelado)
                 $valorTotal = $request->valor;
+                $jurosForma = $request->juros_forma ?? 'valor';
+                $multaForma = $request->multa_forma ?? 'valor';
+
+                // Calcular juros baseado na forma
+                $jurosCalculado = floatval($request->juros ?? 0);
+                if ($jurosForma === 'porcentagem' && $jurosCalculado > 0) {
+                    $jurosCalculado = ($valorTotal * $jurosCalculado) / 100;
+                }
+
+                // Calcular multa baseado na forma
+                $multaCalculado = floatval($request->multa ?? 0);
+                if ($multaForma === 'porcentagem' && $multaCalculado > 0) {
+                    $multaCalculado = ($valorTotal * $multaCalculado) / 100;
+                }
 
                 // Aplicar juros apenas se:
                 // - Tipo for "fixo" (sempre aplica)
@@ -387,14 +417,14 @@ class MovimentacaoController extends Controller
                 $hoje = Carbon::now()->startOfDay();
                 $estaVencida = $vencimento->lt($hoje);
 
-                if ($request->juros) {
+                if ($jurosCalculado > 0) {
                     if ($jurosTipo === 'fixo' || ($jurosTipo === 'por_dia' && $estaVencida)) {
-                        $valorTotal += $request->juros;
+                        $valorTotal += $jurosCalculado;
                     }
                 }
 
-                if ($request->multa) {
-                    $valorTotal += $request->multa;
+                if ($multaCalculado > 0) {
+                    $valorTotal += $multaCalculado;
                 }
                 if ($request->desconto) {
                     $valorTotal -= $request->desconto;
@@ -419,9 +449,11 @@ class MovimentacaoController extends Controller
                     'observacao' => $request->observacao,
                     'informacao_complementar' => $request->informacao_complementar,
                     'valor' => $request->valor,
-                    'juros' => $request->juros ?? 0,
+                    'juros' => $jurosCalculado ?? 0,
                     'juros_tipo' => $request->juros_tipo ?? null,
-                    'multa' => $request->multa ?? 0,
+                    'juros_forma' => $jurosForma,
+                    'multa' => $multaCalculado ?? 0,
+                    'multa_forma' => $multaForma,
                     'desconto' => $request->desconto ?? 0,
                     'valor_total' => $valorTotal,
                     'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
@@ -464,7 +496,7 @@ class MovimentacaoController extends Controller
 
         $request->validate([
             'valor' => 'required|numeric|min:0.01',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',
             'tipo_parcela' => 'required|in:dividir,multiplicar',
             'repeticao' => 'required|in:quinzenal,mensal,trimestral,semestral,anual,intervalo',
@@ -475,10 +507,24 @@ class MovimentacaoController extends Controller
 
         try {
             $valor = floatval($request->valor);
-            $juros = floatval($request->juros ?? 0);
-            $multa = floatval($request->multa ?? 0);
+            $jurosValor = floatval($request->juros ?? 0);
+            $multaValor = floatval($request->multa ?? 0);
             $desconto = floatval($request->desconto ?? 0);
             $jurosTipo = $request->juros_tipo ?? 'fixo';
+            $jurosForma = $request->juros_forma ?? 'valor';
+            $multaForma = $request->multa_forma ?? 'valor';
+
+            // Calcular juros baseado na forma
+            $juros = $jurosValor;
+            if ($jurosForma === 'porcentagem' && $jurosValor > 0) {
+                $juros = ($valor * $jurosValor) / 100;
+            }
+
+            // Calcular multa baseado na forma
+            $multa = $multaValor;
+            if ($multaForma === 'porcentagem' && $multaValor > 0) {
+                $multa = ($valor * $multaValor) / 100;
+            }
 
             // Calcular valor total:
             // - Se juros_tipo for "fixo": incluir juros no cálculo
@@ -713,7 +759,7 @@ class MovimentacaoController extends Controller
             'observacao' => 'nullable|string',
             'informacao_complementar' => 'nullable|string',
             'valor' => 'required|numeric|min:0.01',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',
             'situacao' => 'required|integer|in:1,2,3,4',
             'data_compensacao' => 'nullable|date',
@@ -1075,7 +1121,7 @@ class MovimentacaoController extends Controller
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
             'conta_empresa_id' => 'required|exists:conta_empresa,id',
             'valor_bruto' => 'required|numeric|min:0',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',
             'valor_total' => 'required|numeric|min:0',
             'observacoes' => 'nullable|string|max:1000'
