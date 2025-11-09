@@ -51,7 +51,6 @@
                                    name="descricao"
                                    id="descricao"
                                    value="{{ old('descricao') }}"
-                                   required
                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('descricao') border-red-500 @enderror"
                                                    placeholder="Digite a descrição">
                             @error('descricao')
@@ -66,7 +65,6 @@
                                                    name="vencimento"
                                                    id="vencimento"
                                                    value="{{ old('vencimento', \Carbon\Carbon::now()->format('Y-m-d')) }}"
-                                                   required
                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('vencimento') border-red-500 @enderror">
                                             @error('vencimento')
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -82,7 +80,6 @@
                             </label>
                             <select name="plano_conta_id"
                                     id="plano_conta_id"
-                                    required
                                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('plano_conta_id') border-red-500 @enderror">
                                 <option value="">Selecione o plano de conta</option>
                                 @foreach($planoContas as $planoConta)
@@ -123,7 +120,6 @@
                             </label>
                             <select name="forma_pagamento_id"
                                     id="forma_pagamento_id"
-                                    required
                                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('forma_pagamento_id') border-red-500 @enderror">
                                 <option value="">Selecione a forma de pagamento</option>
                                 @foreach($formasPagamento as $formaPagamento)
@@ -142,7 +138,6 @@
                             </label>
                             <select name="conta_empresa_id"
                                     id="conta_empresa_id"
-                                    required
                                     class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('conta_empresa_id') border-red-500 @enderror">
                                                 <option value="">Selecione a conta bancária</option>
                                 @foreach($contasEmpresa as $contaEmpresa)
@@ -212,7 +207,6 @@
                                    value="{{ old('valor') }}"
                                    step="0.01"
                                    min="0.01"
-                                   required
                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('valor') border-red-500 @enderror"
                                    placeholder="0,00">
                             @error('valor')
@@ -220,41 +214,98 @@
                             @enderror
                         </div>
 
-                                            <!-- Linha 2: Juros -->
-                        <div>
-                            <label for="juros" class="block text-sm font-medium text-gray-700 mb-2">
-                                Juros
-                            </label>
-                            <input type="number"
-                                   name="juros"
-                                   id="juros"
-                                                       value="{{ old('juros', 0) }}"
-                                   step="0.01"
-                                   min="0"
-                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
-                                   placeholder="0,00">
-                            @error('juros')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                                            <!-- Linha 2: Tipo de Juros e Juros -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="juros_tipo" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="flex items-center">
+                                        Tipo de Juros
+                                        <div class="relative group ml-2">
+                                            <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                <strong>Fixo:</strong> Juros aplicados sempre, independente da data de vencimento.<br><br>
+                                                <strong>Por Dia:</strong> Juros aplicados apenas quando a movimentação estiver vencida (após a data de vencimento).
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                    <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </span>
+                                </label>
+                                <select name="juros_tipo"
+                                        id="juros_tipo"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros_tipo') border-red-500 @enderror">
+                                    <option value="fixo" {{ old('juros_tipo', 'fixo') == 'fixo' ? 'selected' : '' }}>Fixo</option>
+                                    <option value="por_dia" {{ old('juros_tipo') == 'por_dia' ? 'selected' : '' }}>Por Dia</option>
+                                </select>
+                                @error('juros_tipo')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="juros" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Juros
+                                </label>
+                                <input type="number"
+                                       name="juros"
+                                       id="juros"
+                                       value="{{ old('juros', 0) }}"
+                                       step="0.01"
+                                       min="0"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
+                                       placeholder="0,00">
+                                @error('juros')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                                            <!-- Linha 3: Desconto -->
-                        <div>
-                            <label for="desconto" class="block text-sm font-medium text-gray-700 mb-2">
-                                Desconto
-                            </label>
-                            <input type="number"
-                                   name="desconto"
-                                   id="desconto"
-                                                       value="{{ old('desconto', 0) }}"
-                                                       step="0.01"
-                                                       min="0"
-                                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('desconto') border-red-500 @enderror"
-                                                       placeholder="0,00">
-                                                @error('desconto')
-                                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                                @enderror
+                                            <!-- Linha 3: Multa por Atraso e Desconto -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="multa" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <span class="flex items-center">
+                                        Multa por Atraso
+                                        <div class="relative group ml-2">
+                                            <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                Valor da multa aplicada quando o pagamento é realizado após a data de vencimento.
+                                                <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                    <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                </div>
                                             </div>
+                                        </div>
+                                    </span>
+                                </label>
+                                <input type="number"
+                                       name="multa"
+                                       id="multa"
+                                       value="{{ old('multa', 0) }}"
+                                       step="0.01"
+                                       min="0"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa') border-red-500 @enderror"
+                                       placeholder="0,00">
+                                @error('multa')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="desconto" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Desconto
+                                </label>
+                                <input type="number"
+                                       name="desconto"
+                                       id="desconto"
+                                       value="{{ old('desconto', 0) }}"
+                                       step="0.01"
+                                       min="0"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('desconto') border-red-500 @enderror"
+                                       placeholder="0,00">
+                                @error('desconto')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
 
                                             <!-- Linha 4: Ativar Parcelamento/Recorrência -->
                                             <div>
@@ -301,7 +352,6 @@
                                            name="descricao"
                                            id="descricao_parcelamento"
                                            value="{{ old('descricao') }}"
-                                           required
                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('descricao') border-red-500 @enderror"
                                            placeholder="Digite a descrição">
                                     @error('descricao')
@@ -314,7 +364,6 @@
                                     </label>
                                     <select name="plano_conta_id"
                                             id="plano_conta_id_parcelamento"
-                                            required
                                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('plano_conta_id') border-red-500 @enderror">
                                         <option value="">Selecione o plano de conta</option>
                                         @foreach($planoContas as $planoConta)
@@ -354,7 +403,6 @@
                                 </label>
                                 <select name="conta_empresa_id"
                                         id="conta_empresa_id_parcelamento"
-                                        required
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('conta_empresa_id') border-red-500 @enderror">
                                     <option value="">Selecione a conta bancária</option>
                                     @foreach($contasEmpresa as $contaEmpresa)
@@ -387,8 +435,8 @@
                                         </label>
                                     </div>
 
-                                    <!-- Linha 2: Valor Bruto, Juros, Desconto -->
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Linha 2: Valor Bruto, Juros, Tipo de Juros, Desconto -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label for="valor_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                                 Valor Bruto <span class="text-red-500">*</span>
@@ -399,26 +447,9 @@
                                                    value="{{ old('valor') }}"
                                                    step="0.01"
                                                    min="0.01"
-                                                   required
                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('valor') border-red-500 @enderror"
                                                    placeholder="0,00">
                                             @error('valor')
-                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-                                        <div>
-                                            <label for="juros_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
-                                                Juros
-                                            </label>
-                                            <input type="number"
-                                                   name="juros"
-                                                   id="juros_parcelamento"
-                                                   value="{{ old('juros', 0) }}"
-                                                   step="0.01"
-                                                   min="0"
-                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
-                                                   placeholder="0,00">
-                                            @error('juros')
                                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                             @enderror
                                         </div>
@@ -439,8 +470,80 @@
                             @enderror
                         </div>
                     </div>
+                                    <!-- Linha 3: Tipo de Juros, Juros e Multa por Atraso -->
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label for="juros_tipo_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
+                                                <span class="flex items-center">
+                                                    Tipo de Juros
+                                                    <div class="relative group ml-2">
+                                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                            <strong>Fixo:</strong> Juros aplicados sempre, independente da data de vencimento.<br><br>
+                                                            <strong>Por Dia:</strong> Juros aplicados apenas quando a parcela estiver vencida (após a data de vencimento).
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </label>
+                                            <select name="juros_tipo"
+                                                    id="juros_tipo_parcelamento"
+                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros_tipo') border-red-500 @enderror">
+                                                <option value="fixo" {{ old('juros_tipo', 'fixo') == 'fixo' ? 'selected' : '' }}>Fixo</option>
+                                                <option value="por_dia" {{ old('juros_tipo') == 'por_dia' ? 'selected' : '' }}>Por Dia</option>
+                                            </select>
+                                            @error('juros_tipo')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label for="juros_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
+                                                Juros
+                                            </label>
+                                            <input type="number"
+                                                   name="juros"
+                                                   id="juros_parcelamento"
+                                                   value="{{ old('juros', 0) }}"
+                                                   step="0.01"
+                                                   min="0"
+                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('juros') border-red-500 @enderror"
+                                                   placeholder="0,00">
+                                            @error('juros')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label for="multa_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
+                                                <span class="flex items-center">
+                                                    Multa por Atraso
+                                                    <div class="relative group ml-2">
+                                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                                            Valor da multa aplicada quando o pagamento é realizado após a data de vencimento.
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </span>
+                                            </label>
+                                            <input type="number"
+                                                   name="multa"
+                                                   id="multa_parcelamento"
+                                                   value="{{ old('multa', 0) }}"
+                                                   step="0.01"
+                                                   min="0"
+                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('multa') border-red-500 @enderror"
+                                                   placeholder="0,00">
+                                            @error('multa')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    </div>
 
-                                    <!-- Linha 3: Tabela de Configuração de Parcelas -->
+                                    <!-- Linha 5: Tabela de Configuração de Parcelas -->
                                     <div class="overflow-x-auto">
                                         <table class="min-w-full divide-y divide-gray-200">
                                             <thead class="bg-gray-50">
@@ -705,6 +808,7 @@ $(document).ready(function() {
     // Calcular Total automaticamente (modo normal) - Declarar variáveis ANTES das funções que as usam
     const $valorInput = $('#valor');
     const $jurosInput = $('#juros');
+    const $multaInput = $('#multa');
     const $descontoInput = $('#desconto');
     const $totalInput = $('#valor_total');
     const $totalHiddenInput = $('#valor_total_hidden');
@@ -719,19 +823,45 @@ $(document).ready(function() {
     function calcularTotal() {
         const valor = parseFloat($valorInput.val()) || 0;
         const juros = parseFloat($jurosInput.val()) || 0;
+        const multa = parseFloat($multaInput.val()) || 0;
         const desconto = parseFloat($descontoInput.val()) || 0;
+        const jurosTipo = $('#juros_tipo').val() || 'fixo';
+        const vencimento = $('#vencimento').val();
 
-        const total = valor + juros - desconto;
+        // Aplicar juros apenas se:
+        // - Tipo for "fixo" (sempre aplica)
+        // - Tipo for "por_dia" E a movimentação estiver vencida
+        let jurosAplicar = 0;
+        if (juros > 0) {
+            if (jurosTipo === 'fixo') {
+                jurosAplicar = juros;
+            } else if (jurosTipo === 'por_dia' && vencimento) {
+                // Verificar se está vencida
+                const dataVencimento = new Date(vencimento);
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                dataVencimento.setHours(0, 0, 0, 0);
+
+                if (dataVencimento < hoje) {
+                    jurosAplicar = juros;
+                }
+            }
+        }
+
+        const total = valor + jurosAplicar + multa - desconto;
 
         $totalInput.val(formatarMoeda(total));
         $totalHiddenInput.val(total.toFixed(2));
     }
 
     // Configurar event listeners para calcular total
-    if ($valorInput.length && $jurosInput.length && $descontoInput.length) {
+    if ($valorInput.length && $jurosInput.length && $multaInput.length && $descontoInput.length) {
         $valorInput.on('input', calcularTotal);
         $jurosInput.on('input', calcularTotal);
+        $multaInput.on('input', calcularTotal);
         $descontoInput.on('input', calcularTotal);
+        $('#juros_tipo').on('change', calcularTotal);
+        $('#vencimento').on('change', calcularTotal);
         calcularTotal();
     }
 
@@ -760,15 +890,13 @@ $(document).ready(function() {
                 const $campo = $('#' + campoId);
                 if ($campo.length) {
                     $campo.data('originalName', $campo.attr('name'));
-                    $campo.data('originalRequired', $campo.prop('required'));
                     $campo.removeAttr('name');
                     $campo.prop('disabled', true);
-                    $campo.prop('required', false); // Remover required no modo parcelamento
                 }
             });
 
-            // Remover atributo name dos campos valor, juros, desconto mas NÃO desabilitar
-            const camposValoresCompartilhados = ['valor', 'juros', 'desconto'];
+            // Remover atributo name dos campos valor, juros, multa, desconto, juros_tipo mas NÃO desabilitar
+            const camposValoresCompartilhados = ['valor', 'juros', 'multa', 'desconto', 'juros_tipo'];
             camposValoresCompartilhados.forEach(campoId => {
                 const $campo = $('#' + campoId);
                 if ($campo.length) {
@@ -822,23 +950,12 @@ $(document).ready(function() {
                         $campo.attr('name', originalName);
                         $campo.removeData('originalName');
                     }
-                    // Restaurar required se necessário
-                    const originalRequired = $campo.data('originalRequired');
-                    if (originalRequired !== undefined) {
-                        $campo.prop('required', originalRequired);
-                        $campo.removeData('originalRequired');
-                    } else {
-                        // Fallback para campos que sempre devem ser required
-                        if (campoId === 'vencimento' || campoId === 'forma_pagamento_id' || campoId === 'conta_empresa_id') {
-                            $campo.prop('required', true);
-                        }
-                    }
                     $campo.prop('disabled', false);
                 }
             });
 
-            // Restaurar atributo name dos campos valor, juros, desconto
-            const camposValoresCompartilhados = ['valor', 'juros', 'desconto'];
+            // Restaurar atributo name dos campos valor, juros, multa, desconto, juros_tipo
+            const camposValoresCompartilhados = ['valor', 'juros', 'multa', 'desconto', 'juros_tipo'];
             camposValoresCompartilhados.forEach(campoId => {
                 const $campo = $('#' + campoId);
                 if ($campo.length && $campo.data('originalName')) {
@@ -864,8 +981,8 @@ $(document).ready(function() {
                 }
             });
 
-            // Remover atributo name dos campos valor, juros, desconto do modo parcelamento mas NÃO desabilitar
-            const camposValoresParcelamento = ['valor_parcelamento', 'juros_parcelamento', 'desconto_parcelamento'];
+            // Remover atributo name dos campos valor, juros, multa, desconto, juros_tipo do modo parcelamento mas NÃO desabilitar
+            const camposValoresParcelamento = ['valor_parcelamento', 'juros_parcelamento', 'multa_parcelamento', 'desconto_parcelamento', 'juros_tipo_parcelamento'];
             camposValoresParcelamento.forEach(campoId => {
                 const $campo = $('#' + campoId);
                 if ($campo.length) {
@@ -891,7 +1008,9 @@ $(document).ready(function() {
         const contaEmpresaId = $('#conta_empresa_id').val();
         const valor = $('#valor').val();
         const juros = $('#juros').val();
+        const multa = $('#multa').val();
         const desconto = $('#desconto').val();
+        const jurosTipo = $('#juros_tipo').val();
 
         $('#descricao_parcelamento').val(descricao);
         $('#plano_conta_id_parcelamento').val(planoContaId);
@@ -899,6 +1018,8 @@ $(document).ready(function() {
         $('#conta_empresa_id_parcelamento').val(contaEmpresaId);
         $('#valor_parcelamento').val(valor);
         $('#juros_parcelamento').val(juros);
+        $('#multa_parcelamento').val(multa);
+        $('#juros_tipo_parcelamento').val(jurosTipo);
         $('#desconto_parcelamento').val(desconto);
     }
 
@@ -909,7 +1030,9 @@ $(document).ready(function() {
         const contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
         const valor = $('#valor_parcelamento').val();
         const juros = $('#juros_parcelamento').val();
+        const multa = $('#multa_parcelamento').val();
         const desconto = $('#desconto_parcelamento').val();
+        const jurosTipo = $('#juros_tipo_parcelamento').val();
 
         $('#descricao').val(descricao);
         $('#plano_conta_id').val(planoContaId);
@@ -917,6 +1040,8 @@ $(document).ready(function() {
         $('#conta_empresa_id').val(contaEmpresaId);
         $('#valor').val(valor);
         $('#juros').val(juros);
+        $('#multa').val(multa);
+        $('#juros_tipo').val(jurosTipo);
         $('#desconto').val(desconto);
         calcularTotal();
     }
@@ -973,8 +1098,8 @@ $(document).ready(function() {
             }
         });
 
-        // Limpar campos de valores (valor, juros, desconto)
-        const camposValores = ['valor', 'juros', 'desconto'];
+        // Limpar campos de valores (valor, juros, multa, desconto, juros_tipo)
+        const camposValores = ['valor', 'juros', 'multa', 'desconto', 'juros_tipo'];
         camposValores.forEach(campoId => {
             $('#' + campoId).val('');
         });
@@ -982,7 +1107,7 @@ $(document).ready(function() {
         // Limpar campos do modo parcelamento
         const camposModoParcelamento = [
             'descricao_parcelamento', 'plano_conta_id_parcelamento', 'centro_custo_id_parcelamento',
-            'conta_empresa_id_parcelamento', 'valor_parcelamento', 'juros_parcelamento', 'desconto_parcelamento',
+            'conta_empresa_id_parcelamento', 'valor_parcelamento', 'juros_parcelamento', 'multa_parcelamento', 'juros_tipo_parcelamento', 'desconto_parcelamento',
             'tipo_parcela', 'repeticao', 'quantidade_parcelas', 'data_primeira_parcela', 'intervalo_dias'
         ];
 
@@ -1055,6 +1180,9 @@ $(document).ready(function() {
     }
 
 
+    // Flag para controlar se já foi replicada a forma de pagamento (apenas primeira vez)
+    let formaPagamentoReplicada = false;
+
     // Gerar Parcelas
     function renderizarParcelas(parcelas) {
         // Buscar elementos diretamente quando a função for chamada
@@ -1073,6 +1201,9 @@ $(document).ready(function() {
         }
 
         $parcelasTbody.html('');
+
+        // Resetar flag quando gerar novas parcelas
+        formaPagamentoReplicada = false;
 
         parcelas.forEach((parcela, index) => {
             const $tr = $('<tr></tr>').addClass('hover:bg-gray-50');
@@ -1095,8 +1226,9 @@ $(document).ready(function() {
 
             const $formaPagamentoTd = $('<td></td>').addClass('px-4 py-3 whitespace-nowrap');
             const $formaPagamentoSelect = $('<select></select>').attr({
-                name: `parcelas[${index}][forma_pagamento_id]`
-            }).addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+                name: `parcelas[${index}][forma_pagamento_id]`,
+                'data-parcela-index': index
+            }).addClass('w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 forma-pagamento-parcela');
             $formaPagamentoSelect.html('<option value="">Selecione</option>');
             formasPagamento.forEach(forma => {
                 const $option = $('<option></option>').val(forma.id).text(forma.nome);
@@ -1128,6 +1260,38 @@ $(document).ready(function() {
         });
 
         $tabelaParcelasContainer.removeClass('hidden');
+
+        // Adicionar listener para replicar forma de pagamento (apenas primeira vez)
+        adicionarListenerReplicacaoFormaPagamento();
+    }
+
+    // Função para adicionar listener de replicação de forma de pagamento
+    function adicionarListenerReplicacaoFormaPagamento() {
+        // Remover listeners anteriores para evitar duplicação
+        $(document).off('change', '.forma-pagamento-parcela');
+
+        // Adicionar listener usando event delegation
+        $(document).on('change', '.forma-pagamento-parcela', function() {
+            // Apenas replicar se ainda não foi replicado (primeira vez)
+            if (!formaPagamentoReplicada) {
+                const $selectAtual = $(this);
+                const formaPagamentoId = $selectAtual.val();
+
+                // Se uma forma de pagamento foi selecionada (não vazia)
+                if (formaPagamentoId && formaPagamentoId !== '') {
+                    // Replicar para todos os outros selects de forma de pagamento
+                    $('.forma-pagamento-parcela').each(function() {
+                        // Não alterar o select que foi clicado
+                        if ($(this).attr('name') !== $selectAtual.attr('name')) {
+                            $(this).val(formaPagamentoId);
+                        }
+                    });
+
+                    // Marcar como replicado para não replicar novamente
+                    formaPagamentoReplicada = true;
+                }
+            }
+        });
     }
 
     function anexarListenerGerarParcelas() {
@@ -1140,6 +1304,8 @@ $(document).ready(function() {
 
                 const valor = parseFloat($('#valor_parcelamento').val()) || 0;
                 const juros = parseFloat($('#juros_parcelamento').val()) || 0;
+                const jurosTipo = $('#juros_tipo_parcelamento').val() || 'fixo';
+                const multa = parseFloat($('#multa_parcelamento').val()) || 0;
                 const desconto = parseFloat($('#desconto_parcelamento').val()) || 0;
                 const tipoParcela = $('#tipo_parcela').val();
                 const repeticao = $('#repeticao').val();
@@ -1186,6 +1352,8 @@ $(document).ready(function() {
                     data: JSON.stringify({
                         valor: valor,
                         juros: juros,
+                        juros_tipo: jurosTipo,
+                        multa: multa,
                         desconto: desconto,
                         tipo_parcela: tipoParcela,
                         repeticao: repeticao,
@@ -1220,6 +1388,7 @@ $(document).ready(function() {
         // Executar a função de gerar parcelas
         const valor = parseFloat($('#valor_parcelamento').val()) || 0;
         const juros = parseFloat($('#juros_parcelamento').val()) || 0;
+        const multa = parseFloat($('#multa_parcelamento').val()) || 0;
         const desconto = parseFloat($('#desconto_parcelamento').val()) || 0;
         const tipoParcela = $('#tipo_parcela').val();
         const repeticao = $('#repeticao').val();
@@ -1267,6 +1436,7 @@ $(document).ready(function() {
             data: JSON.stringify({
                 valor: valor,
                 juros: juros,
+                multa: multa,
                 desconto: desconto,
                 tipo_parcela: tipoParcela,
                 repeticao: repeticao,
@@ -1291,34 +1461,145 @@ $(document).ready(function() {
         });
     });
 
-    // Coletar dados das parcelas antes do submit
+    // Validação completa antes do submit
     $('#movimentacaoForm').on('submit', function(e) {
-        // Buscar elementos diretamente quando o formulário for submetido
-        const $parcelasTbody = $('#parcelas_tbody');
+        e.preventDefault();
+
         const $toggleParcelamento = getToggleParcelamento();
+        const isParcelamento = $toggleParcelamento.length && $toggleParcelamento.prop('checked');
+        let erros = [];
 
-        // Se estiver no modo parcelamento e tiver parcelas geradas, garantir que os dados estão corretos
-        if ($toggleParcelamento.length && $toggleParcelamento.prop('checked') && $parcelasTbody.length && $parcelasTbody.children().length > 0) {
-            // Validar se todas as parcelas têm forma de pagamento
-            let todasParcelasValidas = true;
-            $parcelasTbody.find('tr').each(function() {
-                const $formaPagamentoSelect = $(this).find('select[name^="parcelas"][name$="[forma_pagamento_id]"]');
-                if (!$formaPagamentoSelect.length || !$formaPagamentoSelect.val()) {
-                    todasParcelasValidas = false;
-                }
-            });
+        // Garantir que os campos corretos estejam habilitados e com name antes de validar
+        if (isParcelamento) {
+            // Garantir que os campos do modo parcelamento tenham name e estejam habilitados
+            $('#descricao_parcelamento').prop('disabled', false).attr('name', 'descricao');
+            $('#plano_conta_id_parcelamento').prop('disabled', false).attr('name', 'plano_conta_id');
+            $('#centro_custo_id_parcelamento').prop('disabled', false).attr('name', 'centro_custo_id');
+            $('#conta_empresa_id_parcelamento').prop('disabled', false).attr('name', 'conta_empresa_id');
 
-            if (!todasParcelasValidas) {
-                e.preventDefault();
-                alert('Por favor, selecione a forma de pagamento para todas as parcelas.');
-                return false;
+            // Garantir que os campos do modo normal NÃO tenham name
+            $('#descricao').removeAttr('name');
+            $('#plano_conta_id').removeAttr('name');
+            $('#centro_custo_id').removeAttr('name');
+            $('#conta_empresa_id').removeAttr('name');
+            $('#vencimento').removeAttr('name');
+            $('#forma_pagamento_id').removeAttr('name');
+
+            // Validação para modo parcelamento
+            const descricao = $('#descricao_parcelamento').val();
+            const planoContaId = $('#plano_conta_id_parcelamento').val();
+            const contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
+            const $parcelasTbody = $('#parcelas_tbody');
+
+            // Campos compartilhados obrigatórios (usados em todas as parcelas)
+            if (!descricao || descricao.trim() === '') {
+                erros.push('Descrição é obrigatória.');
             }
-        } else if ($toggleParcelamento.length && $toggleParcelamento.prop('checked')) {
-            // Se estiver no modo parcelamento mas não tiver parcelas geradas
-            e.preventDefault();
-            alert('Por favor, gere as parcelas antes de salvar.');
+
+            if (!planoContaId || planoContaId === '') {
+                erros.push('Plano de Contas é obrigatório.');
+            }
+
+            if (!contaEmpresaId || contaEmpresaId === '') {
+                erros.push('Conta Bancária é obrigatória.');
+            }
+
+            // Validar se há parcelas geradas
+            if (!$parcelasTbody.length || $parcelasTbody.children().length === 0) {
+                erros.push('Por favor, gere as parcelas antes de salvar.');
+            } else {
+                // Validar cada parcela individualmente
+                let parcelasComErro = [];
+
+                $parcelasTbody.find('tr').each(function(index) {
+                    const $linha = $(this);
+                    const $dataInput = $linha.find('input[name^="parcelas"][name$="[data]"]');
+                    const $valorInput = $linha.find('input[name^="parcelas"][name$="[valor]"]');
+                    const $formaPagamentoSelect = $linha.find('select[name^="parcelas"][name$="[forma_pagamento_id]"]');
+
+                    const numeroParcela = index + 1;
+                    let errosParcela = [];
+
+                    // Validar se os campos existem e têm valores
+                    if (!$dataInput.length || !$dataInput.val() || $dataInput.val().trim() === '') {
+                        errosParcela.push('Data');
+                    }
+
+                    const valorParcela = parseFloat($valorInput.val()) || 0;
+                    if (!$valorInput.length || isNaN(valorParcela) || valorParcela <= 0) {
+                        errosParcela.push('Valor');
+                    }
+
+                    if (!$formaPagamentoSelect.length || !$formaPagamentoSelect.val() || $formaPagamentoSelect.val() === '') {
+                        errosParcela.push('Forma de Pagamento');
+                    }
+
+                    if (errosParcela.length > 0) {
+                        parcelasComErro.push(`Parcela ${numeroParcela}: ${errosParcela.join(', ')} ${errosParcela.length === 1 ? 'é obrigatório' : 'são obrigatórios'}.`);
+                    }
+                });
+
+                if (parcelasComErro.length > 0) {
+                    erros = erros.concat(parcelasComErro);
+                }
+            }
+        } else {
+            // Garantir que os campos do modo normal tenham name e estejam habilitados
+            $('#descricao').prop('disabled', false).attr('name', 'descricao');
+            $('#plano_conta_id').prop('disabled', false).attr('name', 'plano_conta_id');
+            $('#centro_custo_id').prop('disabled', false).attr('name', 'centro_custo_id');
+            $('#conta_empresa_id').prop('disabled', false).attr('name', 'conta_empresa_id');
+            $('#vencimento').prop('disabled', false).attr('name', 'vencimento');
+            $('#forma_pagamento_id').prop('disabled', false).attr('name', 'forma_pagamento_id');
+
+            // Garantir que os campos do modo parcelamento NÃO tenham name
+            $('#descricao_parcelamento').removeAttr('name');
+            $('#plano_conta_id_parcelamento').removeAttr('name');
+            $('#centro_custo_id_parcelamento').removeAttr('name');
+            $('#conta_empresa_id_parcelamento').removeAttr('name');
+
+            // Validação para modo normal
+            const descricao = $('#descricao').val();
+            const vencimento = $('#vencimento').val();
+            const planoContaId = $('#plano_conta_id').val();
+            const formaPagamentoId = $('#forma_pagamento_id').val();
+            const contaEmpresaId = $('#conta_empresa_id').val();
+            const valor = parseFloat($('#valor').val()) || 0;
+
+            if (!descricao || descricao.trim() === '') {
+                erros.push('Descrição é obrigatória.');
+            }
+
+            if (!vencimento || vencimento === '') {
+                erros.push('Vencimento é obrigatório.');
+            }
+
+            if (!planoContaId || planoContaId === '') {
+                erros.push('Plano de Contas é obrigatório.');
+            }
+
+            if (!formaPagamentoId || formaPagamentoId === '') {
+                erros.push('Forma de Pagamento é obrigatória.');
+            }
+
+            if (!contaEmpresaId || contaEmpresaId === '') {
+                erros.push('Conta Bancária é obrigatória.');
+            }
+
+            if (!valor || valor <= 0) {
+                erros.push('Valor Bruto deve ser maior que zero.');
+            }
+        }
+
+        // Se houver erros, exibir e não submeter
+        if (erros.length > 0) {
+            const mensagemErro = 'Por favor, corrija os seguintes erros:\n\n' + erros.join('\n');
+            alert(mensagemErro);
             return false;
         }
+
+        // Se não houver erros, submeter o formulário
+        this.submit();
     });
 });
 </script>

@@ -106,6 +106,12 @@
                                     Status
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('loteamentos.mapa.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('loteamentos.mapa.*') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-map-marked-alt mr-3 {{ request()->routeIs('loteamentos.mapa.*') ? 'text-emerald-700' : 'text-slate-400' }}"></i>
+                                    Mapa
+                                </a>
+                            </li>
                         </ul>
                     </li>
 

@@ -818,4 +818,103 @@ class EmpreendimentoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Display a listing of empreendimentos for map view
+     */
+    public function mapaIndex()
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar mapas.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
+        }
+
+        $empreendimentos = Empreendimento::where('empresa_id', $empresaAtual->id)
+            ->with(['lotes.status']) // Eager loading para evitar N+1
+            ->orderBy('nome')
+            ->get();
+
+        return view('loteamento.mapa.index', compact('empreendimentos'));
+    }
+
+    /**
+     * Display the map view for an empreendimento (same as mapa method)
+     */
+    public function mapaView(Empreendimento $empreendimento)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se existe imagem do mapa
+        if (!$empreendimento->imagem_mapa || empty($empreendimento->imagem_mapa) || !file_exists(PublicPathHelper::path($empreendimento->imagem_mapa))) {
+            return view('loteamento.mapa.sem-imagem', compact('empreendimento'));
+        }
+
+        // Carregar lotes com suas posições de pinos
+        $lotes = $empreendimento->lotes()->with(['status', 'quadra'])->get();
+
+        // Buscar quadras do empreendimento
+        $quadras = $empreendimento->quadras()->orderBy('nome')->get();
+
+        // Buscar status de lotes disponíveis
+        $statusLotes = \App\Models\LoteStatus::where('empresa_id', $empresaAtual->id)
+            ->orderBy('nome')
+            ->get();
+
+        return view('loteamento.mapa.view', compact('empreendimento', 'lotes', 'statusLotes', 'quadras'));
+    }
+
+    /**
+     * Exibir tela de vender lote
+     */
+    public function venderLote(Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        return view('loteamento.lote.vender', compact('empreendimento', 'lote'));
+    }
+
+    /**
+     * Exibir tela de reservar lote
+     */
+    public function reservarLote(Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        return view('loteamento.lote.reservar', compact('empreendimento', 'lote'));
+    }
 }

@@ -33,7 +33,7 @@
     }
 
     .app-container {
-        display: flex;
+        display: block;
         width: 100%;
         height: 100%;
         max-height: 100%;
@@ -351,13 +351,105 @@
 
     /* ÁREA DA IMAGEM */
     .map-area {
-        flex: 1;
         background: #1a1a1a;
         position: relative;
         overflow: hidden;
         width: 100%;
         height: 100%;
         max-height: 100%;
+    }
+
+    /* Botões flutuantes */
+    .floating-btn {
+        position: absolute;
+        z-index: 1000;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .floating-btn:hover {
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-1px);
+    }
+
+    .floating-btn.back {
+        top: 20px;
+        left: 20px;
+        background-color: #6b7280;
+    }
+
+    .floating-btn.back:hover {
+        background-color: #4b5563;
+    }
+
+    .floating-btn.add-pin {
+        top: 20px;
+        left: 120px;
+        background-color: #10b981;
+    }
+
+    .floating-btn.add-pin:hover {
+        background-color: #059669;
+    }
+
+    .floating-btn.add-pin.active {
+        background-color: #ef4444;
+    }
+
+    .floating-btn.add-pin.active:hover {
+        background-color: #dc2626;
+    }
+
+    .floating-btn.save {
+        top: 20px;
+        right: 120px;
+        background-color: #3b82f6;
+    }
+
+    .floating-btn.save:hover {
+        background-color: #2563eb;
+    }
+
+    .floating-btn.reset {
+        top: 20px;
+        right: 20px;
+        background-color: #8b5cf6;
+    }
+
+    .floating-btn.reset:hover {
+        background-color: #7c3aed;
+    }
+
+    .floating-notice {
+        position: absolute;
+        top: 80px;
+        left: 20px;
+        z-index: 1000;
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #1e40af;
+        display: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .floating-notice.show {
+        display: block;
     }
 
     .zoom-controls-top {
@@ -816,135 +908,13 @@
 </style>
 
 <div class="app-container">
-    <!-- SIDEBAR ESQUERDA -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title">
-                <i class="fas fa-map-marker-alt"></i>
-                Adicionar Pino
-            </h1>
-        </div>
-
-        <!-- Seção Ativar Modo -->
-        <div id="addPinSection" class="section section-no-bg">
-            <a href="{{ route('lotes.index', $empreendimento->id) }}" class="btn" style="width: 100%; margin-bottom: 16px; background-color: #6b7280; color: white; border: none; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="fas fa-arrow-left"></i>
-                Voltar
-            </a>
-
-            <h3 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                Modo de Adição
-            </h3>
-
-            <button id="addPinBtn" class="add-pin-btn inactive">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>Ativar modo de adição</span>
-            </button>
-
-            <div id="activeNotice" class="active-notice" style="display: none;">
-                <i class="fas fa-info-circle mr-2"></i>
-                Modo ativo! Clique na imagem onde deseja colocar o pino
-            </div>
-        </div>
-
-        <!-- Conteúdo do Modal na Sidebar -->
-        <div id="modalContentSidebar" class="section section-no-bg" style="display: none;">
-            <div class="modal-content-sidebar">
-                <p style="text-align: center; color: #6b7280; margin-bottom: 16px;">
-                    Selecione a quadra, lote e status:
-                </p>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
-                        Selecionar Quadra *
-                    </label>
-                    <select id="selectQuadra" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
-                        <option value="">Selecione uma quadra...</option>
-                        @foreach($quadras ?? [] as $quadra)
-                            <option value="{{ $quadra->id }}">{{ $quadra->nome }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
-                        Selecionar Lote *
-                    </label>
-                    <select id="selectLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;" disabled>
-                        <option value="">Selecione uma quadra primeiro...</option>
-                    </select>
-                    <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Apenas lotes sem pino serão exibidos</p>
-                </div>
-
-
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" style="flex: 1;" onclick="confirmPinWithLote()" id="confirmPinBtn" disabled>
-                        Confirmar
-                    </button>
-                    <button class="btn btn-secondary" style="flex: 1;" onclick="cancelPin()">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detalhes do Lote (quando clicar em um pino) -->
-        <div id="loteDetailSection" class="section section-no-bg" style="display: none;">
-            <div style="margin-bottom: 16px;">
-                <button onclick="fecharDetalhesLote()" class="btn" style="width: 100%; background-color: #6b7280; color: white; border: none; margin-bottom: 12px;">
-                    <i class="fas fa-times mr-2"></i>
-                    Fechar
-                </button>
-            </div>
-
-            <h3 class="section-title" id="detailLoteTitle" style="margin-bottom: 16px;">
-                <i class="fas fa-info-circle"></i>
-                Detalhes do Lote
-            </h3>
-
-            <div id="loteDetailContent" style="space-y: 4px;">
-                <!-- Informações serão preenchidas via JavaScript -->
-            </div>
-        </div>
-
-        <!-- Controles -->
-        <div id="controlsSection" class="section section-no-bg">
-            <h3 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 -1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-                Controles de Visualização
-            </h3>
-
-            <div class="controls-section">
-                <button id="saveBtn" class="save-btn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17,21 17,13 7,13 7,21"></polyline>
-                        <polyline points="7,3 7,8 15,8"></polyline>
-                    </svg>
-                    Salvar Pinos
-                </button>
-
-                <button id="resetBtn" class="reset-btn">
-                    <i class="fas fa-redo mr-2"></i>
-                    Resetar Vista
-                </button>
-            </div>
-        </div>
-
-    </div>
-
     <!-- ÁREA DA IMAGEM -->
     <div class="map-area">
+        <!-- Botão Voltar -->
+        <a href="{{ route('loteamentos.mapa.index') }}" class="floating-btn back">
+            <i class="fas fa-arrow-left"></i>
+            Voltar
+        </a>
         <!-- Controles de Zoom -->
         <div class="zoom-controls-top">
             <button id="zoomOutBtn" class="zoom-btn-top" title="Diminuir Zoom">−</button>
@@ -985,34 +955,29 @@
             </div>
             <div class="modal-content">
                 <p style="text-align: center; color: #6b7280; margin-bottom: 16px;">
-                    Selecione o lote e o tipo:
+                    Selecione a quadra, lote e status:
                 </p>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                        Selecionar Quadra *
+                    </label>
+                    <select id="selectQuadra" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
+                        <option value="">Selecione uma quadra...</option>
+                        @foreach($quadras ?? [] as $quadra)
+                            <option value="{{ $quadra->id }}">{{ $quadra->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
                         Selecionar Lote *
                     </label>
-                    <select id="selectLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;">
-                        <option value="">Selecione um lote...</option>
+                    <select id="selectLote" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white; cursor: pointer;" disabled>
+                        <option value="">Selecione uma quadra primeiro...</option>
                     </select>
                     <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Apenas lotes sem pino serão exibidos</p>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
-                        Tipo do Lote
-                    </label>
-                    <div class="type-select-buttons">
-                        <button type="button" class="type-btn available" onclick="selectPinType('available')">
-                            <div class="type-dot"></div>
-                            <span>À Venda</span>
-                        </button>
-
-                        <button type="button" class="type-btn sold" onclick="selectPinType('sold')">
-                            <div class="type-dot"></div>
-                            <span>Vendido</span>
-                        </button>
-                    </div>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
@@ -1092,9 +1057,6 @@
                 <div class="modal-actions">
                     <button id="interestBtn" class="btn btn-primary" style="display: none;">
                         Tenho Interesse
-                    </button>
-                    <button class="btn btn-danger" onclick="removeCurrentPin()">
-                        Remover Pino
                     </button>
                 </div>
             </div>
@@ -1261,10 +1223,7 @@
     const mapContainer = document.getElementById('mapContainer');
     const mapWrapper = document.getElementById('mapWrapper');
     const mapImage = document.getElementById('mapImage');
-    const addPinBtn = document.getElementById('addPinBtn');
-    const activeNotice = document.getElementById('activeNotice');
-    const saveBtn = document.getElementById('saveBtn');
-    const resetBtn = document.getElementById('resetBtn');
+    // Botões removidos: addPinBtn, activeNotice, saveBtn, resetBtn
     const zoomInBtn = document.getElementById('zoomInBtn');
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomLevel = document.getElementById('zoomLevel');
@@ -1317,7 +1276,7 @@
         }
 
         try {
-            const response = await fetch('{{ route("empreendimentos.salvar-posicoes-pinos", $empreendimento->id) }}', {
+            const response = await fetch('{{ route("loteamentos.salvar-posicoes-pinos", $empreendimento->id) }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1531,45 +1490,7 @@
     // ========================================
     // EVENT LISTENERS
     // ========================================
-    addPinBtn.addEventListener('click', () => {
-        isAddingPin = !isAddingPin;
-
-        if (isAddingPin) {
-            addPinBtn.className = 'add-pin-btn active';
-            addPinBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>Clique na imagem para adicionar</span>
-            `;
-            activeNotice.style.display = 'block';
-            mapContainer.classList.add('adding-pin');
-        } else {
-            addPinBtn.className = 'add-pin-btn inactive';
-            addPinBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>Ativar modo de adição</span>
-            `;
-            activeNotice.style.display = 'none';
-            mapContainer.classList.remove('adding-pin');
-        }
-    });
-
-    resetBtn.addEventListener('click', () => {
-        scale = INITIAL_ZOOM / 100; // Reseta para o zoom inicial configurado
-        position = { x: 0, y: 0 };
-        updateTransform();
-        updateZoomDisplay();
-    });
-
-    // Botão de salvar
-    saveBtn.addEventListener('click', () => {
-        savePinsData();
-    });
+    // Botões removidos: addPinBtn, saveBtn, resetBtn
 
     // Botões de zoom com incrementos em porcentagem
     zoomInBtn.addEventListener('click', () => {
@@ -1958,16 +1879,7 @@
     function cancelarAdicaoPino() {
         // Desativar modo de adição se estiver ativo
         isAddingPin = false;
-        const addPinBtn = document.getElementById('addPinBtn');
-        const activeNotice = document.getElementById('activeNotice');
-
-        if (addPinBtn) {
-            addPinBtn.classList.remove('active');
-            addPinBtn.classList.add('inactive');
-        }
-        if (activeNotice) {
-            activeNotice.style.display = 'none';
-        }
+        // Botões removidos
 
         // Cancelar qualquer pino pendente
         if (pendingPin) {
@@ -2061,6 +1973,11 @@
             const pinData = pin.data || {};
             const statusAtual = loteCompleto && loteCompleto.status ? loteCompleto.status.nome : (pinData.status || 'Não definido');
             const statusColor = loteCompleto && loteCompleto.status && loteCompleto.status.cor ? loteCompleto.status.cor : (pin.type === 'available' ? '#10b981' : '#ef4444');
+
+            // Verificar se o lote foi vendido
+            const isVendido = pin.type === 'sold' ||
+                            (statusAtual && statusAtual.toLowerCase().includes('vendido')) ||
+                            (loteCompleto && loteCompleto.status && loteCompleto.status.nome && loteCompleto.status.nome.toLowerCase().includes('vendido'));
 
             // Criar conteúdo completo do modal com todas as informações
             let modalHTML = `
@@ -2176,12 +2093,16 @@
                     <p>${loteCompleto && loteCompleto.observacao ? loteCompleto.observacao : (pinData.description || 'Lote cadastrado no sistema.')}</p>
                 </div>
 
+                ${!isVendido ? `
                 <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="btn btn-danger" onclick="removeCurrentPin()" style="flex: 1;">
-                        <i class="fas fa-trash mr-2"></i>
-                        Remover Pino
+                    <button onclick="venderLote('${loteCompleto ? loteCompleto.id : pin.lote_id}')" class="btn btn-primary" style="flex: 1;">
+                        Vender
+                    </button>
+                    <button onclick="reservarLote('${loteCompleto ? loteCompleto.id : pin.lote_id}')" class="btn" style="flex: 1; background: #f59e0b; color: white;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                        Reservar
                     </button>
                 </div>
+                ` : ''}
             `;
 
             detailModalContent.innerHTML = modalHTML;
@@ -2212,11 +2133,6 @@
         currentPinForModal = null;
     }
 
-    function removerPinoAtual() {
-        if (!currentPinForModal) return;
-        removeCurrentPin();
-        closeDetailModal();
-    }
 
 
     function atualizarPinoNoMapa(loteId) {
@@ -2340,6 +2256,26 @@
     updateZoomDisplay();
     updateConfigDisplays();
 
+
+    // Função para redirecionar para a tela de vender lote
+    function venderLote(loteId) {
+        if (!loteId) {
+            alert('Lote não identificado');
+            return;
+        }
+        const empreendimentoId = '{{ $empreendimento->id }}';
+        window.location.href = `/loteamentos/${empreendimentoId}/lote/${loteId}/vender`;
+    }
+
+    // Função para redirecionar para a tela de reservar lote
+    function reservarLote(loteId) {
+        if (!loteId) {
+            alert('Lote não identificado');
+            return;
+        }
+        const empreendimentoId = '{{ $empreendimento->id }}';
+        window.location.href = `/loteamentos/${empreendimentoId}/lote/${loteId}/reservar`;
+    }
 
     // Função global para debug (acesso via console)
     window.getPinsData = getAllPins;

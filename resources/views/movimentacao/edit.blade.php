@@ -347,32 +347,6 @@
                         </div>
                     </div>
 
-                    <!-- Informações de Sistema (Somente Leitura) -->
-                    <div class="bg-gray-50 rounded-lg p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            Informações de Sistema
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-500">ID</label>
-                                <div class="text-sm text-gray-900 font-mono bg-white border border-gray-300 rounded-md px-3 py-2">{{ $movimentacao->id }}</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-500">Tipo</label>
-                                <div class="text-sm text-gray-900 bg-white border border-gray-300 rounded-md px-3 py-2">{{ $movimentacao->getTipoLabel() }}</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-500">Empresa</label>
-                                <div class="text-sm text-gray-900 bg-white border border-gray-300 rounded-md px-3 py-2">{{ $movimentacao->empresa->nome_fantasia ?? 'N/A' }}</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-500">Criado em</label>
-                                <div class="text-sm text-gray-900 bg-white border border-gray-300 rounded-md px-3 py-2">{{ $movimentacao->criado_em->format('d/m/Y H:i:s') }}</div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Botões -->
                     <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                         <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-md text-sm font-medium">
