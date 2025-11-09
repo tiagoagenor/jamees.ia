@@ -265,6 +265,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     
     // Loteamento - Comentários
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/comentarios', [App\Http\Controllers\EmpreendimentoController::class, 'comentariosLote'])->name('loteamentos.lote.comentarios');
+    Route::get('/loteamentos/{empreendimento}/lote/{lote}/comentarios/cliente/{cliente}', [App\Http\Controllers\EmpreendimentoController::class, 'comentariosLotePorCliente'])->name('loteamentos.lote.comentarios.cliente');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/comentarios', [App\Http\Controllers\EmpreendimentoController::class, 'salvarComentario'])->name('loteamentos.lote.salvar-comentario');
 
     // Loteamento - Status de Lotes

@@ -1082,6 +1082,38 @@ class EmpreendimentoController extends Controller
     }
 
     /**
+     * Exibir comentários do lote filtrados por cliente específico
+     */
+    public function comentariosLotePorCliente(Empreendimento $empreendimento, Lote $lote, \App\Models\Cliente $cliente)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        // Carregar relacionamentos do lote
+        $lote->load(['quadra', 'status', 'cliente']);
+
+        // Buscar comentários do lote vinculados ao cliente específico
+        $comentarios = $lote->comentarios()
+            ->where('cliente_id', $cliente->id)
+            ->with(['usuario', 'cliente'])
+            ->orderBy('criado_em', 'desc')
+            ->get();
+
+        return view('loteamento.lote.comentarios', compact('empreendimento', 'lote', 'comentarios', 'cliente'));
+    }
+
+    /**
      * Salvar novo comentário do lote
      */
     public function salvarComentario(Request $request, Empreendimento $empreendimento, Lote $lote)
@@ -1102,16 +1134,26 @@ class EmpreendimentoController extends Controller
 
         $request->validate([
             'comentario' => 'required|string|max:5000',
+            'cliente_id' => 'nullable|exists:cliente,id',
         ]);
 
         try {
-            // Vincular comentário ao cliente atual do lote (se houver)
+            // Vincular comentário ao cliente especificado no request ou ao cliente atual do lote (se houver)
+            $clienteId = $request->cliente_id ?? $lote->cliente_id;
+            
             \App\Models\LoteComentario::create([
                 'lote_id' => $lote->id,
-                'cliente_id' => $lote->cliente_id,
+                'cliente_id' => $clienteId,
                 'usuario_id' => Auth::user()->id,
                 'comentario' => $request->comentario,
             ]);
+
+            // Redirecionar para a rota correta dependendo se há um cliente específico
+            if ($request->cliente_id) {
+                return redirect()
+                    ->route('loteamentos.lote.comentarios.cliente', [$empreendimento->id, $lote->id, $request->cliente_id])
+                    ->with('success', 'Comentário adicionado com sucesso!');
+            }
 
             return redirect()
                 ->route('loteamentos.lote.comentarios', [$empreendimento->id, $lote->id])

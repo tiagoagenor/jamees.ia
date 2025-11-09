@@ -9,8 +9,15 @@
             <h1 class="text-2xl font-bold text-gray-800 mb-2">Comentários do Lote</h1>
             <p class="text-gray-600">Empreendimento: <strong>{{ $empreendimento->nome }}</strong></p>
             <p class="text-gray-600">Lote: <strong>{{ $lote->nome }}</strong></p>
-            @if($lote->cliente)
-                <p class="text-gray-600">Cliente: <strong>{{ $lote->cliente->nome }}</strong></p>
+            @if(isset($cliente))
+                <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-blue-800">
+                        <i class="fas fa-filter mr-2"></i>
+                        Filtrando comentários do cliente: <strong>{{ $cliente->nome }}</strong>
+                    </p>
+                </div>
+            @elseif($lote->cliente)
+                <p class="text-gray-600">Cliente Atual: <strong>{{ $lote->cliente->nome }}</strong></p>
             @endif
         </div>
 
@@ -65,6 +72,9 @@
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Adicionar Comentário</h2>
                     <form action="{{ route('loteamentos.lote.salvar-comentario', [$empreendimento->id, $lote->id]) }}" method="POST">
                         @csrf
+                        @if(isset($cliente))
+                            <input type="hidden" name="cliente_id" value="{{ $cliente->id }}">
+                        @endif
                         <div class="mb-4">
                             <label for="comentario" class="block text-sm font-medium text-gray-700 mb-2">
                                 Comentário <span class="text-red-500">*</span>
@@ -129,7 +139,15 @@
             </div>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 flex gap-3">
+            @if(isset($cliente))
+                <a href="{{ route('lotes.show', $lote->id) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Voltar ao Lote
+                </a>
+            @endif
             <a href="{{ route('loteamentos.mapa.view', $empreendimento->id) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
