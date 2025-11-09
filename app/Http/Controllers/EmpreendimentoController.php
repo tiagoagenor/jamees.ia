@@ -8,6 +8,7 @@ use App\Models\Lote;
 use App\Helpers\PermissionHelper;
 use App\Helpers\PublicPathHelper;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EmpreendimentoController extends Controller
@@ -862,6 +863,17 @@ class EmpreendimentoController extends Controller
 
         // Carregar lotes com suas posições de pinos
         $lotes = $empreendimento->lotes()->with(['status', 'quadra'])->get();
+        
+        // Adicionar contagem de comentários do cliente atual para cada lote
+        foreach ($lotes as $lote) {
+            if ($lote->cliente_id) {
+                $lote->comentarios_count = $lote->comentarios()
+                    ->where('cliente_id', $lote->cliente_id)
+                    ->count();
+            } else {
+                $lote->comentarios_count = 0;
+            }
+        }
 
         // Buscar quadras do empreendimento
         $quadras = $empreendimento->quadras()->orderBy('nome')->get();
@@ -915,6 +927,200 @@ class EmpreendimentoController extends Controller
             abort(404, 'Lote não encontrado neste empreendimento.');
         }
 
-        return view('loteamento.lote.reservar', compact('empreendimento', 'lote'));
+        // Carregar relacionamentos do lote
+        $lote->load(['quadra', 'status', 'cliente']);
+
+        // Buscar clientes ativos da empresa
+        $clientes = \App\Models\Cliente::where('empresa_id', $empresaAtual->id)
+            ->where('status', true)
+            ->orderBy('nome')
+            ->get();
+
+        // Buscar comentários do lote
+        $comentarios = $lote->comentarios()->with('usuario')->get();
+
+        return view('loteamento.lote.reservar', compact('empreendimento', 'lote', 'clientes', 'comentarios'));
+    }
+
+    /**
+     * Salvar reserva do lote
+     */
+    public function salvarReserva(Request $request, Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'editar')) {
+            abort(403, 'Você não tem permissão para editar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        $request->validate([
+            'cliente_id' => 'required|exists:cliente,id',
+            'comentario' => 'nullable|string|max:5000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Buscar ou criar status "Reservado"
+            $statusReservado = \App\Models\LoteStatus::where('empresa_id', $empresaAtual->id)
+                ->whereRaw('LOWER(nome) = ?', ['reservado'])
+                ->first();
+
+            // Se não existir, criar o status "Reservado"
+            if (!$statusReservado) {
+                $statusReservado = \App\Models\LoteStatus::create([
+                    'empresa_id' => $empresaAtual->id,
+                    'nome' => 'Reservado',
+                    'cor' => '#f59e0b', // Cor laranja para reservado
+                    'tipo' => 1, // 1 = não vendido, 2 = vendido
+                ]);
+            }
+
+            // Se o lote já estava reservado por outro cliente, salvar histórico da reserva anterior
+            if ($lote->cliente_id && $lote->cliente_id !== $request->cliente_id) {
+                // Buscar reserva ativa no histórico (sem data_fim)
+                $reservaAtiva = \App\Models\LoteReservaHistorico::where('lote_id', $lote->id)
+                    ->whereNull('data_fim')
+                    ->first();
+
+                if ($reservaAtiva) {
+                    // Finalizar reserva anterior
+                    $reservaAtiva->data_fim = now();
+                    $reservaAtiva->save();
+                } else {
+                    // Criar histórico da reserva anterior (caso não exista no histórico)
+                    \App\Models\LoteReservaHistorico::create([
+                        'lote_id' => $lote->id,
+                        'cliente_id' => $lote->cliente_id,
+                        'usuario_id' => Auth::user()->id,
+                        'data_reserva' => $lote->criado_em ?? now(),
+                        'data_fim' => now(),
+                    ]);
+                }
+            }
+
+            // Vincular cliente ao lote e alterar status para "Reservado"
+            $lote->cliente_id = $request->cliente_id;
+            $lote->lote_status_id = $statusReservado->id;
+            $lote->save();
+
+            // Criar nova reserva no histórico (sempre criar, mesmo se for a primeira vez)
+            \App\Models\LoteReservaHistorico::create([
+                'lote_id' => $lote->id,
+                'cliente_id' => $request->cliente_id,
+                'usuario_id' => Auth::user()->id,
+                'data_reserva' => now(),
+            ]);
+
+            // Criar comentário se fornecido (vinculado ao cliente)
+            if ($request->filled('comentario')) {
+                \App\Models\LoteComentario::create([
+                    'lote_id' => $lote->id,
+                    'cliente_id' => $request->cliente_id,
+                    'usuario_id' => Auth::user()->id,
+                    'comentario' => $request->comentario,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('loteamentos.mapa.view', $empreendimento->id)
+                ->with('success', 'Lote reservado com sucesso!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Erro ao reservar lote: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Exibir tela de comentários do lote
+     */
+    public function comentariosLote(Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        // Carregar relacionamentos do lote
+        $lote->load(['quadra', 'status', 'cliente']);
+
+        // Buscar comentários do lote vinculados ao cliente atual (se houver cliente)
+        if ($lote->cliente_id) {
+            $comentarios = $lote->comentarios()
+                ->where('cliente_id', $lote->cliente_id)
+                ->with(['usuario', 'cliente'])
+                ->orderBy('criado_em', 'desc')
+                ->get();
+        } else {
+            // Se não houver cliente, mostrar todos os comentários
+            $comentarios = $lote->comentarios()->with(['usuario', 'cliente'])->orderBy('criado_em', 'desc')->get();
+        }
+
+        return view('loteamento.lote.comentarios', compact('empreendimento', 'lote', 'comentarios'));
+    }
+
+    /**
+     * Salvar novo comentário do lote
+     */
+    public function salvarComentario(Request $request, Empreendimento $empreendimento, Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'editar')) {
+            abort(403, 'Você não tem permissão para editar empreendimentos.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Empreendimento não encontrado.');
+        }
+
+        // Verificar se o lote pertence ao empreendimento
+        if ($lote->empreendimento_id !== $empreendimento->id) {
+            abort(404, 'Lote não encontrado neste empreendimento.');
+        }
+
+        $request->validate([
+            'comentario' => 'required|string|max:5000',
+        ]);
+
+        try {
+            // Vincular comentário ao cliente atual do lote (se houver)
+            \App\Models\LoteComentario::create([
+                'lote_id' => $lote->id,
+                'cliente_id' => $lote->cliente_id,
+                'usuario_id' => Auth::user()->id,
+                'comentario' => $request->comentario,
+            ]);
+
+            return redirect()
+                ->route('loteamentos.lote.comentarios', [$empreendimento->id, $lote->id])
+                ->with('success', 'Comentário adicionado com sucesso!');
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Erro ao adicionar comentário: ' . $e->getMessage());
+        }
     }
 }

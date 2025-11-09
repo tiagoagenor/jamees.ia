@@ -261,6 +261,11 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Loteamento - Vender e Reservar
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/vender', [App\Http\Controllers\EmpreendimentoController::class, 'venderLote'])->name('loteamentos.lote.vender');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'reservarLote'])->name('loteamentos.lote.reservar');
+    Route::post('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'salvarReserva'])->name('loteamentos.lote.salvar-reserva');
+    
+    // Loteamento - Comentários
+    Route::get('/loteamentos/{empreendimento}/lote/{lote}/comentarios', [App\Http\Controllers\EmpreendimentoController::class, 'comentariosLote'])->name('loteamentos.lote.comentarios');
+    Route::post('/loteamentos/{empreendimento}/lote/{lote}/comentarios', [App\Http\Controllers\EmpreendimentoController::class, 'salvarComentario'])->name('loteamentos.lote.salvar-comentario');
 
     // Loteamento - Status de Lotes
     Route::resource('lote-status', App\Http\Controllers\LoteStatusController::class);

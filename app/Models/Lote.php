@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasUuid;
 
 class Lote extends Model
@@ -18,6 +19,7 @@ class Lote extends Model
         'quadra_id',
         'empreendimento_id',
         'lote_status_id',
+        'cliente_id',
         'nome',
         'frente',
         'fundo',
@@ -72,5 +74,20 @@ class Lote extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(LoteStatus::class, 'lote_status_id');
+    }
+
+    public function cliente(): BelongsTo
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    public function comentarios(): HasMany
+    {
+        return $this->hasMany(LoteComentario::class, 'lote_id')->orderBy('criado_em', 'desc');
+    }
+
+    public function reservaHistorico(): HasMany
+    {
+        return $this->hasMany(LoteReservaHistorico::class, 'lote_id')->orderBy('data_reserva', 'desc');
     }
 }

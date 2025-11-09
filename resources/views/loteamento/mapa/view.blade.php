@@ -1075,6 +1075,9 @@
     const PIN_OFFSET_X = 0; // Offset horizontal para novos pinos (em pixels)
     const PIN_OFFSET_Y = 6; // Offset vertical para novos pinos (em pixels)
 
+    // ID do empreendimento
+    const empreendimentoId = '{{ $empreendimento->id }}';
+
     // Lotes carregados do banco de dados
         const lotesFromDatabase = @json($lotes ?? []);
         const statusLotes = @json($statusLotes ?? []);
@@ -1978,6 +1981,10 @@
             const isVendido = pin.type === 'sold' ||
                             (statusAtual && statusAtual.toLowerCase().includes('vendido')) ||
                             (loteCompleto && loteCompleto.status && loteCompleto.status.nome && loteCompleto.status.nome.toLowerCase().includes('vendido'));
+            
+            // Verificar se o lote está reservado
+            const isReservado = (statusAtual && statusAtual.toLowerCase().includes('reservado')) ||
+                               (loteCompleto && loteCompleto.status && loteCompleto.status.nome && loteCompleto.status.nome.toLowerCase().includes('reservado'));
 
             // Criar conteúdo completo do modal com todas as informações
             let modalHTML = `
@@ -2101,6 +2108,19 @@
                     <button onclick="reservarLote('${loteCompleto ? loteCompleto.id : pin.lote_id}')" class="btn" style="flex: 1; background: #f59e0b; color: white;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
                         Reservar
                     </button>
+                </div>
+                ` : ''}
+                
+                ${isReservado ? `
+                <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <a href="/loteamentos/${empreendimentoId}/lote/${loteCompleto ? loteCompleto.id : pin.lote_id}/comentarios" class="btn" style="flex: 1; background: #8b5cf6; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; position: relative;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='#8b5cf6'">
+                        Ver Comentários
+                        ${loteCompleto && loteCompleto.comentarios_count !== undefined ? `
+                            <span style="margin-left: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600;">
+                                ${loteCompleto.comentarios_count}
+                            </span>
+                        ` : ''}
+                    </a>
                 </div>
                 ` : ''}
             `;
@@ -2263,7 +2283,6 @@
             alert('Lote não identificado');
             return;
         }
-        const empreendimentoId = '{{ $empreendimento->id }}';
         window.location.href = `/loteamentos/${empreendimentoId}/lote/${loteId}/vender`;
     }
 
@@ -2273,7 +2292,6 @@
             alert('Lote não identificado');
             return;
         }
-        const empreendimentoId = '{{ $empreendimento->id }}';
         window.location.href = `/loteamentos/${empreendimentoId}/lote/${loteId}/reservar`;
     }
 
