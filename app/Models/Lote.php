@@ -90,4 +90,9 @@ class Lote extends Model
     {
         return $this->hasMany(LoteReservaHistorico::class, 'lote_id')->orderBy('data_reserva', 'desc');
     }
+
+    public function vendaParcelas(): HasMany
+    {
+        return $this->hasMany(LoteVendaParcela::class, 'lote_id')->orderBy('numero');
+    }
 }

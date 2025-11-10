@@ -95,15 +95,14 @@
                                    class="text-green-600 hover:text-green-900 mr-4">
                                     <i class="fas fa-map mr-1"></i>Ver Mapa
                                 </a>
-                                @php
-                                    $entidadeLoteamento = \App\Models\Entidade::where('documento', 'LOTE-' . $venda->id)->first();
-                                @endphp
-                                @if($entidadeLoteamento)
-                                    <a href="{{ route('contas-a-receber.index') }}?entidade_tipo=5&entidade_id={{ $entidadeLoteamento->id }}" 
-                                       class="text-blue-600 hover:text-blue-900">
-                                        <i class="fas fa-receipt mr-1"></i>Ver Parcelas
-                                    </a>
-                                @endif
+                                <a href="{{ route('contas-a-receber.index') }}?entidade_tipo=5&entidade_id={{ $venda->id }}" 
+                                   class="text-blue-600 hover:text-blue-900 mr-4">
+                                    <i class="fas fa-receipt mr-1"></i>Ver Parcelas
+                                </a>
+                                <a href="{{ route('loteamentos.vendas.parcelas', $venda->id) }}" 
+                                   class="text-purple-600 hover:text-purple-900">
+                                    <i class="fas fa-list-alt mr-1"></i>Parcelas
+                                </a>
                             </td>
                         </tr>
                     @endforeach

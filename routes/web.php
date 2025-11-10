@@ -260,12 +260,13 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
 
     // Loteamento - Vender e Reservar
     Route::get('/loteamentos/vendas', [App\Http\Controllers\EmpreendimentoController::class, 'vendasIndex'])->name('loteamentos.vendas.index');
+    Route::get('/loteamentos/vendas/{lote}/parcelas', [App\Http\Controllers\EmpreendimentoController::class, 'vendasParcelas'])->name('loteamentos.vendas.parcelas');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/vender', [App\Http\Controllers\EmpreendimentoController::class, 'venderLote'])->name('loteamentos.lote.vender');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/gerar-parcelas', [App\Http\Controllers\EmpreendimentoController::class, 'gerarParcelasVenda'])->name('loteamentos.lote.gerar-parcelas');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/salvar-venda', [App\Http\Controllers\EmpreendimentoController::class, 'salvarVenda'])->name('loteamentos.lote.salvar-venda');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'reservarLote'])->name('loteamentos.lote.reservar');
     Route::post('/loteamentos/{empreendimento}/lote/{lote}/reservar', [App\Http\Controllers\EmpreendimentoController::class, 'salvarReserva'])->name('loteamentos.lote.salvar-reserva');
-    
+
     // Loteamento - Comentários
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/comentarios', [App\Http\Controllers\EmpreendimentoController::class, 'comentariosLote'])->name('loteamentos.lote.comentarios');
     Route::get('/loteamentos/{empreendimento}/lote/{lote}/comentarios/cliente/{cliente}', [App\Http\Controllers\EmpreendimentoController::class, 'comentariosLotePorCliente'])->name('loteamentos.lote.comentarios.cliente');
@@ -291,6 +292,11 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/lotes/{lote}/edit', [App\Http\Controllers\LoteController::class, 'edit'])->name('lotes.edit');
     Route::put('/lotes/{lote}', [App\Http\Controllers\LoteController::class, 'update'])->name('lotes.update');
     Route::delete('/lotes/{lote}', [App\Http\Controllers\LoteController::class, 'destroy'])->name('lotes.destroy');
+
+    // Rotas AJAX para filtros de movimentação
+    Route::get('/api/quadras/{empreendimento}', [App\Http\Controllers\MovimentacaoController::class, 'getQuadras'])->name('api.quadras');
+    Route::get('/api/lotes/{quadra}', [App\Http\Controllers\MovimentacaoController::class, 'getLotes'])->name('api.lotes');
+    Route::get('/api/lote-info/{lote}', [App\Http\Controllers\MovimentacaoController::class, 'getLoteInfo'])->name('api.lote-info');
 
 });
 

@@ -32,37 +32,41 @@
                 </div>
 
                 <!-- Cards de Resumo Clicáveis -->
+                @php
+                    // Preservar todos os filtros existentes, exceto o filtro do card
+                    $filtrosPreservar = request()->except(['filtro', 'page']);
+                @endphp
                 <div class="grid grid-cols-1 md:grid-cols-5 mb-6">
                     <!-- Vencidos -->
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', ['filtro' => 'vencidos']) }}"
+                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', array_merge($filtrosPreservar, ['filtro' => 'vencidos'])) }}"
                        class="bg-white border-r border-gray-300 p-4 hover:bg-gray-50 transition-colors cursor-pointer {{ $filtroCard == 'vencidos' ? 'border-t-4 border-t-red-500' : '' }}">
                         <div class="text-sm font-medium text-gray-500 mb-1">Vencidos</div>
                         <div class="text-lg font-bold text-red-600">R$ {{ number_format($resumo['vencidos'], 2, ',', '.') }}</div>
                     </a>
 
                     <!-- Vence Hoje -->
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', ['filtro' => 'vence_hoje']) }}"
+                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', array_merge($filtrosPreservar, ['filtro' => 'vence_hoje'])) }}"
                        class="bg-white border-r border-gray-300 p-4 hover:bg-gray-50 transition-colors cursor-pointer {{ $filtroCard == 'vence_hoje' ? 'border-t-4 border-t-orange-500' : '' }}">
                         <div class="text-sm font-medium text-gray-500 mb-1">Vence Hoje</div>
                         <div class="text-lg font-bold text-orange-600">R$ {{ number_format($resumo['vence_hoje'], 2, ',', '.') }}</div>
                     </a>
 
                     <!-- A Vencer -->
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', ['filtro' => 'a_vencer']) }}"
+                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', array_merge($filtrosPreservar, ['filtro' => 'a_vencer'])) }}"
                        class="bg-white border-r border-gray-300 p-4 hover:bg-gray-50 transition-colors cursor-pointer {{ $filtroCard == 'a_vencer' ? 'border-t-4 border-t-blue-500' : '' }}">
                         <div class="text-sm font-medium text-gray-500 mb-1">A Vencer</div>
                         <div class="text-lg font-bold text-blue-600">R$ {{ number_format($resumo['a_vencer'], 2, ',', '.') }}</div>
                     </a>
 
                     <!-- Pagos -->
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', ['filtro' => 'pagos']) }}"
+                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', array_merge($filtrosPreservar, ['filtro' => 'pagos'])) }}"
                        class="bg-white border-r border-gray-300 p-4 hover:bg-gray-50 transition-colors cursor-pointer {{ $filtroCard == 'pagos' ? 'border-t-4 border-t-teal-500' : '' }}">
                         <div class="text-sm font-medium text-gray-500 mb-1">Pagos</div>
                         <div class="text-lg font-bold text-teal-600">R$ {{ number_format($resumo['pagos'], 2, ',', '.') }}</div>
                     </a>
 
                     <!-- Total -->
-                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', ['filtro' => 'todos']) }}"
+                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', array_merge($filtrosPreservar, ['filtro' => 'todos'])) }}"
                        class="bg-white p-4 hover:bg-gray-50 transition-colors cursor-pointer {{ $filtroCard == 'todos' ? 'border-t-4 border-t-gray-500' : '' }}">
                         <div class="text-sm font-medium text-gray-500 mb-1">Total</div>
                         <div class="text-lg font-bold text-gray-900">R$ {{ number_format($resumo['total'], 2, ',', '.') }}</div>
@@ -127,6 +131,7 @@
                                     <option value="2" {{ $filtroEntidadeTipo == '2' ? 'selected' : '' }}>Fornecedor</option>
                                     <option value="3" {{ $filtroEntidadeTipo == '3' ? 'selected' : '' }}>Funcionário</option>
                                     <option value="4" {{ $filtroEntidadeTipo == '4' ? 'selected' : '' }}>Transportadora</option>
+                                    <option value="{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}" {{ $filtroEntidadeTipo == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value ? 'selected' : '' }}>Loteamento</option>
                                 </select>
                             </div>
 
@@ -145,6 +150,63 @@
                                         <i class="fas fa-times mr-2"></i>
                                         Limpar
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filtros de Lote (aparecem apenas quando tipo = Loteamento) -->
+                        <div id="filtros_lote" class="hidden mt-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <i class="fas fa-map-marked-alt text-blue-600 mr-2"></i>
+                                    <h4 class="text-sm font-semibold text-blue-900">Filtros de Localização do Lote</h4>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Filtro por Empreendimento -->
+                                    <div class="space-y-2">
+                                        <label for="filtro_empreendimento" class="block text-sm font-medium text-gray-700">
+                                            <i class="fas fa-building text-blue-500 mr-1"></i>
+                                            Empreendimento
+                                        </label>
+                                        <select name="filtro_empreendimento" id="filtro_empreendimento" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                            <option value="">Selecione o empreendimento</option>
+                                            @foreach($empreendimentos ?? [] as $empreendimento)
+                                                <option value="{{ $empreendimento->id }}" {{ (!empty($loteInfo) && $loteInfo['empreendimento_id'] == $empreendimento->id) || request('filtro_empreendimento') == $empreendimento->id ? 'selected' : '' }}>{{ $empreendimento->nome }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtro por Quadra -->
+                                    <div class="space-y-2">
+                                        <label for="filtro_quadra" class="block text-sm font-medium text-gray-700">
+                                            <i class="fas fa-th text-blue-500 mr-1"></i>
+                                            Quadra
+                                        </label>
+                                        <select name="filtro_quadra" id="filtro_quadra" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ !empty($loteInfo) && !empty($quadrasParaFiltro) ? 'bg-white' : 'bg-gray-50' }}" {{ !empty($loteInfo) && !empty($quadrasParaFiltro) ? '' : 'disabled' }}>
+                                            <option value="">Selecione primeiro o empreendimento</option>
+                                            @if(!empty($quadrasParaFiltro))
+                                                @foreach($quadrasParaFiltro as $quadra)
+                                                    <option value="{{ $quadra->id }}" {{ !empty($loteInfo) && $loteInfo['quadra_id'] == $quadra->id ? 'selected' : '' }}>{{ $quadra->nome }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtro por Lote -->
+                                    <div class="space-y-2">
+                                        <label for="filtro_lote" class="block text-sm font-medium text-gray-700">
+                                            <i class="fas fa-map-pin text-blue-500 mr-1"></i>
+                                            Lote
+                                        </label>
+                                        <select name="filtro_lote" id="filtro_lote" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ !empty($loteInfo) && !empty($lotesParaFiltro) ? 'bg-white' : 'bg-gray-50' }}" {{ !empty($loteInfo) && !empty($lotesParaFiltro) ? '' : 'disabled' }}>
+                                            <option value="">Selecione primeiro a quadra</option>
+                                            @if(!empty($lotesParaFiltro))
+                                                @foreach($lotesParaFiltro as $lote)
+                                                    <option value="{{ $lote->id }}" {{ !empty($loteInfo) && $loteInfo['lote_id'] == $lote->id ? 'selected' : '' }}>{{ $lote->nome ?? $lote->id }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -213,7 +275,7 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="max-width: 300px; width: 300px;">
                                     @php
                                         $isCol = request('sort_by') === 'descricao';
                                         $dir = request('sort_direction');
@@ -333,9 +395,11 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($movimentacoes as $movimentacao)
                                     <tr class="hover:bg-gray-50 {{ $loop->even ? 'bg-gray-50' : 'bg-white' }}">
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                        <td class="px-6 py-4" style="max-width: 300px; width: 300px;">
                                             <div class="text-sm font-medium text-gray-900">
-                                                {{ $movimentacao->descricao }}
+                                                <div class="break-words">
+                                                    {{ $movimentacao->descricao }}
+                                                </div>
                                                 @if($movimentacao->parcela_codigo && isset($parcelasTotais[$movimentacao->parcela_codigo]))
                                                     @php
                                                         $totalParcelas = $parcelasTotais[$movimentacao->parcela_codigo];
@@ -431,11 +495,41 @@
                     <!-- Paginação -->
                     <div class="mt-6">
                         @if($movimentacoes instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div class="text-sm text-gray-700">
                                     Mostrando {{ $movimentacoes->firstItem() }} até {{ $movimentacoes->lastItem() }} de {{ $movimentacoes->total() }} resultados
                                 </div>
-                                <div class="flex space-x-1">
+                                <div class="flex items-center space-x-1 flex-wrap justify-center">
+                                    @php
+                                        $currentPage = $movimentacoes->currentPage();
+                                        $lastPage = $movimentacoes->lastPage();
+                                        $onEachSide = 2; // Número de páginas a mostrar de cada lado da página atual
+                                        
+                                        // Calcular o range de páginas a mostrar
+                                        $start = max(1, $currentPage - $onEachSide);
+                                        $end = min($lastPage, $currentPage + $onEachSide);
+                                        
+                                        // Ajustar se estiver muito perto do início ou fim
+                                        if ($start == 1) {
+                                            $end = min($lastPage, $start + ($onEachSide * 2) + 1);
+                                        }
+                                        if ($end == $lastPage) {
+                                            $start = max(1, $end - ($onEachSide * 2) - 1);
+                                        }
+                                    @endphp
+                                    
+                                    {{-- Botão Primeira Página --}}
+                                    @if ($movimentacoes->onFirstPage())
+                                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed" title="Primeira página">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </span>
+                                    @else
+                                        <a href="{{ $movimentacoes->url(1) }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900" title="Primeira página">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    @endif
+
+                                    {{-- Botão Página Anterior --}}
                                     @if ($movimentacoes->onFirstPage())
                                         <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
                                             <i class="fas fa-chevron-left"></i>
@@ -446,14 +540,32 @@
                                         </a>
                                     @endif
 
-                                    @foreach ($movimentacoes->getUrlRange(1, $movimentacoes->lastPage()) as $page => $url)
-                                        @if ($page == $movimentacoes->currentPage())
-                                            <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md">{{ $page }}</span>
-                                        @else
-                                            <a href="{{ $url }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                    {{-- Primeira página --}}
+                                    @if ($start > 1)
+                                        <a href="{{ $movimentacoes->url(1) }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">1</a>
+                                        @if ($start > 2)
+                                            <span class="px-3 py-2 text-sm text-gray-500">...</span>
                                         @endif
-                                    @endforeach
+                                    @endif
 
+                                    {{-- Páginas do range --}}
+                                    @for ($page = $start; $page <= $end; $page++)
+                                        @if ($page == $currentPage)
+                                            <span class="px-3 py-2 text-sm text-white bg-blue-600 border border-blue-600 rounded-md font-semibold">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $movimentacoes->url($page) }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $page }}</a>
+                                        @endif
+                                    @endfor
+
+                                    {{-- Última página --}}
+                                    @if ($end < $lastPage)
+                                        @if ($end < $lastPage - 1)
+                                            <span class="px-3 py-2 text-sm text-gray-500">...</span>
+                                        @endif
+                                        <a href="{{ $movimentacoes->url($lastPage) }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">{{ $lastPage }}</a>
+                                    @endif
+
+                                    {{-- Botão Próxima Página --}}
                                     @if ($movimentacoes->hasMorePages())
                                         <a href="{{ $movimentacoes->nextPageUrl() }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900">
                                             <i class="fas fa-chevron-right"></i>
@@ -462,6 +574,39 @@
                                         <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">
                                             <i class="fas fa-chevron-right"></i>
                                         </span>
+                                    @endif
+
+                                    {{-- Botão Última Página --}}
+                                    @if ($movimentacoes->currentPage() == $lastPage)
+                                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed" title="Última página">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </span>
+                                    @else
+                                        <a href="{{ $movimentacoes->url($lastPage) }}" class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-900" title="Última página">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    @endif
+                                    
+                                    {{-- Input para ir direto a uma página (opcional, mas útil para muitas páginas) --}}
+                                    @if ($lastPage > 10)
+                                        <div class="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-300">
+                                            <span class="text-sm text-gray-600">Ir para:</span>
+                                            <form method="GET" action="{{ request()->url() }}" class="flex items-center space-x-1">
+                                                @foreach(request()->except('page') as $key => $value)
+                                                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                                                @endforeach
+                                                <input type="number" 
+                                                       name="page" 
+                                                       min="1" 
+                                                       max="{{ $lastPage }}" 
+                                                       value="{{ $currentPage }}"
+                                                       class="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                       onchange="this.form.submit()">
+                                                <button type="submit" class="px-3 py-1 text-sm text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700">
+                                                    <i class="fas fa-arrow-right"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -1061,6 +1206,147 @@ document.addEventListener('click', function(event) {
     if (event.target === modalCancelar) {
         fecharModalCancelarConfirmacao();
     }
+});
+
+// Controle de filtros de lote em cascata
+$(document).ready(function() {
+    const $entidadeTipo = $('#entidade_tipo');
+    const $filtrosLote = $('#filtros_lote');
+    const $filtroEmpreendimento = $('#filtro_empreendimento');
+    const $filtroQuadra = $('#filtro_quadra');
+    const $filtroLote = $('#filtro_lote');
+
+    // Mostrar/ocultar filtros de lote baseado no tipo de entidade
+    function toggleFiltrosLote() {
+        if ($entidadeTipo.val() === '{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}') {
+            $filtrosLote.removeClass('hidden');
+        } else {
+            $filtrosLote.addClass('hidden');
+            // Limpar valores quando ocultar (apenas se não houver loteInfo)
+            @if(empty($loteInfo))
+                $filtroEmpreendimento.val('');
+                $filtroQuadra.val('').prop('disabled', true).addClass('bg-gray-50').removeClass('bg-white').html('<option value="">Selecione primeiro o empreendimento</option>');
+                $filtroLote.val('').prop('disabled', true).addClass('bg-gray-50').removeClass('bg-white').html('<option value="">Selecione primeiro a quadra</option>');
+            @endif
+        }
+    }
+
+    // Carregar quadras quando selecionar empreendimento
+    $filtroEmpreendimento.on('change', function() {
+        const empreendimentoId = $(this).val();
+        
+        if (empreendimentoId) {
+            $filtroQuadra.prop('disabled', true).addClass('bg-gray-50').html('<option value="">Carregando...</option>');
+            $.ajax({
+                url: `/api/quadras/${empreendimentoId}`,
+                method: 'GET',
+                success: function(quadras) {
+                    $filtroQuadra.prop('disabled', false).removeClass('bg-gray-50').addClass('bg-white').html('<option value="">Selecione a quadra</option>');
+                    quadras.forEach(function(quadra) {
+                        $filtroQuadra.append(`<option value="${quadra.id}">${quadra.nome}</option>`);
+                    });
+                },
+                error: function() {
+                    $filtroQuadra.prop('disabled', true).addClass('bg-gray-50').html('<option value="">Erro ao carregar quadras</option>');
+                }
+            });
+        } else {
+            $filtroQuadra.val('').prop('disabled', true).addClass('bg-gray-50').removeClass('bg-white').html('<option value="">Selecione primeiro o empreendimento</option>');
+            $filtroLote.val('').prop('disabled', true).addClass('bg-gray-50').removeClass('bg-white').html('<option value="">Selecione primeiro a quadra</option>');
+        }
+    });
+
+    // Carregar lotes quando selecionar quadra
+    $filtroQuadra.on('change', function() {
+        const quadraId = $(this).val();
+        
+        if (quadraId) {
+            $filtroLote.prop('disabled', true).addClass('bg-gray-50').html('<option value="">Carregando...</option>');
+            $.ajax({
+                url: `/api/lotes/${quadraId}`,
+                method: 'GET',
+                success: function(lotes) {
+                    $filtroLote.prop('disabled', false).removeClass('bg-gray-50').addClass('bg-white').html('<option value="">Selecione o lote</option>');
+                    lotes.forEach(function(lote) {
+                        $filtroLote.append(`<option value="${lote.id}">${lote.nome || lote.id}</option>`);
+                    });
+                },
+                error: function() {
+                    $filtroLote.prop('disabled', true).addClass('bg-gray-50').html('<option value="">Erro ao carregar lotes</option>');
+                }
+            });
+        } else {
+            $filtroLote.val('').prop('disabled', true).addClass('bg-gray-50').removeClass('bg-white').html('<option value="">Selecione primeiro a quadra</option>');
+        }
+    });
+
+    // Quando selecionar um lote, atualizar o campo entidade_id oculto
+    $filtroLote.on('change', function() {
+        const loteId = $(this).val();
+        // Criar ou atualizar campo hidden para entidade_id
+        let $entidadeIdInput = $('input[name="entidade_id"]');
+        if ($entidadeIdInput.length === 0) {
+            $entidadeIdInput = $('<input>').attr({
+                type: 'hidden',
+                name: 'entidade_id'
+            });
+            $('form').append($entidadeIdInput);
+        }
+        $entidadeIdInput.val(loteId);
+    });
+
+    // Garantir que entidade_id seja preenchido antes de submeter o formulário
+    // E desabilitar campos desnecessários quando tipo for Loteamento
+    $('form').on('submit', function(e) {
+        if ($entidadeTipo.val() === '{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}') {
+            const loteId = $filtroLote.val();
+            if (loteId) {
+                // Criar ou atualizar campo hidden para entidade_id com o valor do lote
+                let $entidadeIdInput = $('input[name="entidade_id"]');
+                if ($entidadeIdInput.length === 0) {
+                    $entidadeIdInput = $('<input>').attr({
+                        type: 'hidden',
+                        name: 'entidade_id'
+                    });
+                    $(this).append($entidadeIdInput);
+                }
+                $entidadeIdInput.val(loteId);
+                
+                // Desabilitar campos desnecessários para não serem enviados na URL quando tipo for Loteamento
+                $filtroEmpreendimento.prop('disabled', true);
+                $filtroQuadra.prop('disabled', true);
+                $filtroLote.prop('disabled', true);
+            }
+        } else {
+            // Reabilitar campos se não for tipo Loteamento
+            $filtroEmpreendimento.prop('disabled', false);
+            $filtroQuadra.prop('disabled', false);
+            $filtroLote.prop('disabled', false);
+        }
+    });
+
+    // Inicializar ao carregar a página
+    toggleFiltrosLote();
+    $entidadeTipo.on('change', toggleFiltrosLote);
+
+    // Se já houver entidade_id quando tipo for Loteamento, os selects já foram preenchidos no backend
+    // Apenas garantir que os selects estejam habilitados e sincronizados
+    @if(!empty($loteInfo))
+        // Os selects já foram preenchidos no HTML, apenas garantir que estejam habilitados
+        $filtroQuadra.prop('disabled', false).removeClass('bg-gray-50').addClass('bg-white');
+        $filtroLote.prop('disabled', false).removeClass('bg-gray-50').addClass('bg-white');
+        
+        // Garantir que o campo hidden entidade_id esteja preenchido
+        let $entidadeIdInput = $('input[name="entidade_id"]');
+        if ($entidadeIdInput.length === 0) {
+            $entidadeIdInput = $('<input>').attr({
+                type: 'hidden',
+                name: 'entidade_id'
+            });
+            $('form').append($entidadeIdInput);
+        }
+        $entidadeIdInput.val('{{ $loteInfo['lote_id'] }}');
+    @endif
 });
 
 // Funções para limpar filtros

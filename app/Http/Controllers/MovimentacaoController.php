@@ -51,6 +51,11 @@ class MovimentacaoController extends Controller
         $filtroVencimentoFim = $request->get('vencimento_fim', '');
         $filtroParcelaCodigo = $request->get('parcela_codigo', '');
         $filtroEntidadeTipo = $request->get('entidade_tipo', '');
+        $filtroEntidadeId = $request->get('entidade_id', '');
+
+        // Se o tipo for Loteamento (5), o entidade_id já contém o lote_id
+        // Não precisamos dos filtros intermediários (empreendimento, quadra, lote)
+        // Apenas usamos o entidade_id diretamente
 
         $query = Movimentacao::daEmpresa($empresaAtual->id)
             ->porTipo($tipoEnum)
@@ -89,6 +94,11 @@ class MovimentacaoController extends Controller
             $query->where('entidade_tipo', $filtroEntidadeTipo);
         }
 
+        // Filtro por ID de entidade
+        if (!empty($filtroEntidadeId)) {
+            $query->where('entidade_id', $filtroEntidadeId);
+        }
+
         // Ordenação tri-state
         $sortBy = $request->get('sort_by');
         $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
@@ -106,6 +116,20 @@ class MovimentacaoController extends Controller
 
         $movimentacoes = $query->paginate(15);
 
+        // Preservar filtros na paginação
+        $movimentacoes->appends([
+            'filtro' => $filtroCard,
+            'situacao' => $filtroSituacao,
+            'descricao' => $filtroDescricao,
+            'vencimento_inicio' => $filtroVencimentoInicio,
+            'vencimento_fim' => $filtroVencimentoFim,
+            'parcela_codigo' => $filtroParcelaCodigo,
+            'entidade_tipo' => $filtroEntidadeTipo,
+            'entidade_id' => $filtroEntidadeId,
+            'sort_by' => $sortBy,
+            'sort_direction' => $sortDirection,
+        ]);
+
         // Buscar total de parcelas para cada movimentação que tem parcela_codigo
         $parcelasTotais = [];
         foreach ($movimentacoes as $movimentacao) {
@@ -119,8 +143,17 @@ class MovimentacaoController extends Controller
             }
         }
 
-        // Calcular resumos para os cards
-        $resumo = $this->calcularResumos($empresaAtual->id, $tipoEnum);
+        // Calcular resumos para os cards (considerando os filtros aplicados)
+        $resumo = $this->calcularResumos(
+            $empresaAtual->id,
+            $tipoEnum,
+            $filtroDescricao,
+            $filtroVencimentoInicio,
+            $filtroVencimentoFim,
+            $filtroParcelaCodigo,
+            $filtroEntidadeTipo,
+            $filtroEntidadeId
+        );
 
         $titulo = $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -129,10 +162,64 @@ class MovimentacaoController extends Controller
         $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
         $contasBancarias = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
 
+        // Buscar empreendimentos para filtro de lote
+        $empreendimentos = \App\Models\Empreendimento::daEmpresa($empresaAtual->id)->orderBy('nome')->get();
+
+        // Se houver entidade_id e tipo for Loteamento, buscar informações do lote para preencher os filtros
+        $loteInfo = null;
+        $quadrasParaFiltro = collect();
+        $lotesParaFiltro = collect();
+
+        if ($filtroEntidadeTipo == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value && !empty($filtroEntidadeId)) {
+            $lote = \App\Models\Lote::where('id', $filtroEntidadeId)
+                ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                    $q->where('empresa_id', $empresaAtual->id);
+                })
+                ->with(['quadra', 'empreendimento'])
+                ->first();
+
+            if ($lote) {
+                $loteInfo = [
+                    'empreendimento_id' => $lote->empreendimento_id,
+                    'quadra_id' => $lote->quadra_id,
+                    'lote_id' => $lote->id,
+                ];
+
+                // Buscar quadras do empreendimento
+                if ($lote->empreendimento_id) {
+                    $quadrasParaFiltro = \App\Models\Quadra::where('empreendimento_id', $lote->empreendimento_id)
+                        ->orderBy('nome')
+                        ->get(['id', 'nome']);
+                }
+
+                // Buscar lotes da quadra
+                if ($lote->quadra_id) {
+                    $lotesParaFiltro = \App\Models\Lote::where('quadra_id', $lote->quadra_id)
+                        ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                            $q->where('empresa_id', $empresaAtual->id);
+                        })
+                        ->orderBy('nome')
+                        ->get(['id', 'nome']);
+                }
+            }
+        }
+
+        // dd(
+        //     vsprintf(
+        //         str_replace('?', '%s', $query->toSql()),
+        //         collect($query->getBindings())->map(function ($binding) {
+        //             return is_numeric($binding) ? $binding : "'{$binding}'";
+        //         })->toArray()
+        //     )
+        // );
+
         return view('movimentacao.index', compact(
             'movimentacoes',
             'titulo',
             'tipoCor',
+            'loteInfo',
+            'quadrasParaFiltro',
+            'lotesParaFiltro',
             'tipo',
             'resumo',
             'filtroCard',
@@ -145,6 +232,7 @@ class MovimentacaoController extends Controller
             'parcelasTotais',
             'formasPagamento',
             'contasBancarias',
+            'empreendimentos',
             'sortBy',
             'sortDirection'
         ));
@@ -182,6 +270,9 @@ class MovimentacaoController extends Controller
         $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $lotes = \App\Models\Lote::whereHas('empreendimento', function($q) use ($empresaAtual) {
+            $q->where('empresa_id', $empresaAtual->id);
+        })->orderBy('nome')->get();
 
         $titulo = 'Nova ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -195,6 +286,7 @@ class MovimentacaoController extends Controller
             'fornecedores',
             'funcionarios',
             'transportadoras',
+            'lotes',
             'titulo',
             'tipoCor',
             'tipo'
@@ -236,7 +328,7 @@ class MovimentacaoController extends Controller
                 'plano_conta_id' => 'required|exists:plano_conta,id',
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
+                'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'informacao_complementar' => 'nullable|string',
@@ -273,7 +365,7 @@ class MovimentacaoController extends Controller
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
+                'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'vencimento' => 'required|date',
@@ -702,6 +794,9 @@ class MovimentacaoController extends Controller
         $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $lotes = \App\Models\Lote::whereHas('empreendimento', function($q) use ($empresaAtual) {
+            $q->where('empresa_id', $empresaAtual->id);
+        })->orderBy('nome')->get();
 
         $titulo = 'Editar ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -714,6 +809,7 @@ class MovimentacaoController extends Controller
             'fornecedores',
             'funcionarios',
             'transportadoras',
+            'lotes',
             'formasPagamento',
             'contasEmpresa',
             'titulo',
@@ -1007,43 +1103,71 @@ class MovimentacaoController extends Controller
     }
 
     /**
-     * Calcular resumos para os cards
+     * Calcular resumos para os cards (considerando filtros aplicados)
      */
-    private function calcularResumos($empresaId, $tipoEnum)
+    private function calcularResumos($empresaId, $tipoEnum, $filtroDescricao = '', $filtroVencimentoInicio = '', $filtroVencimentoFim = '', $filtroParcelaCodigo = '', $filtroEntidadeTipo = '', $filtroEntidadeId = '')
     {
         $hoje = now()->toDateString();
 
+        // Função auxiliar para aplicar filtros comuns
+        $aplicarFiltrosComuns = function($query) use ($filtroDescricao, $filtroVencimentoInicio, $filtroVencimentoFim, $filtroParcelaCodigo, $filtroEntidadeTipo, $filtroEntidadeId) {
+            if (!empty($filtroDescricao)) {
+                $query->where('descricao', 'LIKE', '%' . $filtroDescricao . '%');
+            }
+            if (!empty($filtroVencimentoInicio)) {
+                $query->where('vencimento', '>=', $filtroVencimentoInicio);
+            }
+            if (!empty($filtroVencimentoFim)) {
+                $query->where('vencimento', '<=', $filtroVencimentoFim);
+            }
+            if (!empty($filtroParcelaCodigo)) {
+                $query->where('parcela_codigo', $filtroParcelaCodigo);
+            }
+            if (!empty($filtroEntidadeTipo)) {
+                $query->where('entidade_tipo', $filtroEntidadeTipo);
+            }
+            if (!empty($filtroEntidadeId)) {
+                $query->where('entidade_id', $filtroEntidadeId);
+            }
+            return $query;
+        };
+
         // Vencidos (vencimento < hoje e situação != PAGA)
-        $vencidos = Movimentacao::daEmpresa($empresaId)
+        $queryVencidos = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', '<', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryVencidos);
+        $vencidos = $queryVencidos->sum('valor_total');
 
         // Vence hoje (vencimento = hoje e situação != PAGA)
-        $venceHoje = Movimentacao::daEmpresa($empresaId)
+        $queryVenceHoje = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryVenceHoje);
+        $venceHoje = $queryVenceHoje->sum('valor_total');
 
         // A vencer (vencimento > hoje e situação != PAGA)
-        $aVencer = Movimentacao::daEmpresa($empresaId)
+        $queryAVencer = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', '>', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryAVencer);
+        $aVencer = $queryAVencer->sum('valor_total');
 
         // Pagos (situação = PAGA)
-        $pagos = Movimentacao::daEmpresa($empresaId)
+        $queryPagos = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
-            ->where('situacao', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryPagos);
+        $pagos = $queryPagos->sum('valor_total');
 
-        // Total geral
-        $total = Movimentacao::daEmpresa($empresaId)
-            ->porTipo($tipoEnum)
-            ->sum('valor_total');
+        // Total geral (considerando todos os filtros)
+        $queryTotal = Movimentacao::daEmpresa($empresaId)
+            ->porTipo($tipoEnum);
+        $aplicarFiltrosComuns($queryTotal);
+        $total = $queryTotal->sum('valor_total');
 
         return [
             'vencidos' => $vencidos,
@@ -1299,6 +1423,80 @@ class MovimentacaoController extends Controller
                 'message' => 'Erro ao reativar movimentação: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Buscar quadras por empreendimento (AJAX)
+     */
+    public function getQuadras(\App\Models\Empreendimento $empreendimento)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            return response()->json([], 403);
+        }
+
+        $quadras = \App\Models\Quadra::where('empreendimento_id', $empreendimento->id)
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+
+        return response()->json($quadras);
+    }
+
+    /**
+     * Buscar lotes por quadra (AJAX)
+     */
+    public function getLotes(\App\Models\Quadra $quadra)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            return response()->json([], 403);
+        }
+
+        $lotes = \App\Models\Lote::where('quadra_id', $quadra->id)
+            ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                $q->where('empresa_id', $empresaAtual->id);
+            })
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+
+        return response()->json($lotes);
+    }
+
+    /**
+     * Buscar informações do lote por ID (AJAX) - para preencher filtros quando já houver entidade_id
+     */
+    public function getLoteInfo($loteId)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            return response()->json([], 403);
+        }
+
+        $lote = \App\Models\Lote::where('id', $loteId)
+            ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                $q->where('empresa_id', $empresaAtual->id);
+            })
+            ->with(['quadra', 'empreendimento'])
+            ->first();
+
+        if (!$lote) {
+            return response()->json([], 404);
+        }
+
+        return response()->json([
+            'lote' => [
+                'id' => $lote->id,
+                'nome' => $lote->nome
+            ],
+            'quadra' => [
+                'id' => $lote->quadra_id,
+                'nome' => $lote->quadra->nome ?? null
+            ],
+            'empreendimento' => [
+                'id' => $lote->empreendimento_id,
+                'nome' => $lote->empreendimento->nome ?? null
+            ]
+        ]);
     }
 }
 

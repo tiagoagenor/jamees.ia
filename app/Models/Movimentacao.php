@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MovimentacaoSituacaoEnum;
 use App\Enums\MovimentacaoTipoEnum;
+use App\Enums\EntidadeTipoEnum;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -121,11 +122,11 @@ class Movimentacao extends Model
         }
 
         return match($this->entidade_tipo) {
-            1 => Cliente::find($this->entidade_id),
-            2 => Fornecedor::find($this->entidade_id),
-            3 => Funcionario::find($this->entidade_id),
-            4 => Transportadora::find($this->entidade_id),
-            5 => Entidade::find($this->entidade_id), // Loteamento
+            EntidadeTipoEnum::CLIENTE->value => Cliente::find($this->entidade_id),
+            EntidadeTipoEnum::FORNECEDOR->value => Fornecedor::find($this->entidade_id),
+            EntidadeTipoEnum::FUNCIONARIO->value => Funcionario::find($this->entidade_id),
+            EntidadeTipoEnum::TRANSPORTADORA->value => Transportadora::find($this->entidade_id),
+            EntidadeTipoEnum::LOTEAMENTO->value => \App\Models\Lote::find($this->entidade_id), // Loteamento (agora usa Lote diretamente)
             default => null,
         };
     }

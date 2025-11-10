@@ -1083,64 +1083,6 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             return strcmp($a['vencimento'], $b['vencimento']);
         });
 
-        // Calcular o valor total que deve ser pago em parcelas (valor do lote - entrada)
-        $valorTotalPagar = $valorLote - $valorEntrada;
-
-        // Calcular a soma atual de todas as parcelas
-        $somaAtualParcelas = 0;
-        foreach ($parcelas as $parcela) {
-            $somaAtualParcelas += $parcela['valor'];
-        }
-
-        // Calcular a diferença (pode ser positiva ou negativa devido a arredondamentos)
-        $diferenca = $valorTotalPagar - $somaAtualParcelas;
-
-        // Se houver diferença, ajustar na primeira parcela mensal
-        if (abs($diferenca) > 0.001) { // Tolerância de 0.001 para evitar problemas de ponto flutuante
-            // Encontrar a primeira parcela mensal (com data mais próxima)
-            $primeiraParcelaMensalIndex = null;
-            $primeiraDataMensal = null;
-
-            foreach ($parcelas as $index => $parcela) {
-                if ($parcela['tipo'] === 'Mensal') {
-                    // Verificar se é a primeira parcela mensal (data mais próxima)
-                    if ($primeiraDataMensal === null || $parcela['vencimento'] < $primeiraDataMensal) {
-                        $primeiraDataMensal = $parcela['vencimento'];
-                        $primeiraParcelaMensalIndex = $index;
-                    }
-                }
-            }
-
-            // Se encontrou a primeira parcela mensal, ajustar seu valor
-            if ($primeiraParcelaMensalIndex !== null) {
-                $valorAtualPrimeira = $parcelas[$primeiraParcelaMensalIndex]['valor'];
-                $valorNovoPrimeira = $valorAtualPrimeira + $diferenca;
-
-                // Garantir que não seja negativa
-                if ($valorNovoPrimeira < 0) {
-                    $valorNovoPrimeira = 0;
-                }
-
-                // Atualizar o valor da primeira parcela
-                $parcelas[$primeiraParcelaMensalIndex]['valor'] = round($valorNovoPrimeira, 2);
-
-                // Recalcular valor_sem_juros e valor_juros da primeira parcela
-                if ($jurosPorParcela > 0) {
-                    // Reverter o cálculo para obter o valor base
-                    // valorComJuros = valorBase * (1 + jurosPorParcela / 100)
-                    // valorBase = valorComJuros / (1 + jurosPorParcela / 100)
-                    $valorBasePrimeira = $valorNovoPrimeira / (1 + ($jurosPorParcela / 100));
-                    $valorJurosPrimeira = $valorNovoPrimeira - $valorBasePrimeira;
-
-                    $parcelas[$primeiraParcelaMensalIndex]['valor_sem_juros'] = round($valorBasePrimeira, 2);
-                    $parcelas[$primeiraParcelaMensalIndex]['valor_juros'] = round($valorJurosPrimeira, 2);
-                } else {
-                    $parcelas[$primeiraParcelaMensalIndex]['valor_sem_juros'] = round($valorNovoPrimeira, 2);
-                    $parcelas[$primeiraParcelaMensalIndex]['valor_juros'] = 0;
-                }
-            }
-        }
-
         // Renumerar parcelas mensais e anuais após ordenação
         $contadorMensal = 1;
         $contadorAnual = 1;
@@ -1463,6 +1405,7 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             'parcelas.*.valor' => 'required|numeric|min:0.01',
             'parcelas.*.valor_sem_juros' => 'required|numeric|min:0',
             'parcelas.*.vencimento' => 'required|date',
+            'valor_entrada' => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -1471,22 +1414,9 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             // Buscar cliente
             $cliente = \App\Models\Cliente::findOrFail($validated['cliente_id']);
 
-            // Criar ou buscar entidade do tipo loteamento vinculada ao lote
-            $entidadeLoteamento = \App\Models\Entidade::firstOrCreate(
-                [
-                    'empresa_id' => $empresaAtual->id,
-                    'tipo_relacionamento' => \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value,
-                    'documento' => 'LOTE-' . $lote->id,
-                ],
-                [
-                    'nome' => 'Lote ' . ($lote->nome ?? $lote->id) . ' - ' . ($empreendimento->nome ?? ''),
-                    'nome_fantasia' => 'Lote ' . ($lote->nome ?? $lote->id),
-                    'razao_social' => 'Lote ' . ($lote->nome ?? $lote->id) . ' - ' . ($empreendimento->nome ?? ''),
-                    'tipo_pessoa' => 1, // PF
-                    'status' => 1, // Ativo
-                    'observacao' => 'Lote ID: ' . $lote->id . ' - Empreendimento: ' . ($empreendimento->nome ?? ''),
-                ]
-            );
+
+
+
 
             // Buscar campos necessários (primeiros disponíveis)
             $planoConta = \App\Models\PlanoConta::daEmpresa($empresaAtual->id)->first();
@@ -1520,9 +1450,48 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             // Criar descrição base
             $descricaoBase = 'Venda Lote ' . ($lote->nome ?? $lote->id) . ' - ' . $cliente->nome;
 
-            // Criar movimentação para cada parcela
+            // Verificar se há entrada
+            $valorEntrada = floatval($validated['valor_entrada'] ?? 0);
+            $temEntrada = $valorEntrada > 0;
+
+            // Se houver entrada, criar movimentação separada para entrada (sem parcela_codigo)
+            if ($temEntrada) {
+                \App\Models\Movimentacao::create([
+                    'id' => \Illuminate\Support\Str::uuid(),
+                    'empresa_id' => $empresaAtual->id,
+                    'plano_conta_id' => $planoConta->id,
+                    'centro_custo_id' => null,
+                    'forma_pagamento_id' => $formaPagamento->id,
+                    'conta_empresa_id' => $contaEmpresa->id,
+                    'situacao' => \App\Enums\MovimentacaoSituacaoEnum::PAGA, // Entrada é paga na hora
+                    'tipo' => \App\Enums\MovimentacaoTipoEnum::RECEBER,
+                    'parcela_codigo' => null, // Entrada não tem parcela_codigo
+                    'numero_parcela' => null, // Entrada não tem número de parcela
+                    'entidade_tipo' => \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value,
+                    'entidade_id' => $lote->id,
+                    'descricao' => $descricaoBase . ' - Entrada',
+                    'vencimento' => now()->toDateString(),
+                    'observacao' => null,
+                    'informacao_complementar' => 'Cliente: ' . $cliente->nome . ' | Lote: ' . ($lote->nome ?? $lote->id) . ' | Entrada',
+                    'valor' => $valorEntrada,
+                    'juros' => 0, // Entrada não tem juros
+                    'juros_tipo' => null,
+                    'juros_forma' => null,
+                    'multa' => 0, // Entrada não tem multa
+                    'multa_forma' => null,
+                    'desconto' => 0,
+                    'valor_total' => $valorEntrada,
+                    'data_compensacao' => now()->toDateString(),
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ]);
+            }
+
+            // Criar movimentação para cada parcela (todas as parcelas, sem ignorar nenhuma)
             foreach ($validated['parcelas'] as $parcelaData) {
-                $valorParcela = floatval($parcelaData['valor_sem_juros']);
+                $numeroParcela = $parcelaData['numero'];
+                $valorSemJuros = floatval($parcelaData['valor_sem_juros']);
+                $valorComJuros = floatval($parcelaData['valor']); // Valor com juros já calculado
                 $vencimento = \Carbon\Carbon::parse($parcelaData['vencimento']);
                 $hoje = \Carbon\Carbon::now()->startOfDay();
                 $estaVencida = $vencimento->lt($hoje);
@@ -1534,7 +1503,7 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
                 if ($jurosFloat > 0) {
                     // Calcular valor do juros baseado na forma (valor ou porcentagem)
                     if ($jurosForma === 'porcentagem') {
-                        $jurosCalculado = ($valorParcela * $jurosFloat) / 100;
+                        $jurosCalculado = ($valorSemJuros * $jurosFloat) / 100;
                     } else {
                         $jurosCalculado = $jurosFloat;
                     }
@@ -1553,7 +1522,7 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
                 $multaFloat = (float)$multa;
                 if ($multaFloat > 0 && $estaVencida) {
                     if ($multaForma === 'porcentagem') {
-                        $multaCalculada = ($valorParcela * $multaFloat) / 100;
+                        $multaCalculada = ($valorSemJuros * $multaFloat) / 100;
                     } else {
                         $multaCalculada = $multaFloat;
                     }
@@ -1562,12 +1531,7 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
                 // Calcular valor total seguindo a mesma lógica do MovimentacaoController
                 // valor_total = valor + juros (se aplicável) + multa - desconto
                 $desconto = 0; // Não há desconto nas vendas de lote por enquanto
-                $valorTotal = $valorParcela;
-
-                // Aplicar juros (já foi calculado considerando o tipo)
-                if ($jurosCalculado > 0) {
-                    $valorTotal += $jurosCalculado;
-                }
+                $valorTotal = $valorComJuros; // Usar valor com juros como base
 
                 // Aplicar multa (já foi calculada apenas se estiver vencida)
                 if ($multaCalculada > 0) {
@@ -1581,8 +1545,10 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
 
                 // Criar descrição da parcela
                 $tipoParcela = $parcelaData['tipo'] === 'Anual' ? 'Anual' : 'Mensal';
-                $descricao = $descricaoBase . ' - Parcela ' . $parcelaData['numero'] . ' (' . $tipoParcela . ')';
+                $descricao = $descricaoBase . ' - Parcela ' . $numeroParcela . ' (' . $tipoParcela . ')';
+                $informacaoComplementar = 'Cliente: ' . $cliente->nome . ' | Lote: ' . ($lote->nome ?? $lote->id);
 
+                // Salvar movimentação com valor COM juros
                 \App\Models\Movimentacao::create([
                     'id' => \Illuminate\Support\Str::uuid(),
                     'empresa_id' => $empresaAtual->id,
@@ -1592,23 +1558,36 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
                     'conta_empresa_id' => $contaEmpresa->id,
                     'situacao' => \App\Enums\MovimentacaoSituacaoEnum::PENDENTE,
                     'tipo' => \App\Enums\MovimentacaoTipoEnum::RECEBER,
-                    'parcela_codigo' => $parcelaCodigo,
-                    'numero_parcela' => $parcelaData['numero'],
+                    'parcela_codigo' => $parcelaCodigo, // Parcelas têm parcela_codigo
+                    'numero_parcela' => $numeroParcela,
                     'entidade_tipo' => \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value,
-                    'entidade_id' => $entidadeLoteamento->id,
+                    'entidade_id' => $lote->id,
                     'descricao' => $descricao,
                     'vencimento' => $vencimento->format('Y-m-d'),
                     'observacao' => null,
-                    'informacao_complementar' => 'Cliente: ' . $cliente->nome . ' | Lote: ' . ($lote->nome ?? $lote->id),
-                    'valor' => $valorParcela,
-                    'juros' => $juros, // Salvar o valor original do juros do empreendimento
+                    'informacao_complementar' => $informacaoComplementar,
+                    'valor' => $valorComJuros, // Salvar valor COM juros
+                    'juros' => $juros,
                     'juros_tipo' => $jurosTipo,
                     'juros_forma' => $jurosForma,
-                    'multa' => $multa, // Salvar o valor original da multa do empreendimento
+                    'multa' => $multa,
                     'multa_forma' => $multaForma,
                     'desconto' => 0,
                     'valor_total' => $valorTotal,
                     'data_compensacao' => null,
+                    'criado_em' => now(),
+                    'atualizado_em' => now(),
+                ]);
+
+                // Salvar dados da parcela na tabela lote_venda_parcela (com e sem juros)
+                \App\Models\LoteVendaParcela::create([
+                    'id' => \Illuminate\Support\Str::uuid(),
+                    'lote_id' => $lote->id,
+                    'numero' => $numeroParcela,
+                    'tipo' => $tipoParcela,
+                    'valor_sem_juros' => $valorSemJuros,
+                    'valor_com_juros' => $valorComJuros,
+                    'vencimento' => $vencimento->format('Y-m-d'),
                 ]);
             }
 
@@ -1633,7 +1612,7 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             return response()->json([
                 'success' => true,
                 'message' => 'Venda salva com sucesso! As parcelas foram criadas em contas-a-receber.',
-                'parcela_codigo' => $parcelaCodigo->toString(),
+                'parcela_codigo' => (string)$parcelaCodigo,
             ]);
 
         } catch (\Exception $e) {
@@ -1696,5 +1675,59 @@ public function venderLote(Empreendimento $empreendimento, Lote $lote)
             ->get();
 
         return view('loteamento.vendas.index', compact('vendas', 'empreendimentos', 'clientes'));
+    }
+
+    /**
+     * Exibir parcelas de uma venda de lote
+     */
+    public function vendasParcelas(\App\Models\Lote $lote)
+    {
+        if (!Auth::user()->temPermissao('empreendimento', 'visualizar')) {
+            abort(403, 'Você não tem permissão para visualizar parcelas.');
+        }
+
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            abort(403, 'Empresa atual não encontrada.');
+        }
+
+        // Verificar se o lote pertence à empresa
+        if ($lote->empreendimento->empresa_id !== $empresaAtual->id) {
+            abort(403, 'Lote não encontrado.');
+        }
+
+        // Verificar se o lote foi vendido
+        if (!$lote->status || $lote->status->nome !== 'Vendido') {
+            abort(404, 'Este lote não foi vendido.');
+        }
+
+        // Buscar parcelas da venda (tabela lote_venda_parcela) com paginação
+        $parcelas = \App\Models\LoteVendaParcela::where('lote_id', $lote->id)
+            ->orderBy('numero')
+            ->paginate(15);
+
+        // Separar parcelas mensais e anuais (usar getCollection() para trabalhar com a coleção paginada)
+        $parcelasMensais = $parcelas->getCollection()->where('tipo', 'Mensal');
+        $parcelasAnuais = $parcelas->getCollection()->where('tipo', 'Anual');
+
+        // Buscar movimentações relacionadas ao lote
+        $movimentacoes = \App\Models\Movimentacao::where('entidade_tipo', \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value)
+            ->where('entidade_id', $lote->id)
+            ->orderBy('vencimento')
+            ->get();
+
+        // Buscar movimentação de entrada (sem parcela_codigo e com "Entrada" na descrição)
+        $movimentacaoEntrada = $movimentacoes->first(function($m) {
+            return $m->parcela_codigo === null &&
+                   $m->numero_parcela === null &&
+                   str_contains($m->descricao, 'Entrada');
+        });
+
+        $valorEntrada = $movimentacaoEntrada ? $movimentacaoEntrada->valor : 0;
+
+        // Carregar relacionamentos
+        $lote->load(['empreendimento', 'quadra', 'cliente', 'status']);
+
+        return view('loteamento.vendas.parcelas', compact('lote', 'parcelas', 'parcelasMensais', 'parcelasAnuais', 'movimentacoes', 'movimentacaoEntrada', 'valorEntrada'));
     }
 }

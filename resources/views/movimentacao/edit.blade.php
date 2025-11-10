@@ -807,6 +807,7 @@
                                     <option value="2" {{ old('entidade_tipo', $movimentacao->entidade_tipo) == 2 ? 'selected' : '' }}>Fornecedor</option>
                                     <option value="3" {{ old('entidade_tipo', $movimentacao->entidade_tipo) == 3 ? 'selected' : '' }}>Funcionário</option>
                                     <option value="4" {{ old('entidade_tipo', $movimentacao->entidade_tipo) == 4 ? 'selected' : '' }}>Transportadora</option>
+                                    <option value="{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}" {{ old('entidade_tipo', $movimentacao->entidade_tipo) == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value ? 'selected' : '' }}>Loteamento</option>
                                 </select>
                                 @error('entidade_tipo')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -866,7 +867,8 @@ $(document).ready(function() {
         1: @json($clientes),
         2: @json($fornecedores),
         3: @json($funcionarios),
-        4: @json($transportadoras)
+        4: @json($transportadoras),
+        {{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}: @json($lotes)
     };
 
     // Formas de pagamento - declarar no início para estar disponível em todo o escopo

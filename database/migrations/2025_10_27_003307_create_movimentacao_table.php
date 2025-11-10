@@ -42,7 +42,7 @@ return new class extends Migration
             $table->foreign('centro_custo_id')->references('id')->on('centro_custo')->onDelete('set null');
             $table->foreign('forma_pagamento_id')->references('id')->on('forma_pagamento')->onDelete('cascade');
             $table->foreign('conta_empresa_id')->references('id')->on('conta_empresa')->onDelete('cascade');
-            $table->foreign('entidade_id')->references('id')->on('entidade')->onDelete('set null');
+            // entidade_id não tem foreign key para permitir referenciar diferentes tabelas baseado em entidade_tipo
 
             // Indexes
             $table->index('empresa_id');

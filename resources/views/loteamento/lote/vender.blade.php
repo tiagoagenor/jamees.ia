@@ -47,14 +47,14 @@
         <!-- Formulário de Venda -->
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Dados da Venda</h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <!-- Select de Clientes -->
                 <div>
                     <label for="cliente_id" class="block text-sm font-medium text-gray-700 mb-2">
                         Cliente <span class="text-red-500">*</span>
                     </label>
-                    <select name="cliente_id" id="cliente_id" 
+                    <select name="cliente_id" id="cliente_id"
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione um cliente</option>
                         @foreach($clientes as $cliente)
@@ -68,7 +68,7 @@
                     <label for="quantidade_parcelas" class="block text-sm font-medium text-gray-700 mb-2">
                         Quantidade de Parcelas <span class="text-red-500">*</span>
                     </label>
-                    <select name="quantidade_parcelas" id="quantidade_parcelas" 
+                    <select name="quantidade_parcelas" id="quantidade_parcelas"
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione a quantidade</option>
                         @for($i = 1; $i <= $maxParcelas; $i++)
@@ -84,9 +84,9 @@
                     <label for="data_primeira_parcela" class="block text-sm font-medium text-gray-700 mb-2">
                         Data da Primeira Parcela
                     </label>
-                    <input type="date" 
-                           name="data_primeira_parcela" 
-                           id="data_primeira_parcela" 
+                    <input type="date"
+                           name="data_primeira_parcela"
+                           id="data_primeira_parcela"
                            value="{{ date('Y-m-d', strtotime('+1 month')) }}"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            required>
@@ -97,10 +97,10 @@
                     <label for="valor_entrada" class="block text-sm font-medium text-gray-700 mb-2">
                         Valor de Entrada
                     </label>
-                    <input type="number" 
-                           name="valor_entrada" 
-                           id="valor_entrada" 
-                           step="0.01" 
+                    <input type="number"
+                           name="valor_entrada"
+                           id="valor_entrada"
+                           step="0.01"
                            min="{{ $empreendimento->sinal == 1 && $empreendimento->sinal_valor ? ($empreendimento->sinal_tipo == 2 ? ($lote->valor * $empreendimento->sinal_valor / 100) : $empreendimento->sinal_valor) : 0 }}"
                            value="{{ $empreendimento->sinal == 1 && $empreendimento->sinal_valor ? ($empreendimento->sinal_tipo == 2 ? ($lote->valor * $empreendimento->sinal_valor / 100) : $empreendimento->sinal_valor) : 0 }}"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -110,9 +110,9 @@
                 <!-- Checkbox Parcela Anual -->
                 <div class="flex items-end">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" 
-                               name="parcela_anual" 
-                               id="parcela_anual" 
+                        <input type="checkbox"
+                               name="parcela_anual"
+                               id="parcela_anual"
                                disabled
                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                         <span class="ml-2 text-sm font-medium text-gray-700">
@@ -128,7 +128,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-3">
                         Valores das Parcelas Anuais
                     </label>
-                    
+
                     <!-- Input para preencher todos os valores de uma vez -->
                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div class="flex items-end gap-3">
@@ -136,15 +136,15 @@
                                 <label for="valor_parcela_anual_todos" class="block text-sm font-medium text-gray-700 mb-2">
                                     Preencher todos os valores com:
                                 </label>
-                                <input type="number" 
-                                       id="valor_parcela_anual_todos" 
-                                       step="0.01" 
+                                <input type="number"
+                                       id="valor_parcela_anual_todos"
+                                       step="0.01"
                                        min="0"
                                        value="0"
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                        placeholder="0,00">
                             </div>
-                            <button type="button" 
+                            <button type="button"
                                     id="aplicarTodosValoresBtn"
                                     class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 Aplicar a Todos
@@ -163,7 +163,7 @@
 
             <!-- Botão Gerar Parcelas -->
             <div class="mb-4">
-                <button type="button" id="gerarParcelasBtn" 
+                <button type="button" id="gerarParcelasBtn"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -182,7 +182,7 @@
                         <div id="resumoValores" class="flex flex-wrap items-center gap-4 text-sm">
                             <!-- Valores serão inseridos aqui via JavaScript -->
                         </div>
-                        <button id="salvarVendaBtn" 
+                        <button id="salvarVendaBtn"
                                 class="inline-flex items-center px-6 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -191,7 +191,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Tabela de Parcelas -->
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
@@ -218,23 +218,23 @@
                         </p>
                     </div>
                     <div class="flex items-center space-x-1 flex-wrap justify-center">
-                        <button id="btnPrimeira" 
+                        <button id="btnPrimeira"
                                 class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Primeira página">
                             <i class="fas fa-angle-double-left"></i>
                         </button>
-                        <button id="btnAnterior" 
+                        <button id="btnAnterior"
                                 class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                             Anterior
                         </button>
                         <div id="paginacaoNumeros" class="flex items-center space-x-1 flex-wrap justify-center">
                             <!-- Números de página serão inseridos aqui -->
                         </div>
-                        <button id="btnProximo" 
+                        <button id="btnProximo"
                                 class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                             Próximo
                         </button>
-                        <button id="btnUltima" 
+                        <button id="btnUltima"
                                 class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Última página">
                             <i class="fas fa-angle-double-right"></i>
@@ -246,7 +246,7 @@
 
         <!-- Botão Voltar -->
         <div class="mt-6">
-            <a href="{{ route('loteamentos.mapa.view', $empreendimento->id) }}" 
+            <a href="{{ route('loteamentos.mapa.view', $empreendimento->id) }}"
                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -300,7 +300,7 @@
     document.getElementById('quantidade_parcelas').addEventListener('change', function() {
         const checkboxAnual = document.getElementById('parcela_anual');
         const quantidade = parseInt(this.value);
-        
+
         if (quantidade && quantidade > 0) {
             checkboxAnual.disabled = false;
             // Se já estava marcado, atualizar os inputs
@@ -318,7 +318,7 @@
     document.getElementById('parcela_anual').addEventListener('change', function() {
         const container = document.getElementById('valorParcelaAnualContainer');
         const quantidade = parseInt(document.getElementById('quantidade_parcelas').value);
-        
+
         if (this.checked && quantidade > 0) {
             atualizarInputsParcelasAnuais(quantidade);
             container.classList.remove('hidden');
@@ -333,18 +333,18 @@
         const totalAnos = Math.ceil(quantidadeMeses / 12);
         // O ano inicial não tem parcela anual, então são (totalAnos - 1) inputs
         const anosComParcelaAnual = totalAnos - 1;
-        
+
         const container = document.getElementById('parcelasAnuaisInputs');
         container.innerHTML = '';
-        
+
         if (anosComParcelaAnual <= 0) {
             container.innerHTML = '<p class="text-sm text-gray-500">A quantidade de parcelas selecionada não gera anos adicionais para parcela anual.</p>';
             return;
         }
-        
+
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
-        
+
         // Criar tabela mais compacta
         const table = document.createElement('table');
         table.className = 'min-w-full divide-y divide-gray-200';
@@ -352,8 +352,8 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                        <input type="checkbox" 
-                               id="selecionarTodosAnuais" 
+                        <input type="checkbox"
+                               id="selecionarTodosAnuais"
                                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                     </th>
                     <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ano</th>
@@ -364,18 +364,18 @@
             </tbody>
         `;
         container.appendChild(table);
-        
+
         const tbody = document.getElementById('parcelasAnuaisTbody');
-        
+
         for (let i = 1; i <= anosComParcelaAnual; i++) {
             const anoParcela = anoAtual + i;
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-50';
             tr.innerHTML = `
                 <td class="px-3 py-2 whitespace-nowrap text-center">
-                    <input type="checkbox" 
-                           name="parcela_anual_ativa_ano_${i}" 
-                           id="parcela_anual_ativa_ano_${i}" 
+                    <input type="checkbox"
+                           name="parcela_anual_ativa_ano_${i}"
+                           id="parcela_anual_ativa_ano_${i}"
                            data-ano="${anoParcela}"
                            checked
                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 checkbox-parcela-anual">
@@ -384,11 +384,11 @@
                     ${anoParcela}
                 </td>
                 <td class="px-3 py-2 whitespace-nowrap">
-                    <input type="number" 
-                           name="parcela_anual_ano_${i}" 
-                           id="parcela_anual_ano_${i}" 
+                    <input type="number"
+                           name="parcela_anual_ano_${i}"
+                           id="parcela_anual_ano_${i}"
                            data-ano="${anoParcela}"
-                           step="0.01" 
+                           step="0.01"
                            min="0"
                            value="0"
                            class="w-full max-w-xs border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 input-parcela-anual"
@@ -430,7 +430,7 @@
         if (e.target && e.target.id === 'aplicarTodosValoresBtn') {
             const valorTodos = parseFloat(document.getElementById('valor_parcela_anual_todos').value) || 0;
             const quantidade = parseInt(document.getElementById('quantidade_parcelas').value);
-            
+
             if (!quantidade || quantidade <= 0) {
                 Swal.fire({
                     icon: 'warning',
@@ -441,10 +441,10 @@
                 });
                 return;
             }
-            
+
             const totalAnos = Math.ceil(quantidade / 12);
             const anosComParcelaAnual = totalAnos - 1;
-            
+
             for (let i = 1; i <= anosComParcelaAnual; i++) {
                 const input = document.getElementById(`parcela_anual_ano_${i}`);
                 const checkbox = document.getElementById(`parcela_anual_ativa_ano_${i}`);
@@ -452,14 +452,14 @@
                     input.value = valorTodos.toFixed(2);
                 }
             }
-            
+
             // Feedback visual
             const btn = e.target;
             const originalText = btn.textContent;
             btn.textContent = 'Aplicado!';
             btn.classList.add('bg-green-600', 'hover:bg-green-700');
             btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            
+
             setTimeout(() => {
                 btn.textContent = originalText;
                 btn.classList.remove('bg-green-600', 'hover:bg-green-700');
@@ -518,26 +518,26 @@
         const btnGerar = document.getElementById('gerarParcelasBtn');
         btnGerar.disabled = true;
         btnGerar.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Gerando...';
-        
+
         // Obter valores do formulário
         const clienteId = document.getElementById('cliente_id').value;
         const valorEntrada = parseFloat(document.getElementById('valor_entrada').value) || 0;
         const temParcelaAnual = document.getElementById('parcela_anual').checked;
-        
+
         // Coletar parcelas anuais
         const parcelasAnuais = [];
         if (temParcelaAnual) {
             // Buscar todos os checkboxes e inputs de parcelas anuais
             const checkboxesAnuais = document.querySelectorAll('.checkbox-parcela-anual');
             const inputsAnuais = document.querySelectorAll('.input-parcela-anual');
-            
+
             checkboxesAnuais.forEach((checkbox, index) => {
                 const input = inputsAnuais[index];
                 if (checkbox && input) {
                     const ano = parseInt(input.getAttribute('data-ano')) || 0;
                     const valor = parseFloat(input.value) || 0;
                     const ativa = checkbox.checked;
-                    
+
                     parcelasAnuais.push({
                         ano: ano,
                         valor: valor,
@@ -546,10 +546,10 @@
                 }
             });
         }
-        
+
         // Obter data da primeira parcela
         const dataPrimeiraParcela = document.getElementById('data_primeira_parcela').value;
-        
+
         if (!dataPrimeiraParcela) {
             Swal.fire({
                 icon: 'warning',
@@ -570,7 +570,7 @@
             parcela_anual: temParcelaAnual,
             parcelas_anuais: parcelasAnuais
         };
-        
+
         // Fazer requisição ao backend
         fetch('{{ route("loteamentos.lote.gerar-parcelas", [$empreendimento->id, $lote->id]) }}', {
             method: 'POST',
@@ -594,17 +594,17 @@
                 btnGerar.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Gerar Parcelas';
                 return;
             }
-            
+
                // Atualizar parcelas com dados do backend
                todasParcelas = data.parcelas;
-               
+
                // Atualizar resumo de valores
                atualizarResumoValores(data.resumo);
-               
+
                paginaAtual = 1;
                exibirParcelas();
                document.getElementById('parcelasContainer').classList.remove('hidden');
-            
+
             // Reabilitar botão
             btnGerar.disabled = false;
             btnGerar.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Gerar Parcelas';
@@ -631,63 +631,68 @@
         const fim = Math.min(inicio + itensPorPagina, todasParcelas.length);
         const parcelasPagina = todasParcelas.slice(inicio, fim);
 
-           parcelasPagina.forEach(parcela => {
-               const tr = document.createElement('tr');
-               tr.className = 'hover:bg-gray-50';
-               
-               // Contar total de parcelas do mesmo tipo para exibição
-               const parcelasMesmoTipo = todasParcelas.filter(p => p.tipo === parcela.tipo);
-               const totalMesmoTipo = parcelasMesmoTipo.length;
-               
-               // Encontrar a posição real da parcela dentro do mesmo tipo
-               // Ordenar por número para garantir ordem correta
-               const parcelasOrdenadas = parcelasMesmoTipo.sort((a, b) => {
-                   // Ordenar por data de vencimento para garantir ordem correta
-                   return new Date(a.vencimento) - new Date(b.vencimento);
-               });
-               
-               // Encontrar o índice da parcela atual na lista ordenada
-               const indiceParcela = parcelasOrdenadas.findIndex(p => 
-                   p.numero === parcela.numero && 
-                   p.vencimento === parcela.vencimento &&
-                   p.valor === parcela.valor
-               );
-               
-               // O número de exibição será o índice + 1 (começa em 1)
-               const numeroExibicao = parcela.tipo === 'Mensal' 
-                   ? `${indiceParcela + 1}/${totalMesmoTipo}` 
-                   : `Anual ${indiceParcela + 1}/${totalMesmoTipo}`;
-               
-               // Cor diferente para parcela anual
-               const tipoClass = parcela.tipo === 'Anual' 
-                   ? 'bg-blue-100 text-blue-800' 
-                   : 'bg-gray-100 text-gray-800';
-               
-               // Para parcelas anuais, não há juros por parcela, então valor_sem_juros = valor
-               const valorSemJuros = parcela.valor_sem_juros !== undefined ? parcela.valor_sem_juros : parcela.valor;
-               const valorComJuros = parcela.valor;
-               
-               tr.innerHTML = `
-                   <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                       ${numeroExibicao}
-                   </td>
-                   <td class="px-4 py-3 whitespace-nowrap">
-                       <span class="px-2 py-1 text-xs font-medium rounded-full ${tipoClass}">
-                           ${parcela.tipo}
-                       </span>
-                   </td>
-                   <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                       R$ ${formatarMoeda(valorSemJuros)}
-                   </td>
-                   <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                       R$ ${formatarMoeda(valorComJuros)}
-                   </td>
-                   <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                       ${formatarData(parcela.vencimento)}
-                   </td>
-               `;
-               tbody.appendChild(tr);
-           });
+        parcelasPagina.forEach((parcela) => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50';
+
+            // Contar total de parcelas do mesmo tipo
+            const parcelasMesmoTipo = todasParcelas.filter(p => p.tipo === parcela.tipo);
+            const totalMesmoTipo = parcelasMesmoTipo.length;
+
+            // Copiar o array antes de ordenar (para não alterar o original)
+            const parcelasOrdenadas = [...parcelasMesmoTipo].sort((a, b) => {
+                return new Date(a.vencimento) - new Date(b.vencimento);
+            });
+
+            // Encontrar o índice da parcela atual por referência
+            let indiceParcela = parcelasOrdenadas.findIndex(p => p === parcela);
+
+            // Caso não encontre (por cópias de objetos), comparar pelos campos
+            if (indiceParcela === -1) {
+                indiceParcela = parcelasOrdenadas.findIndex(p =>
+                    p.numero === parcela.numero &&
+                    String(p.vencimento) === String(parcela.vencimento) &&
+                    Number(p.valor) === Number(parcela.valor)
+                );
+            }
+
+            const numeroExibicao = parcela.tipo === 'Mensal'
+                ? `${indiceParcela + 1}/${totalMesmoTipo}`
+                : `Anual ${indiceParcela + 1}/${totalMesmoTipo}`;
+
+            // Cor diferente para parcela anual
+            const tipoClass = parcela.tipo === 'Anual'
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-800';
+
+            // Para parcelas anuais, não há juros por parcela
+            const valorSemJuros = parcela.valor_sem_juros !== undefined
+                ? parcela.valor_sem_juros
+                : parcela.valor;
+
+            const valorComJuros = parcela.valor;
+
+            tr.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${numeroExibicao}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs font-medium rounded-full ${tipoClass}">
+                        ${parcela.tipo}
+                    </span>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                    R$ ${formatarMoeda(valorSemJuros)}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                    R$ ${formatarMoeda(valorComJuros)}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                    ${formatarData(parcela.vencimento)}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
 
         // Atualizar informações de paginação
         document.getElementById('mostrandoDe').textContent = todasParcelas.length > 0 ? inicio + 1 : 0;
@@ -704,6 +709,7 @@
         // Atualizar números de página
         atualizarPaginacao();
     }
+
 
     function atualizarPaginacao() {
         const totalPaginas = Math.ceil(todasParcelas.length / itensPorPagina);
@@ -750,8 +756,8 @@
         for (let i = inicioPagina; i <= fimPagina; i++) {
             const btn = document.createElement('button');
             btn.className = `px-3 py-1 text-sm border rounded-md ${
-                i === paginaAtual 
-                    ? 'bg-blue-600 text-white border-blue-600' 
+                i === paginaAtual
+                    ? 'bg-blue-600 text-white border-blue-600'
                     : 'border-gray-300 hover:bg-gray-50'
             }`;
             btn.textContent = i;
@@ -822,16 +828,16 @@
 
     function atualizarResumoValores(resumo) {
         const container = document.getElementById('resumoValores');
-        
+
         if (!resumo) {
             container.innerHTML = '';
             return;
         }
-        
+
         const valorEntrada = resumo.valor_entrada || 0;
         const somaTotalParcelas = resumo.soma_total_parcelas || 0;
         const valorTotal = resumo.valor_total || 0;
-        
+
         container.innerHTML = `
             <div class="flex items-center gap-2">
                 <span class="text-gray-600 font-medium">Valor Total:</span>
@@ -851,7 +857,7 @@
     // Event listener para botão Salvar Venda
     document.getElementById('salvarVendaBtn').addEventListener('click', function() {
         const clienteId = document.getElementById('cliente_id').value;
-        
+
         if (!clienteId) {
             Swal.fire({
                 icon: 'warning',
@@ -895,9 +901,12 @@
         btnSalvar.disabled = true;
         btnSalvar.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Salvando...';
 
+        const valorEntrada = parseFloat(document.getElementById('valor_entrada').value) || 0;
+
         const dados = {
             cliente_id: document.getElementById('cliente_id').value,
-            parcelas: todasParcelas
+            parcelas: todasParcelas,
+            valor_entrada: valorEntrada
         };
 
         fetch('{{ route("loteamentos.lote.salvar-venda", [$empreendimento->id, $lote->id]) }}', {
@@ -930,8 +939,8 @@
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#10b981'
             }).then(() => {
-                // Redirecionar para a página de vendas ou mapa
-                window.location.href = '{{ route("loteamentos.mapa.view", $empreendimento->id) }}';
+                // Redirecionar para a página de vendas
+                window.location.href = '{{ route("loteamentos.vendas.index") }}';
             });
         })
         .catch(error => {

@@ -21,5 +21,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        
+        // Definir locale padrão
+        app()->setLocale(config('app.locale', 'pt_BR'));
     }
 }
