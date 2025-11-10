@@ -136,6 +136,105 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Configurações de Juros e Multa -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Configurações de Juros e Multa</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Forma de Juros -->
+                        <div>
+                            <label for="juros_forma" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    Forma de Juros
+                                    <div class="relative group ml-2">
+                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                            <strong>Valor:</strong> Juros aplicado como valor fixo por dia (ex: R$ 5,00/dia).<br><br>
+                                            <strong>Porcentagem:</strong> Juros aplicado como percentual do valor principal por dia (ex: 0,5% ao dia sobre R$ 1.000,00 = R$ 5,00/dia).<br><br>
+                                            <em>O juros será calculado por dia de atraso.</em>
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                            </label>
+                            <select id="juros_forma" name="juros_forma"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="valor" {{ old('juros_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                <option value="porcentagem" {{ old('juros_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                            </select>
+                            @error('juros_forma')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                        <!-- Juros -->
+                        <div>
+                            <label for="juros" class="block text-sm font-medium text-gray-700 mb-1">Juros</label>
+                            <input type="number" id="juros" name="juros" value="{{ old('juros', 0) }}" step="any"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="0.00">
+                            @error('juros')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                        <!-- Forma de Multa -->
+                        <div>
+                            <label for="multa_forma" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    Forma de Multa
+                                    <div class="relative group ml-2">
+                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                            <strong>Valor:</strong> Multa aplicada como valor fixo único quando o pagamento estiver atrasado (ex: R$ 30,00).<br><br>
+                                            <strong>Porcentagem:</strong> Multa aplicada como percentual único do valor principal quando o pagamento estiver atrasado (ex: 2% sobre R$ 1.000,00 = R$ 20,00).<br><br>
+                                            <em>A multa é aplicada uma única vez quando houver atraso no pagamento.</em>
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                            </label>
+                            <select id="multa_forma" name="multa_forma"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="valor" {{ old('multa_forma', 'valor') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                <option value="porcentagem" {{ old('multa_forma') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                            </select>
+                            @error('multa_forma')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                        <!-- Multa -->
+                        <div>
+                            <label for="multa" class="block text-sm font-medium text-gray-700 mb-1">Multa</label>
+                            <input type="number" id="multa" name="multa" value="{{ old('multa', 0) }}" step="any"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="0.00">
+                            @error('multa')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                        <!-- Juros por Parcela -->
+                        <div>
+                            <label for="juros_por_parcela" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    Juros por Parcela
+                                    <div class="relative group ml-2">
+                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                            Este campo define o percentual de juros que será aplicado sobre o valor de cada parcela na hora da venda do lote (ex: 2% sobre R$ 100,00 = R$ 2,00 de juros).
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                            </label>
+                            <input type="number" id="juros_por_parcela" name="juros_por_parcela" value="{{ old('juros_por_parcela', 0) }}" step="any"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="0.00">
+                            <p class="text-xs text-gray-500 mt-1">Valor em porcentagem (ex: 2 para 2%)</p>
+                            @error('juros_por_parcela')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="mt-8 flex justify-end space-x-3">

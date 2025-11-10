@@ -51,6 +51,11 @@ class MovimentacaoController extends Controller
         $filtroVencimentoFim = $request->get('vencimento_fim', '');
         $filtroParcelaCodigo = $request->get('parcela_codigo', '');
         $filtroEntidadeTipo = $request->get('entidade_tipo', '');
+        $filtroEntidadeId = $request->get('entidade_id', '');
+
+        // Se o tipo for Loteamento (5), o entidade_id já contém o lote_id
+        // Não precisamos dos filtros intermediários (empreendimento, quadra, lote)
+        // Apenas usamos o entidade_id diretamente
 
         $query = Movimentacao::daEmpresa($empresaAtual->id)
             ->porTipo($tipoEnum)
@@ -89,6 +94,11 @@ class MovimentacaoController extends Controller
             $query->where('entidade_tipo', $filtroEntidadeTipo);
         }
 
+        // Filtro por ID de entidade
+        if (!empty($filtroEntidadeId)) {
+            $query->where('entidade_id', $filtroEntidadeId);
+        }
+
         // Ordenação tri-state
         $sortBy = $request->get('sort_by');
         $sortDirection = strtolower($request->get('sort_direction')) === 'desc' ? 'desc' : (strtolower($request->get('sort_direction')) === 'asc' ? 'asc' : null);
@@ -106,6 +116,20 @@ class MovimentacaoController extends Controller
 
         $movimentacoes = $query->paginate(15);
 
+        // Preservar filtros na paginação
+        $movimentacoes->appends([
+            'filtro' => $filtroCard,
+            'situacao' => $filtroSituacao,
+            'descricao' => $filtroDescricao,
+            'vencimento_inicio' => $filtroVencimentoInicio,
+            'vencimento_fim' => $filtroVencimentoFim,
+            'parcela_codigo' => $filtroParcelaCodigo,
+            'entidade_tipo' => $filtroEntidadeTipo,
+            'entidade_id' => $filtroEntidadeId,
+            'sort_by' => $sortBy,
+            'sort_direction' => $sortDirection,
+        ]);
+
         // Buscar total de parcelas para cada movimentação que tem parcela_codigo
         $parcelasTotais = [];
         foreach ($movimentacoes as $movimentacao) {
@@ -119,8 +143,17 @@ class MovimentacaoController extends Controller
             }
         }
 
-        // Calcular resumos para os cards
-        $resumo = $this->calcularResumos($empresaAtual->id, $tipoEnum);
+        // Calcular resumos para os cards (considerando os filtros aplicados)
+        $resumo = $this->calcularResumos(
+            $empresaAtual->id,
+            $tipoEnum,
+            $filtroDescricao,
+            $filtroVencimentoInicio,
+            $filtroVencimentoFim,
+            $filtroParcelaCodigo,
+            $filtroEntidadeTipo,
+            $filtroEntidadeId
+        );
 
         $titulo = $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -129,10 +162,64 @@ class MovimentacaoController extends Controller
         $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
         $contasBancarias = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
 
+        // Buscar empreendimentos para filtro de lote
+        $empreendimentos = \App\Models\Empreendimento::daEmpresa($empresaAtual->id)->orderBy('nome')->get();
+
+        // Se houver entidade_id e tipo for Loteamento, buscar informações do lote para preencher os filtros
+        $loteInfo = null;
+        $quadrasParaFiltro = collect();
+        $lotesParaFiltro = collect();
+
+        if ($filtroEntidadeTipo == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value && !empty($filtroEntidadeId)) {
+            $lote = \App\Models\Lote::where('id', $filtroEntidadeId)
+                ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                    $q->where('empresa_id', $empresaAtual->id);
+                })
+                ->with(['quadra', 'empreendimento'])
+                ->first();
+
+            if ($lote) {
+                $loteInfo = [
+                    'empreendimento_id' => $lote->empreendimento_id,
+                    'quadra_id' => $lote->quadra_id,
+                    'lote_id' => $lote->id,
+                ];
+
+                // Buscar quadras do empreendimento
+                if ($lote->empreendimento_id) {
+                    $quadrasParaFiltro = \App\Models\Quadra::where('empreendimento_id', $lote->empreendimento_id)
+                        ->orderBy('nome')
+                        ->get(['id', 'nome']);
+                }
+
+                // Buscar lotes da quadra
+                if ($lote->quadra_id) {
+                    $lotesParaFiltro = \App\Models\Lote::where('quadra_id', $lote->quadra_id)
+                        ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                            $q->where('empresa_id', $empresaAtual->id);
+                        })
+                        ->orderBy('nome')
+                        ->get(['id', 'nome']);
+                }
+            }
+        }
+
+        // dd(
+        //     vsprintf(
+        //         str_replace('?', '%s', $query->toSql()),
+        //         collect($query->getBindings())->map(function ($binding) {
+        //             return is_numeric($binding) ? $binding : "'{$binding}'";
+        //         })->toArray()
+        //     )
+        // );
+
         return view('movimentacao.index', compact(
             'movimentacoes',
             'titulo',
             'tipoCor',
+            'loteInfo',
+            'quadrasParaFiltro',
+            'lotesParaFiltro',
             'tipo',
             'resumo',
             'filtroCard',
@@ -145,6 +232,7 @@ class MovimentacaoController extends Controller
             'parcelasTotais',
             'formasPagamento',
             'contasBancarias',
+            'empreendimentos',
             'sortBy',
             'sortDirection'
         ));
@@ -182,6 +270,9 @@ class MovimentacaoController extends Controller
         $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $lotes = \App\Models\Lote::whereHas('empreendimento', function($q) use ($empresaAtual) {
+            $q->where('empresa_id', $empresaAtual->id);
+        })->orderBy('nome')->get();
 
         $titulo = 'Nova ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -195,6 +286,7 @@ class MovimentacaoController extends Controller
             'fornecedores',
             'funcionarios',
             'transportadoras',
+            'lotes',
             'titulo',
             'tipoCor',
             'tipo'
@@ -236,12 +328,12 @@ class MovimentacaoController extends Controller
                 'plano_conta_id' => 'required|exists:plano_conta,id',
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'informacao_complementar' => 'nullable|string',
                 'valor' => 'nullable|numeric|min:0', // No parcelamento, o valor pode vir do formulário mas não é obrigatório
-                'juros' => 'nullable|numeric|min:0',
+                'juros' => 'nullable|numeric',
                 'desconto' => 'nullable|numeric|min:0',
                 'parcelas' => 'required|array|min:1',
                 'parcelas.*.data' => 'required|date',
@@ -273,14 +365,14 @@ class MovimentacaoController extends Controller
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
                 'conta_empresa_id' => 'required|exists:conta_empresa,id',
-                'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+                'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
                 'vencimento' => 'required|date',
                 'observacao' => 'nullable|string',
                 'informacao_complementar' => 'nullable|string',
                 'valor' => 'required|numeric|min:0.01',
-                'juros' => 'nullable|numeric|min:0',
+                'juros' => 'nullable|numeric',
                 'desconto' => 'nullable|numeric|min:0',
                 'data_compensacao' => 'nullable|date',
                 'pagamento_quitado' => 'nullable|integer|in:0,1',
@@ -315,9 +407,23 @@ class MovimentacaoController extends Controller
                         : MovimentacaoSituacaoEnum::PENDENTE;
 
                     $valorParcela = floatval($parcelaData['valor']);
-                    $jurosParcela = floatval($request->juros ?? 0);
-                    $multaParcela = floatval($request->multa ?? 0);
+                    $jurosValor = floatval($request->juros ?? 0);
+                    $multaValor = floatval($request->multa ?? 0);
                     $descontoParcela = floatval($request->desconto ?? 0);
+                    $jurosForma = $request->juros_forma ?? 'valor';
+                    $multaForma = $request->multa_forma ?? 'valor';
+
+                    // Calcular juros baseado na forma
+                    $jurosParcela = $jurosValor;
+                    if ($jurosForma === 'porcentagem' && $jurosValor > 0) {
+                        $jurosParcela = ($valorParcela * $jurosValor) / 100;
+                    }
+
+                    // Calcular multa baseado na forma
+                    $multaParcela = $multaValor;
+                    if ($multaForma === 'porcentagem' && $multaValor > 0) {
+                        $multaParcela = ($valorParcela * $multaValor) / 100;
+                    }
 
                     // Calcular valor total da parcela
                     $valorTotalParcela = $valorParcela;
@@ -364,7 +470,9 @@ class MovimentacaoController extends Controller
                         'valor' => $valorParcela,
                         'juros' => $jurosParcela,
                         'juros_tipo' => $request->juros_tipo ?? null,
+                        'juros_forma' => $jurosForma,
                         'multa' => $multaParcela,
+                        'multa_forma' => $multaForma,
                         'desconto' => $descontoParcela,
                         'valor_total' => $valorTotalParcela,
                         'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? now()->toDateString() : null,
@@ -378,6 +486,20 @@ class MovimentacaoController extends Controller
             } else {
                 // Lógica normal (não parcelado)
                 $valorTotal = $request->valor;
+                $jurosForma = $request->juros_forma ?? 'valor';
+                $multaForma = $request->multa_forma ?? 'valor';
+
+                // Calcular juros baseado na forma
+                $jurosCalculado = floatval($request->juros ?? 0);
+                if ($jurosForma === 'porcentagem' && $jurosCalculado > 0) {
+                    $jurosCalculado = ($valorTotal * $jurosCalculado) / 100;
+                }
+
+                // Calcular multa baseado na forma
+                $multaCalculado = floatval($request->multa ?? 0);
+                if ($multaForma === 'porcentagem' && $multaCalculado > 0) {
+                    $multaCalculado = ($valorTotal * $multaCalculado) / 100;
+                }
 
                 // Aplicar juros apenas se:
                 // - Tipo for "fixo" (sempre aplica)
@@ -387,14 +509,14 @@ class MovimentacaoController extends Controller
                 $hoje = Carbon::now()->startOfDay();
                 $estaVencida = $vencimento->lt($hoje);
 
-                if ($request->juros) {
+                if ($jurosCalculado > 0) {
                     if ($jurosTipo === 'fixo' || ($jurosTipo === 'por_dia' && $estaVencida)) {
-                        $valorTotal += $request->juros;
+                        $valorTotal += $jurosCalculado;
                     }
                 }
 
-                if ($request->multa) {
-                    $valorTotal += $request->multa;
+                if ($multaCalculado > 0) {
+                    $valorTotal += $multaCalculado;
                 }
                 if ($request->desconto) {
                     $valorTotal -= $request->desconto;
@@ -419,9 +541,11 @@ class MovimentacaoController extends Controller
                     'observacao' => $request->observacao,
                     'informacao_complementar' => $request->informacao_complementar,
                     'valor' => $request->valor,
-                    'juros' => $request->juros ?? 0,
+                    'juros' => $jurosCalculado ?? 0,
                     'juros_tipo' => $request->juros_tipo ?? null,
-                    'multa' => $request->multa ?? 0,
+                    'juros_forma' => $jurosForma,
+                    'multa' => $multaCalculado ?? 0,
+                    'multa_forma' => $multaForma,
                     'desconto' => $request->desconto ?? 0,
                     'valor_total' => $valorTotal,
                     'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
@@ -464,7 +588,7 @@ class MovimentacaoController extends Controller
 
         $request->validate([
             'valor' => 'required|numeric|min:0.01',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',
             'tipo_parcela' => 'required|in:dividir,multiplicar',
             'repeticao' => 'required|in:quinzenal,mensal,trimestral,semestral,anual,intervalo',
@@ -475,10 +599,24 @@ class MovimentacaoController extends Controller
 
         try {
             $valor = floatval($request->valor);
-            $juros = floatval($request->juros ?? 0);
-            $multa = floatval($request->multa ?? 0);
+            $jurosValor = floatval($request->juros ?? 0);
+            $multaValor = floatval($request->multa ?? 0);
             $desconto = floatval($request->desconto ?? 0);
             $jurosTipo = $request->juros_tipo ?? 'fixo';
+            $jurosForma = $request->juros_forma ?? 'valor';
+            $multaForma = $request->multa_forma ?? 'valor';
+
+            // Calcular juros baseado na forma
+            $juros = $jurosValor;
+            if ($jurosForma === 'porcentagem' && $jurosValor > 0) {
+                $juros = ($valor * $jurosValor) / 100;
+            }
+
+            // Calcular multa baseado na forma
+            $multa = $multaValor;
+            if ($multaForma === 'porcentagem' && $multaValor > 0) {
+                $multa = ($valor * $multaValor) / 100;
+            }
 
             // Calcular valor total:
             // - Se juros_tipo for "fixo": incluir juros no cálculo
@@ -656,6 +794,9 @@ class MovimentacaoController extends Controller
         $fornecedores = \App\Models\Fornecedor::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $funcionarios = \App\Models\Funcionario::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
         $transportadoras = \App\Models\Transportadora::daEmpresa($empresaAtual->id)->ativos()->orderBy('nome')->get();
+        $lotes = \App\Models\Lote::whereHas('empreendimento', function($q) use ($empresaAtual) {
+            $q->where('empresa_id', $empresaAtual->id);
+        })->orderBy('nome')->get();
 
         $titulo = 'Editar ' . $tipoEnum->getLabel();
         $tipoCor = $tipoEnum->getColor();
@@ -668,6 +809,7 @@ class MovimentacaoController extends Controller
             'fornecedores',
             'funcionarios',
             'transportadoras',
+            'lotes',
             'formasPagamento',
             'contasEmpresa',
             'titulo',
@@ -706,14 +848,18 @@ class MovimentacaoController extends Controller
             'centro_custo_id' => 'nullable|exists:centro_custo,id',
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
             'conta_empresa_id' => 'required|exists:conta_empresa,id',
-            'entidade_tipo' => 'nullable|integer|in:1,2,3,4',
+            'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
             'entidade_id' => 'nullable|string',
             'descricao' => 'required|string|max:255',
             'vencimento' => 'required|date',
             'observacao' => 'nullable|string',
             'informacao_complementar' => 'nullable|string',
             'valor' => 'required|numeric|min:0.01',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
+            'juros_tipo' => 'nullable|string|in:fixo,por_dia',
+            'juros_forma' => 'nullable|string|in:valor,porcentagem',
+            'multa' => 'nullable|numeric',
+            'multa_forma' => 'nullable|string|in:valor,porcentagem',
             'desconto' => 'nullable|numeric|min:0',
             'situacao' => 'required|integer|in:1,2,3,4',
             'data_compensacao' => 'nullable|date',
@@ -728,23 +874,49 @@ class MovimentacaoController extends Controller
 
             $valorTotal = $request->valor;
 
-            // Aplicar juros apenas se:
-            // - Tipo for "fixo" (sempre aplica)
-            // - Tipo for "por_dia" E a movimentação estiver vencida
+            // Calcular juros baseado na forma
             $jurosTipo = $request->juros_tipo ?? 'fixo';
+            $jurosForma = $request->juros_forma ?? 'valor';
+            $multaForma = $request->multa_forma ?? 'valor';
             $vencimento = Carbon::parse($request->vencimento);
             $hoje = Carbon::now()->startOfDay();
             $estaVencida = $vencimento->lt($hoje);
 
-            if ($request->juros) {
+            // Calcular juros baseado na forma (valor original do input)
+            $jurosValor = floatval($request->juros ?? 0);
+            $jurosCalculado = 0;
+
+            if ($jurosValor > 0) {
+                // Se for porcentagem, calcular o valor baseado no valor principal
+                if ($jurosForma === 'porcentagem') {
+                    $jurosCalculado = ($request->valor * $jurosValor) / 100;
+                } else {
+                    $jurosCalculado = $jurosValor;
+                }
+
+                // Aplicar juros apenas se:
+                // - Tipo for "fixo" (sempre aplica)
+                // - Tipo for "por_dia" E a movimentação estiver vencida
                 if ($jurosTipo === 'fixo' || ($jurosTipo === 'por_dia' && $estaVencida)) {
-                    $valorTotal += $request->juros;
+                    $valorTotal += $jurosCalculado;
                 }
             }
 
-            if ($request->multa) {
-                $valorTotal += $request->multa;
+            // Calcular multa baseado na forma (valor original do input)
+            $multaValor = floatval($request->multa ?? 0);
+            $multaCalculada = 0;
+
+            if ($multaValor > 0) {
+                // Se for porcentagem, calcular o valor baseado no valor principal
+                if ($multaForma === 'porcentagem') {
+                    $multaCalculada = ($request->valor * $multaValor) / 100;
+                } else {
+                    $multaCalculada = $multaValor;
+                }
+
+                $valorTotal += $multaCalculada;
             }
+
             if ($request->desconto) {
                 $valorTotal -= $request->desconto;
             }
@@ -770,9 +942,11 @@ class MovimentacaoController extends Controller
                 'observacao' => $request->observacao,
                 'informacao_complementar' => $request->informacao_complementar,
                 'valor' => $request->valor,
-                'juros' => $request->juros ?? 0,
+                'juros' => $jurosValor, // Salvar o valor original do input, não o calculado
                 'juros_tipo' => $request->juros_tipo ?? null,
-                'multa' => $request->multa ?? 0,
+                'juros_forma' => $jurosForma,
+                'multa' => $multaValor, // Salvar o valor original do input, não o calculado
+                'multa_forma' => $multaForma,
                 'desconto' => $request->desconto ?? 0,
                 'valor_total' => $valorTotal,
                 'data_compensacao' => $situacao === MovimentacaoSituacaoEnum::PAGA ? ($request->data_compensacao ?? now()->toDateString()) : null,
@@ -800,7 +974,7 @@ class MovimentacaoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Movimentacao $movimentacao, $tipo)
+    public function destroy(Request $request, Movimentacao $movimentacao, $tipo)
     {
         // Verificar permissão
         if (!Auth::user()->temPermissao('movimentacao', 'deletar')) {
@@ -824,13 +998,25 @@ class MovimentacaoController extends Controller
 
             $movimentacao->delete();
 
+            // Preservar filtros da URL anterior
+            $queryParams = $request->query();
+
+            // Remover parâmetros que não são filtros
+            unset($queryParams['_token']);
+            unset($queryParams['_method']);
+
             return redirect()
-                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index')
+                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $queryParams)
                 ->with('success', 'Movimentação excluída com sucesso!');
 
         } catch (\Exception $e) {
+            // Preservar filtros mesmo em caso de erro
+            $queryParams = $request->query();
+            unset($queryParams['_token']);
+            unset($queryParams['_method']);
+
             return redirect()
-                ->back()
+                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $queryParams)
                 ->with('error', 'Erro ao excluir movimentação: ' . $e->getMessage());
         }
     }
@@ -917,43 +1103,71 @@ class MovimentacaoController extends Controller
     }
 
     /**
-     * Calcular resumos para os cards
+     * Calcular resumos para os cards (considerando filtros aplicados)
      */
-    private function calcularResumos($empresaId, $tipoEnum)
+    private function calcularResumos($empresaId, $tipoEnum, $filtroDescricao = '', $filtroVencimentoInicio = '', $filtroVencimentoFim = '', $filtroParcelaCodigo = '', $filtroEntidadeTipo = '', $filtroEntidadeId = '')
     {
         $hoje = now()->toDateString();
 
+        // Função auxiliar para aplicar filtros comuns
+        $aplicarFiltrosComuns = function($query) use ($filtroDescricao, $filtroVencimentoInicio, $filtroVencimentoFim, $filtroParcelaCodigo, $filtroEntidadeTipo, $filtroEntidadeId) {
+            if (!empty($filtroDescricao)) {
+                $query->where('descricao', 'LIKE', '%' . $filtroDescricao . '%');
+            }
+            if (!empty($filtroVencimentoInicio)) {
+                $query->where('vencimento', '>=', $filtroVencimentoInicio);
+            }
+            if (!empty($filtroVencimentoFim)) {
+                $query->where('vencimento', '<=', $filtroVencimentoFim);
+            }
+            if (!empty($filtroParcelaCodigo)) {
+                $query->where('parcela_codigo', $filtroParcelaCodigo);
+            }
+            if (!empty($filtroEntidadeTipo)) {
+                $query->where('entidade_tipo', $filtroEntidadeTipo);
+            }
+            if (!empty($filtroEntidadeId)) {
+                $query->where('entidade_id', $filtroEntidadeId);
+            }
+            return $query;
+        };
+
         // Vencidos (vencimento < hoje e situação != PAGA)
-        $vencidos = Movimentacao::daEmpresa($empresaId)
+        $queryVencidos = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', '<', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryVencidos);
+        $vencidos = $queryVencidos->sum('valor_total');
 
         // Vence hoje (vencimento = hoje e situação != PAGA)
-        $venceHoje = Movimentacao::daEmpresa($empresaId)
+        $queryVenceHoje = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryVenceHoje);
+        $venceHoje = $queryVenceHoje->sum('valor_total');
 
         // A vencer (vencimento > hoje e situação != PAGA)
-        $aVencer = Movimentacao::daEmpresa($empresaId)
+        $queryAVencer = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
             ->where('vencimento', '>', $hoje)
-            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', '!=', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryAVencer);
+        $aVencer = $queryAVencer->sum('valor_total');
 
         // Pagos (situação = PAGA)
-        $pagos = Movimentacao::daEmpresa($empresaId)
+        $queryPagos = Movimentacao::daEmpresa($empresaId)
             ->porTipo($tipoEnum)
-            ->where('situacao', MovimentacaoSituacaoEnum::PAGA)
-            ->sum('valor_total');
+            ->where('situacao', MovimentacaoSituacaoEnum::PAGA);
+        $aplicarFiltrosComuns($queryPagos);
+        $pagos = $queryPagos->sum('valor_total');
 
-        // Total geral
-        $total = Movimentacao::daEmpresa($empresaId)
-            ->porTipo($tipoEnum)
-            ->sum('valor_total');
+        // Total geral (considerando todos os filtros)
+        $queryTotal = Movimentacao::daEmpresa($empresaId)
+            ->porTipo($tipoEnum);
+        $aplicarFiltrosComuns($queryTotal);
+        $total = $queryTotal->sum('valor_total');
 
         return [
             'vencidos' => $vencidos,
@@ -1075,7 +1289,7 @@ class MovimentacaoController extends Controller
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
             'conta_empresa_id' => 'required|exists:conta_empresa,id',
             'valor_bruto' => 'required|numeric|min:0',
-            'juros' => 'nullable|numeric|min:0',
+            'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',
             'valor_total' => 'required|numeric|min:0',
             'observacoes' => 'nullable|string|max:1000'
@@ -1210,4 +1424,79 @@ class MovimentacaoController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Buscar quadras por empreendimento (AJAX)
+     */
+    public function getQuadras(\App\Models\Empreendimento $empreendimento)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual || $empreendimento->empresa_id !== $empresaAtual->id) {
+            return response()->json([], 403);
+        }
+
+        $quadras = \App\Models\Quadra::where('empreendimento_id', $empreendimento->id)
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+
+        return response()->json($quadras);
+    }
+
+    /**
+     * Buscar lotes por quadra (AJAX)
+     */
+    public function getLotes(\App\Models\Quadra $quadra)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            return response()->json([], 403);
+        }
+
+        $lotes = \App\Models\Lote::where('quadra_id', $quadra->id)
+            ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                $q->where('empresa_id', $empresaAtual->id);
+            })
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
+
+        return response()->json($lotes);
+    }
+
+    /**
+     * Buscar informações do lote por ID (AJAX) - para preencher filtros quando já houver entidade_id
+     */
+    public function getLoteInfo($loteId)
+    {
+        $empresaAtual = PermissionHelper::getEmpresaAtual();
+        if (!$empresaAtual) {
+            return response()->json([], 403);
+        }
+
+        $lote = \App\Models\Lote::where('id', $loteId)
+            ->whereHas('empreendimento', function($q) use ($empresaAtual) {
+                $q->where('empresa_id', $empresaAtual->id);
+            })
+            ->with(['quadra', 'empreendimento'])
+            ->first();
+
+        if (!$lote) {
+            return response()->json([], 404);
+        }
+
+        return response()->json([
+            'lote' => [
+                'id' => $lote->id,
+                'nome' => $lote->nome
+            ],
+            'quadra' => [
+                'id' => $lote->quadra_id,
+                'nome' => $lote->quadra->nome ?? null
+            ],
+            'empreendimento' => [
+                'id' => $lote->empreendimento_id,
+                'nome' => $lote->empreendimento->nome ?? null
+            ]
+        ]);
+    }
 }
+

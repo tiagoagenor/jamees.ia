@@ -30,23 +30,65 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Informações do Empreendimento -->
         <div class="lg:col-span-1">
+            <!-- Informações Básicas -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                    Informações Básicas
+                </h3>
                 <div class="space-y-3">
                     <div>
                         <p class="text-sm text-gray-500">Status</p>
                         <p class="text-sm font-medium">
                             @if($empreendimento->status == 1)
-                                <span class="text-green-600">Ativo</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Ativo</span>
                             @else
-                                <span class="text-gray-600">Inativo</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Inativo</span>
                             @endif
                         </p>
                     </div>
+                    @if($empreendimento->zoom_default)
+                        <div>
+                            <p class="text-sm text-gray-500">Zoom Padrão do Mapa</p>
+                            <p class="text-sm font-medium">{{ $empreendimento->zoom_default }}%</p>
+                        </div>
+                    @endif
+                    <div>
+                        <p class="text-sm text-gray-500">Tipo de Numeração das Quadras</p>
+                        <p class="text-sm font-medium">
+                            @if(($empreendimento->quadra_numeracao_tipo ?? 1) == 2)
+                                Alfanumérica (A, B, C, D...)
+                            @else
+                                Numérica (1, 2, 3, 4...)
+                            @endif
+                        </p>
+                    </div>
+                    @if($empreendimento->criado_em)
+                        <div>
+                            <p class="text-sm text-gray-500">Data de Criação</p>
+                            <p class="text-sm font-medium">{{ $empreendimento->criado_em->format('d/m/Y H:i') }}</p>
+                        </div>
+                    @endif
+                    @if($empreendimento->atualizado_em)
+                        <div>
+                            <p class="text-sm text-gray-500">Última Atualização</p>
+                            <p class="text-sm font-medium">{{ $empreendimento->atualizado_em->format('d/m/Y H:i') }}</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Configurações de Venda -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-dollar-sign text-green-600 mr-2"></i>
+                    Configurações de Venda
+                </h3>
+                <div class="space-y-3">
                     @if($empreendimento->valor_m2)
                         <div>
                             <p class="text-sm text-gray-500">Valor/m² Padrão</p>
-                            <p class="text-sm font-medium">R$ {{ number_format($empreendimento->valor_m2, 2, ',', '.') }}</p>
+                            <p class="text-sm font-medium text-green-600">R$ {{ number_format($empreendimento->valor_m2, 2, ',', '.') }}</p>
                         </div>
                     @endif
                     @if($empreendimento->maximo_parcelas)
@@ -55,14 +97,34 @@
                             <p class="text-sm font-medium">{{ $empreendimento->maximo_parcelas }}x</p>
                         </div>
                     @endif
-                    @if($empreendimento->sinal == 1)
+                </div>
+            </div>
+
+            <!-- Configurações de Sinal -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-hand-holding-usd text-yellow-600 mr-2"></i>
+                    Configurações de Sinal
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Sinal Obrigatório</p>
+                        <p class="text-sm font-medium">
+                            @if($empreendimento->sinal == 1)
+                                <span class="text-green-600">Sim</span>
+                            @else
+                                <span class="text-gray-600">Não</span>
+                            @endif
+                        </p>
+                    </div>
+                    @if($empreendimento->sinal == 1 && $empreendimento->sinal_valor)
                         <div>
-                            <p class="text-sm text-gray-500">Sinal</p>
+                            <p class="text-sm text-gray-500">Valor do Sinal</p>
                             <p class="text-sm font-medium">
                                 @if($empreendimento->sinal_tipo == 1)
                                     Fixo: R$ {{ number_format($empreendimento->sinal_valor, 2, ',', '.') }}
                                 @else
-                                    Porcentagem: {{ $empreendimento->sinal_valor }}%
+                                    Porcentagem: {{ number_format($empreendimento->sinal_valor, 2, ',', '.') }}%
                                 @endif
                             </p>
                         </div>
@@ -70,9 +132,91 @@
                 </div>
             </div>
 
-            @if($empreendimento->imagem)
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="{{ asset($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-auto">
+            <!-- Configurações de Juros e Multa -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-percentage text-purple-600 mr-2"></i>
+                    Configurações de Juros e Multa
+                </h3>
+                <div class="space-y-3">
+                    @if($empreendimento->juros !== null)
+                        <div>
+                            <p class="text-sm text-gray-500">Juros</p>
+                            <p class="text-sm font-medium">
+                                @if($empreendimento->juros_forma == 'porcentagem')
+                                    {{ number_format($empreendimento->juros, 6, ',', '.') }}% ao dia
+                                @else
+                                    R$ {{ number_format($empreendimento->juros, 6, ',', '.') }}/dia
+                                @endif
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">Forma: {{ $empreendimento->juros_forma == 'porcentagem' ? 'Porcentagem' : 'Valor' }}</p>
+                        </div>
+                    @else
+                        <div>
+                            <p class="text-sm text-gray-500">Juros</p>
+                            <p class="text-sm font-medium text-gray-400">Não configurado</p>
+                        </div>
+                    @endif
+                    @if($empreendimento->multa !== null)
+                        <div>
+                            <p class="text-sm text-gray-500">Multa</p>
+                            <p class="text-sm font-medium">
+                                @if($empreendimento->multa_forma == 'porcentagem')
+                                    {{ number_format($empreendimento->multa, 6, ',', '.') }}% do valor
+                                @else
+                                    R$ {{ number_format($empreendimento->multa, 6, ',', '.') }}
+                                @endif
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">Forma: {{ $empreendimento->multa_forma == 'porcentagem' ? 'Porcentagem' : 'Valor' }}</p>
+                        </div>
+                    @else
+                        <div>
+                            <p class="text-sm text-gray-500">Multa</p>
+                            <p class="text-sm font-medium text-gray-400">Não configurado</p>
+                        </div>
+                    @endif
+                    @if($empreendimento->juros_por_parcela !== null)
+                        <div>
+                            <p class="text-sm text-gray-500">Juros por Parcela</p>
+                            <p class="text-sm font-medium">
+                                {{ number_format($empreendimento->juros_por_parcela, 6, ',', '.') }}%
+                            </p>
+                            <p class="text-xs text-gray-400 mt-1">Aplicado sobre o valor de cada parcela na venda</p>
+                        </div>
+                    @else
+                        <div>
+                            <p class="text-sm text-gray-500">Juros por Parcela</p>
+                            <p class="text-sm font-medium text-gray-400">Não configurado</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Imagens -->
+            @if($empreendimento->imagem || $empreendimento->imagem_mapa)
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-images text-indigo-600 mr-2"></i>
+                        Imagens
+                    </h3>
+                    <div class="space-y-4">
+                        @if($empreendimento->imagem)
+                            <div>
+                                <p class="text-sm text-gray-500 mb-2">Imagem de Capa</p>
+                                <div class="rounded-lg overflow-hidden border border-gray-200">
+                                    <img src="{{ asset($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-auto">
+                                </div>
+                            </div>
+                        @endif
+                        @if($empreendimento->imagem_mapa)
+                            <div>
+                                <p class="text-sm text-gray-500 mb-2">Imagem do Mapa</p>
+                                <div class="rounded-lg overflow-hidden border border-gray-200">
+                                    <img src="{{ asset($empreendimento->imagem_mapa) }}" alt="Mapa do {{ $empreendimento->nome }}" class="w-full h-auto">
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             @endif
         </div>

@@ -174,7 +174,7 @@
             </div>
 
             <!-- Informações Adicionais -->
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Informações Adicionais</h3>
                 <div class="space-y-3">
                     <div>
@@ -193,6 +193,33 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Clientes que Reservaram -->
+            @if($clientesReservaram && $clientesReservaram->count() > 0)
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-users text-purple-600 mr-2"></i>
+                    Clientes que Reservaram ({{ $clientesReservaram->count() }})
+                </h3>
+                <div class="space-y-3">
+                    @foreach($clientesReservaram as $cliente)
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">{{ $cliente->nome }}</p>
+                                @if($lote->cliente_id === $cliente->id)
+                                    <span class="text-xs text-green-600 font-medium">Cliente Atual</span>
+                                @endif
+                            </div>
+                            <a href="{{ route('loteamentos.lote.comentarios.cliente', [$lote->empreendimento_id, $lote->id, $cliente->id]) }}"
+                               class="ml-3 inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700">
+                                <i class="fas fa-comments mr-1.5"></i>
+                                Ver Comentários
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

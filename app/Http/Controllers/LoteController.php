@@ -237,9 +237,20 @@ class LoteController extends Controller
             abort(403, 'Lote não encontrado.');
         }
 
-        $lote->load(['empreendimento', 'quadra', 'status']);
+        $lote->load(['empreendimento', 'quadra', 'status', 'cliente']);
 
-        return view('lote.show', compact('lote'));
+        // Buscar clientes únicos que já reservaram este lote
+        $clientesReservaram = \App\Models\LoteReservaHistorico::where('lote_id', $lote->id)
+            ->with('cliente')
+            ->get()
+            ->map(function ($reserva) {
+                return $reserva->cliente;
+            })
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        return view('lote.show', compact('lote', 'clientesReservaram'));
     }
 
     /**
