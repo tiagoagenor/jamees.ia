@@ -12,6 +12,8 @@ use App\Enums\UsuarioStatusEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 use App\Services\AuditService;
+use App\Models\Funcionario;
+use App\Models\UsuarioHorarioAcesso;
 
 class AtualizarUsuarioService
 {
@@ -44,6 +46,15 @@ class AtualizarUsuarioService
             'complemento' => 'nullable|string|max:255',
             'bairro' => 'nullable|string|max:255',
             'uf' => 'nullable|string|max:2',
+            'funcionario_id' => 'nullable|exists:funcionario,id',
+            // Horários de acesso
+            'horario_acesso_ativo' => 'nullable|boolean',
+            'hora_entrada' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i',
+            'hora_almoco_inicio' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_entrada',
+            'hora_almoco_fim' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_almoco_inicio',
+            'hora_saida' => 'nullable|required_with:horario_acesso_ativo|date_format:H:i|after:hora_almoco_fim',
+            'dias_permitidos' => 'nullable|required_with:horario_acesso_ativo|array|min:1',
+            'dias_permitidos.*' => 'nullable|in:domingo,segunda,terça,quarta,quinta,sexta,sabado',
         ]);
 
         try {
@@ -145,6 +156,68 @@ class AtualizarUsuarioService
                     'criado_em' => now(),
                     'atualizado_em' => now(),
                 ]);
+            }
+
+            // Atualizar vínculo com funcionário
+            $funcionarioAtual = $usuario->funcionario;
+
+            // Se tinha funcionário vinculado e agora não tem, remover vínculo
+            if ($funcionarioAtual && !$request->filled('funcionario_id')) {
+                $funcionarioAtual->update(['usuario_id' => null]);
+            }
+            // Se tinha funcionário diferente, trocar vínculo
+            elseif ($funcionarioAtual && $request->filled('funcionario_id') && $funcionarioAtual->id != $request->funcionario_id) {
+                $novoFuncionario = Funcionario::find($request->funcionario_id);
+                if ($novoFuncionario) {
+                    // Verificar se o novo funcionário não está vinculado a outro usuário
+                    if (!is_null($novoFuncionario->usuario_id) && $novoFuncionario->usuario_id != $usuario->id) {
+                        throw new \Exception('Este funcionário já está vinculado a outro usuário.');
+                    }
+                    // Remover vínculo do funcionário atual
+                    $funcionarioAtual->update(['usuario_id' => null]);
+                    // Criar novo vínculo
+                    $novoFuncionario->update(['usuario_id' => $usuario->id]);
+                }
+            }
+            // Se não tinha funcionário e agora tem, criar vínculo
+            elseif (!$funcionarioAtual && $request->filled('funcionario_id')) {
+                $novoFuncionario = Funcionario::find($request->funcionario_id);
+                if ($novoFuncionario) {
+                    // Verificar se o funcionário não está vinculado a outro usuário
+                    if (!is_null($novoFuncionario->usuario_id)) {
+                        throw new \Exception('Este funcionário já está vinculado a outro usuário.');
+                    }
+                    $novoFuncionario->update(['usuario_id' => $usuario->id]);
+                }
+            }
+
+            // Atualizar ou criar horário de acesso
+            $horarioAcesso = $usuario->horarioAcesso;
+            if ($request->filled('horario_acesso_ativo') && $request->horario_acesso_ativo) {
+                if ($horarioAcesso) {
+                    $horarioAcesso->update([
+                        'ativo' => true,
+                        'hora_entrada' => $request->hora_entrada,
+                        'hora_almoco_inicio' => $request->hora_almoco_inicio,
+                        'hora_almoco_fim' => $request->hora_almoco_fim,
+                        'hora_saida' => $request->hora_saida,
+                        'dias_permitidos' => $request->dias_permitidos ?? [],
+                    ]);
+                } else {
+                    UsuarioHorarioAcesso::create([
+                        'id' => Str::uuid()->toString(),
+                        'usuario_id' => $usuario->id,
+                        'ativo' => true,
+                        'hora_entrada' => $request->hora_entrada,
+                        'hora_almoco_inicio' => $request->hora_almoco_inicio,
+                        'hora_almoco_fim' => $request->hora_almoco_fim,
+                        'hora_saida' => $request->hora_saida,
+                        'dias_permitidos' => $request->dias_permitidos ?? [],
+                    ]);
+                }
+            } elseif ($horarioAcesso) {
+                // Se desativado, apenas atualizar o flag ativo
+                $horarioAcesso->update(['ativo' => false]);
             }
 
             // Registrar no audit log apenas se houve mudanças

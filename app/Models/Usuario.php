@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
@@ -190,6 +191,38 @@ class Usuario extends Model implements Authenticatable
 
         // Se o usuário atual não é admin, pode deletar apenas usuários não-admin
         return !$targetUser->isAdmin();
+    }
+
+    /**
+     * Relacionamento com Funcionario (opcional - um usuário pode ter apenas um funcionário)
+     */
+    public function funcionario(): HasOne
+    {
+        return $this->hasOne(Funcionario::class, 'usuario_id');
+    }
+
+    /**
+     * Verificar se o usuário tem funcionário associado
+     */
+    public function temFuncionario(): bool
+    {
+        return $this->funcionario()->exists();
+    }
+
+    /**
+     * Obter o funcionário associado (se houver)
+     */
+    public function getFuncionario()
+    {
+        return $this->funcionario;
+    }
+
+    /**
+     * Relacionamento com HorarioAcesso
+     */
+    public function horarioAcesso(): HasOne
+    {
+        return $this->hasOne(UsuarioHorarioAcesso::class, 'usuario_id');
     }
 
 }

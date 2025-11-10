@@ -241,6 +241,158 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <!-- Vínculo com Funcionário -->
+                    <div>
+                        <label for="funcionario_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Funcionário
+                            <span class="text-xs text-gray-500 font-normal">(opcional)</span>
+                        </label>
+                        <select id="funcionario_id"
+                                name="funcionario_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="">Selecione um funcionário (opcional)</option>
+                            @php
+                                $funcionarioVinculado = $usuario->funcionario;
+                            @endphp
+                            @foreach($funcionarios as $funcionario)
+                                <option value="{{ $funcionario->id }}" {{ old('funcionario_id', $funcionarioVinculado?->id) == $funcionario->id ? 'selected' : '' }}>
+                                    {{ $funcionario->nome_completo }} - {{ $funcionario->documento_formatado }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Vincule este usuário a um funcionário existente</p>
+                        @error('funcionario_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horários de Acesso -->
+            <div class="mb-8">
+                <h4 class="text-lg font-medium text-gray-900 mb-4">Horários de Acesso</h4>
+
+                <!-- Toggle para ativar/desativar -->
+                <div>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox"
+                               id="horario_acesso_ativo"
+                               name="horario_acesso_ativo"
+                               value="1"
+                               {{ old('horario_acesso_ativo', $usuario->horarioAcesso?->ativo ?? false) ? 'checked' : '' }}
+                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <span class="text-sm font-medium text-gray-700">Ativar controle de horário de acesso</span>
+                    </label>
+                    <p class="mt-1 text-xs text-gray-500">Quando ativo, o usuário só poderá fazer login nos horários e dias permitidos</p>
+                </div>
+
+                <!-- Campos de horário (exibidos apenas se ativo) -->
+                @php
+                    $horarioAcesso = $usuario->horarioAcesso;
+                    $horarioAtivo = old('horario_acesso_ativo', $horarioAcesso?->ativo ?? false);
+                @endphp
+                <div id="horario-acesso-campos" style="display: {{ $horarioAtivo ? 'block' : 'none' }};">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <!-- Coluna esquerda: Horários -->
+                        <div class="space-y-6">
+                            <!-- Hora de Entrada -->
+                            <div>
+                                <label for="hora_entrada" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Hora de Entrada <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time"
+                                       id="hora_entrada"
+                                       name="hora_entrada"
+                                       value="{{ old('hora_entrada', $horarioAcesso?->hora_entrada ? substr($horarioAcesso->hora_entrada, 0, 5) : '08:00') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('hora_entrada') border-red-500 @enderror">
+                                @error('hora_entrada')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Início do Almoço -->
+                            <div>
+                                <label for="hora_almoco_inicio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Início do Almoço <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time"
+                                       id="hora_almoco_inicio"
+                                       name="hora_almoco_inicio"
+                                       value="{{ old('hora_almoco_inicio', $horarioAcesso?->hora_almoco_inicio ? substr($horarioAcesso->hora_almoco_inicio, 0, 5) : '12:00') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('hora_almoco_inicio') border-red-500 @enderror">
+                                @error('hora_almoco_inicio')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Fim do Almoço -->
+                            <div>
+                                <label for="hora_almoco_fim" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Fim do Almoço <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time"
+                                       id="hora_almoco_fim"
+                                       name="hora_almoco_fim"
+                                       value="{{ old('hora_almoco_fim', $horarioAcesso?->hora_almoco_fim ? substr($horarioAcesso->hora_almoco_fim, 0, 5) : '13:00') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('hora_almoco_fim') border-red-500 @enderror">
+                                @error('hora_almoco_fim')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- Hora de Saída -->
+                            <div>
+                                <label for="hora_saida" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Hora de Saída <span class="text-red-500">*</span>
+                                </label>
+                                <input type="time"
+                                       id="hora_saida"
+                                       name="hora_saida"
+                                       value="{{ old('hora_saida', $horarioAcesso?->hora_saida ? substr($horarioAcesso->hora_saida, 0, 5) : '18:00') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 @error('hora_saida') border-red-500 @enderror">
+                                @error('hora_saida')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Coluna direita: Dias Permitidos -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Dias Permitidos <span class="text-red-500">*</span>
+                            </label>
+                            <div class="space-y-2">
+                                @php
+                                    $diasSemana = [
+                                        'domingo' => 'Domingo',
+                                        'segunda' => 'Segunda',
+                                        'terça' => 'Terça',
+                                        'quarta' => 'Quarta',
+                                        'quinta' => 'Quinta',
+                                        'sexta' => 'Sexta',
+                                        'sabado' => 'Sábado'
+                                    ];
+                                    // Valores padrão: segunda a sexta (se não houver dados salvos)
+                                    $diasPadrao = ['segunda', 'terça', 'quarta', 'quinta', 'sexta'];
+                                    $diasSelecionados = old('dias_permitidos', $horarioAcesso?->dias_permitidos ?? $diasPadrao);
+                                @endphp
+                                @foreach($diasSemana as $valor => $label)
+                                    <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                        <input type="checkbox"
+                                               name="dias_permitidos[]"
+                                               value="{{ $valor }}"
+                                               {{ in_array($valor, $diasSelecionados) ? 'checked' : '' }}
+                                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm text-gray-700">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('dias_permitidos')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -728,6 +880,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.remove();
             }
         }, 3000);
+    }
+
+    // Controlar visibilidade dos campos de horário de acesso
+    const toggleHorario = document.getElementById('horario_acesso_ativo');
+    const camposHorario = document.getElementById('horario-acesso-campos');
+
+    if (toggleHorario && camposHorario) {
+        toggleHorario.addEventListener('change', function() {
+            camposHorario.style.display = this.checked ? 'block' : 'none';
+            // Tornar campos obrigatórios apenas se ativo
+            const campos = camposHorario.querySelectorAll('input[type="time"], input[type="checkbox"][name^="dias_permitidos"]');
+            campos.forEach(campo => {
+                if (this.checked) {
+                    campo.setAttribute('required', 'required');
+                } else {
+                    campo.removeAttribute('required');
+                }
+            });
+        });
+
+        // Disparar evento na inicialização
+        toggleHorario.dispatchEvent(new Event('change'));
     }
 });
 </script>

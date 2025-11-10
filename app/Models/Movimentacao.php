@@ -35,6 +35,8 @@ class Movimentacao extends Model
         'informacao_complementar',
         'valor',
         'juros',
+        'juros_tipo',
+        'multa',
         'desconto',
         'valor_total',
         'data_compensacao',
@@ -49,6 +51,7 @@ class Movimentacao extends Model
         'data_compensacao' => 'date',
         'valor' => 'decimal:2',
         'juros' => 'decimal:2',
+        'multa' => 'decimal:2',
         'desconto' => 'decimal:2',
         'valor_total' => 'decimal:2',
         'criado_em' => 'datetime',
@@ -84,6 +87,44 @@ class Movimentacao extends Model
     public function entidade(): BelongsTo
     {
         return $this->belongsTo(Entidade::class, 'entidade_id');
+    }
+
+    public function cliente(): BelongsTo
+    {
+        return $this->belongsTo(Cliente::class, 'entidade_id');
+    }
+
+    public function fornecedor(): BelongsTo
+    {
+        return $this->belongsTo(Fornecedor::class, 'entidade_id');
+    }
+
+    public function funcionario(): BelongsTo
+    {
+        return $this->belongsTo(Funcionario::class, 'entidade_id');
+    }
+
+    public function transportadora(): BelongsTo
+    {
+        return $this->belongsTo(Transportadora::class, 'entidade_id');
+    }
+
+    /**
+     * Get the entity based on entidade_tipo
+     */
+    public function getEntidade()
+    {
+        if (!$this->entidade_id || !$this->entidade_tipo) {
+            return null;
+        }
+
+        return match($this->entidade_tipo) {
+            1 => Cliente::find($this->entidade_id),
+            2 => Fornecedor::find($this->entidade_id),
+            3 => Funcionario::find($this->entidade_id),
+            4 => Transportadora::find($this->entidade_id),
+            default => null,
+        };
     }
 
     // Scopes
@@ -198,8 +239,20 @@ class Movimentacao extends Model
     {
         $valorTotal = $this->valor;
 
+        // Aplicar juros apenas se:
+        // - Tipo for "fixo" (sempre aplica)
+        // - Tipo for "por_dia" E a movimentação estiver vencida
         if ($this->juros) {
-            $valorTotal += $this->juros;
+            $jurosTipo = $this->juros_tipo ?? 'fixo';
+            $estaVencida = $this->vencimento && $this->vencimento->format('Y-m-d') < now()->format('Y-m-d');
+
+            if ($jurosTipo === 'fixo' || ($jurosTipo === 'por_dia' && $estaVencida)) {
+                $valorTotal += $this->juros;
+            }
+        }
+
+        if ($this->multa) {
+            $valorTotal += $this->multa;
         }
 
         if ($this->desconto) {

@@ -36,7 +36,7 @@
                 @endphp
                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                     @if($empreendimento->imagem)
-                        <img src="{{ Storage::url($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-48 object-cover">
+                        <img src="{{ asset($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="w-full h-48 object-cover">
                     @else
                         <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                             <i class="fas fa-building text-gray-400 text-4xl"></i>

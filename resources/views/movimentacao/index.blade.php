@@ -68,7 +68,7 @@
 
                     <form method="GET" action="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="space-y-4">
                         <!-- Filtros Principais -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <!-- Filtro por Descrição -->
                             <div class="space-y-2">
                                 <label for="descricao" class="block text-sm font-medium text-gray-700">
@@ -98,6 +98,21 @@
                                 </select>
                             </div>
 
+                            <!-- Filtro por Tipo de Entidade -->
+                            <div class="space-y-2">
+                                <label for="entidade_tipo" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-tags text-gray-400 mr-1"></i>
+                                    Tipo de Entidade
+                                </label>
+                                <select name="entidade_tipo" id="entidade_tipo" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Todos os tipos</option>
+                                    <option value="1" {{ $filtroEntidadeTipo == '1' ? 'selected' : '' }}>Cliente</option>
+                                    <option value="2" {{ $filtroEntidadeTipo == '2' ? 'selected' : '' }}>Fornecedor</option>
+                                    <option value="3" {{ $filtroEntidadeTipo == '3' ? 'selected' : '' }}>Funcionário</option>
+                                    <option value="4" {{ $filtroEntidadeTipo == '4' ? 'selected' : '' }}>Transportadora</option>
+                                </select>
+                            </div>
+
                             <!-- Botões de Ação -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700">
@@ -118,9 +133,9 @@
                         </div>
 
                         <!-- Filtros Ativos -->
-                        @if($filtroDescricao || $filtroSituacao !== 'todos')
+                        @if($filtroDescricao || $filtroSituacao !== 'todos' || $filtroParcelaCodigo || $filtroEntidadeTipo)
                             <div class="pt-4 border-t border-gray-200">
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-2 flex-wrap gap-2">
                                     <span class="text-sm font-medium text-gray-700">Filtros ativos:</span>
                                     @if($filtroDescricao)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -136,6 +151,33 @@
                                             <i class="fas fa-toggle-on mr-1"></i>
                                             Situação: {{ $filtroSituacao === '1' ? 'Pendentes' : ($filtroSituacao === '2' ? 'Pagas' : ($filtroSituacao === '3' ? 'Vencidas' : 'Canceladas')) }}
                                             <button type="button" onclick="limparFiltroSituacao()" class="ml-1 text-green-600 hover:text-green-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </span>
+                                    @endif
+                                    @if($filtroParcelaCodigo)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            <i class="fas fa-list-ol mr-1"></i>
+                                            Parcelas do mesmo grupo
+                                            <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="ml-1 text-purple-600 hover:text-purple-800">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    @endif
+                                    @if($filtroEntidadeTipo)
+                                        @php
+                                            $tiposEntidade = [
+                                                '1' => 'Cliente',
+                                                '2' => 'Fornecedor',
+                                                '3' => 'Funcionário',
+                                                '4' => 'Transportadora'
+                                            ];
+                                            $tipoLabel = $tiposEntidade[$filtroEntidadeTipo] ?? 'Tipo';
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-tags mr-1"></i>
+                                            Tipo: {{ $tipoLabel }}
+                                            <button type="button" onclick="limparFiltroEntidadeTipo()" class="ml-1 text-yellow-600 hover:text-yellow-800">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </span>
@@ -275,7 +317,32 @@
                                 @foreach($movimentacoes as $movimentacao)
                                     <tr class="hover:bg-gray-50 {{ $loop->even ? 'bg-gray-50' : 'bg-white' }}">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ $movimentacao->descricao }}</div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ $movimentacao->descricao }}
+                                                @if($movimentacao->parcela_codigo && isset($parcelasTotais[$movimentacao->parcela_codigo]))
+                                                    @php
+                                                        $totalParcelas = $parcelasTotais[$movimentacao->parcela_codigo];
+                                                        $numeroParcela = $movimentacao->numero_parcela ?? 1;
+                                                        // Preservar outros filtros ao filtrar por parcela
+                                                        $paramsFiltro = request()->query();
+                                                        $paramsFiltro['parcela_codigo'] = $movimentacao->parcela_codigo;
+                                                        $urlFiltro = route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $paramsFiltro);
+                                                        $tooltipText = "Esta movimentação faz parte de um parcelamento. Parcela {$numeroParcela} de {$totalParcelas} parcelas. Clique para ver todas as parcelas deste grupo.";
+                                                    @endphp
+                                                    <span class="text-blue-600 relative group inline-block tooltip-container">
+                                                        <a href="{{ $urlFiltro }}" class="hover:underline hover:text-blue-800 cursor-pointer">
+                                                            ({{ $numeroParcela }}/{{ $totalParcelas }})
+                                                        </a>
+                                                        <!-- Tooltip -->
+                                                        <span class="tooltip-content absolute z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 bottom-full mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left" style="left: 0; right: auto;">
+                                                            {{ $tooltipText }}
+                                                            <div class="tooltip-arrow absolute top-full -mt-1" style="left: 16px;">
+                                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                                            </div>
+                                                        </span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $movimentacao->entidade->nome ?? '-' }}
@@ -984,6 +1051,52 @@ function limparFiltroSituacao() {
     document.getElementById('situacao').value = 'todos';
     document.querySelector('form').submit();
 }
+
+function limparFiltroEntidadeTipo() {
+    document.getElementById('entidade_tipo').value = '';
+    document.querySelector('form').submit();
+}
+
+// Posicionar tooltips dinamicamente para evitar cortes
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipContainers = document.querySelectorAll('.tooltip-container');
+
+    tooltipContainers.forEach(container => {
+        const tooltip = container.querySelector('.tooltip-content');
+        const arrow = container.querySelector('.tooltip-arrow');
+
+        if (!tooltip) return;
+
+        container.addEventListener('mouseenter', function() {
+            // Aguardar um pouco para o tooltip aparecer
+            setTimeout(() => {
+                const rect = tooltip.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const tooltipWidth = 256; // w-64 = 16rem = 256px
+
+                let leftPosition = 0;
+                let arrowLeft = 16; // left-4 = 1rem = 16px
+
+                // Verificar se o tooltip está cortado à esquerda
+                if (rect.left < 0) {
+                    leftPosition = -rect.left + 10; // Adicionar um pouco de margem
+                    arrowLeft = containerRect.left - rect.left + (containerRect.width / 2) - 4;
+                }
+                // Verificar se o tooltip está cortado à direita
+                else if (rect.right > viewportWidth) {
+                    const overflow = rect.right - viewportWidth;
+                    leftPosition = -(overflow + 10); // Adicionar um pouco de margem
+                    arrowLeft = containerRect.left - rect.left + (containerRect.width / 2) - 4;
+                }
+
+                tooltip.style.left = leftPosition + 'px';
+                tooltip.style.transform = 'translateX(0)';
+                arrow.style.left = arrowLeft + 'px';
+            }, 10);
+        });
+    });
+});
 </script>
 
 <!-- Modal de Cancelar Confirmação de Pagamento -->

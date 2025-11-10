@@ -30,27 +30,54 @@
                         </div>
 
                         <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                            <select id="status" name="status" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="1" {{ old('status', $empreendimento->status) == '1' ? 'selected' : '' }}>Ativo</option>
+                                <option value="0" {{ old('status', $empreendimento->status) == '0' ? 'selected' : '' }}>Inativo</option>
+                            </select>
+                            @error('status')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="md:col-span-2">
                             <label for="imagem" class="block text-sm font-medium text-gray-700 mb-1">Imagem</label>
                             @if($empreendimento->imagem)
                                 <div class="mb-2">
-                                    <img src="{{ Storage::url($empreendimento->imagem) }}" alt="{{ $empreendimento->nome }}" class="h-20 w-auto rounded">
+                                    <a href="{{ asset($empreendimento->imagem) }}" target="_blank"
+                                        class="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                        <i class="fas fa-image mr-2"></i>
+                                        Ver Imagem Atual
+                                        <i class="fas fa-external-link-alt ml-2 text-xs"></i>
+                                    </a>
+                                    <p class="text-xs text-gray-500 mt-1">Imagem atual salva. Selecione uma nova imagem para substituir.</p>
                                 </div>
                             @endif
-                            <input type="file" id="imagem" name="imagem" accept="image/*"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <input type="file" id="imagem" name="imagem" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                onchange="validateFileSize(this, 10)">
+                            <p class="text-xs text-gray-500 mt-1">Tamanho máximo: 10MB. Formatos aceitos: JPG, PNG, GIF, WEBP</p>
+                            <p id="imagem-error" class="text-red-500 text-xs mt-1 hidden"></p>
                             @error('imagem')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
-                        <div>
+                        <div class="md:col-span-2">
                             <label for="imagem_mapa" class="block text-sm font-medium text-gray-700 mb-1">Imagem do Mapa</label>
                             @if($empreendimento->imagem_mapa)
                                 <div class="mb-2">
-                                    <img src="{{ Storage::url($empreendimento->imagem_mapa) }}" alt="Mapa do {{ $empreendimento->nome }}" class="h-20 w-auto rounded">
+                                    <a href="{{ asset($empreendimento->imagem_mapa) }}" target="_blank"
+                                        class="inline-flex items-center px-3 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                        <i class="fas fa-map mr-2"></i>
+                                        Ver Mapa Atual
+                                        <i class="fas fa-external-link-alt ml-2 text-xs"></i>
+                                    </a>
+                                    <p class="text-xs text-gray-500 mt-1">Mapa atual salvo. Selecione um novo mapa para substituir.</p>
                                 </div>
                             @endif
-                            <input type="file" id="imagem_mapa" name="imagem_mapa" accept="image/*"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <p class="text-xs text-gray-500 mt-1">Mapa do empreendimento para visualização dos lotes</p>
+                            <input type="file" id="imagem_mapa" name="imagem_mapa" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                onchange="validateFileSize(this, 10)">
+                            <p class="text-xs text-gray-500 mt-1">Mapa do empreendimento para visualização dos lotes. Tamanho máximo: 10MB. Formatos aceitos: JPG, PNG, GIF, WEBP</p>
+                            <p id="imagem_mapa-error" class="text-red-500 text-xs mt-1 hidden"></p>
                             @error('imagem_mapa')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
@@ -61,16 +88,6 @@
                                 placeholder="180">
                             <p class="text-xs text-gray-500 mt-1">Valor padrão: 180%. Mínimo: 50%, Máximo: 300%</p>
                             @error('zoom_default')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
-                        </div>
-
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
-                            <select id="status" name="status" required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option value="1" {{ old('status', $empreendimento->status) == '1' ? 'selected' : '' }}>Ativo</option>
-                                <option value="0" {{ old('status', $empreendimento->status) == '0' ? 'selected' : '' }}>Inativo</option>
-                            </select>
-                            @error('status')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
@@ -155,6 +172,46 @@
 </div>
 
 <script>
+// Validação de tamanho de arquivo antes do envio
+function validateFileSize(input, maxSizeMB) {
+    const errorId = input.id + '-error';
+    const errorElement = document.getElementById(errorId);
+    const file = input.files[0];
+
+    if (!file) {
+        errorElement.classList.add('hidden');
+        return true;
+    }
+
+    const fileSizeMB = file.size / (1024 * 1024);
+
+    if (fileSizeMB > maxSizeMB) {
+        errorElement.textContent = `O arquivo "${file.name}" tem ${fileSizeMB.toFixed(2)}MB, mas o tamanho máximo permitido é ${maxSizeMB}MB.`;
+        errorElement.classList.remove('hidden');
+        input.value = ''; // Limpar o input
+        return false;
+    }
+
+    errorElement.classList.add('hidden');
+    return true;
+}
+
+// Validar antes de enviar o formulário
+document.querySelector('form').addEventListener('submit', function(e) {
+    const imagemInput = document.getElementById('imagem');
+    const imagemMapaInput = document.getElementById('imagem_mapa');
+
+    if (imagemInput.files.length > 0 && !validateFileSize(imagemInput, 10)) {
+        e.preventDefault();
+        return false;
+    }
+
+    if (imagemMapaInput.files.length > 0 && !validateFileSize(imagemMapaInput, 10)) {
+        e.preventDefault();
+        return false;
+    }
+});
+
 document.getElementById('sinal').addEventListener('change', function() {
     const sinalTipoContainer = document.getElementById('sinal-tipo-container');
     const sinalValorContainer = document.getElementById('sinal-valor-container');
