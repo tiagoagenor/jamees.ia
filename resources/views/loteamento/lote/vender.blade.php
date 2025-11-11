@@ -101,8 +101,8 @@
                            name="valor_entrada"
                            id="valor_entrada"
                            step="0.01"
-                           min="{{ $empreendimento->sinal == 1 && $empreendimento->sinal_valor ? ($empreendimento->sinal_tipo == 2 ? ($lote->valor * $empreendimento->sinal_valor / 100) : $empreendimento->sinal_valor) : 0 }}"
-                           value="{{ $empreendimento->sinal == 1 && $empreendimento->sinal_valor ? ($empreendimento->sinal_tipo == 2 ? ($lote->valor * $empreendimento->sinal_valor / 100) : $empreendimento->sinal_valor) : 0 }}"
+                           min="0"
+                           value="0"
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                            placeholder="0,00">
                 </div>
@@ -274,26 +274,27 @@
         multaForma: '{{ $empreendimento->multa_forma ?? 'valor' }}',
         sinal: {{ $empreendimento->sinal ?? 2 }},
         sinalTipo: {{ $empreendimento->sinal_tipo ?? 1 }},
+        sinalValorForma: '{{ $empreendimento->sinal_valor_forma ?? 'porcentagem' }}',
         sinalValor: {{ $empreendimento->sinal_valor ?? 0 }}
     };
 
-    // Calcular valor mínimo de entrada (valor do sinal configurado no empreendimento)
-    let valorMinimoEntrada = 0;
-    if (empreendimentoConfig.sinal === 1 && empreendimentoConfig.sinalValor > 0) {
-        if (empreendimentoConfig.sinalTipo === 2) {
-            // Porcentagem
-            valorMinimoEntrada = (valorLote * empreendimentoConfig.sinalValor) / 100;
-        } else {
-            // Valor fixo
-            valorMinimoEntrada = empreendimentoConfig.sinalValor;
+    // Calcular valor de entrada baseado na Forma de Valor do Sinal
+    let valorEntrada = 0;
+    if (empreendimentoConfig.sinal === 1) {
+        if (empreendimentoConfig.sinalValorForma === 'porcentagem') {
+            // Se for porcentagem, calcular 10% do valor do lote
+            valorEntrada = (valorLote * 10) / 100;
+        } else if (empreendimentoConfig.sinalValorForma === 'valor') {
+            // Se for valor, usar o valor configurado
+            valorEntrada = empreendimentoConfig.sinalValor || 0;
         }
     }
 
-    // Preencher campo de entrada com o valor mínimo e atualizar o atributo min
+    // Preencher campo de entrada com o valor calculado
     const inputEntrada = document.getElementById('valor_entrada');
-    if (valorMinimoEntrada > 0) {
-        inputEntrada.value = valorMinimoEntrada.toFixed(2);
-        inputEntrada.setAttribute('min', valorMinimoEntrada.toFixed(2));
+    if (valorEntrada > 0) {
+        inputEntrada.value = valorEntrada.toFixed(2);
+        inputEntrada.setAttribute('min', valorEntrada.toFixed(2));
     }
 
     // Habilitar/desabilitar checkbox de parcela anual baseado na quantidade de parcelas

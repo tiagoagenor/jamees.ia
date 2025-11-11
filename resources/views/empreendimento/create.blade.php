@@ -126,6 +126,30 @@
                             @error('sinal_tipo')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
+                        <div id="sinal-valor-forma-container" class="hidden">
+                            <label for="sinal_valor_forma" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    Forma de Valor do Sinal
+                                    <div class="relative group ml-2">
+                                        <i class="fas fa-info-circle text-gray-400 hover:text-gray-600 cursor-help"></i>
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal w-64 text-left invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+                                            <strong>Valor:</strong> O sinal será aplicado como valor fixo (ex: R$ 10.000,00).<br><br>
+                                            <strong>Porcentagem:</strong> O sinal será aplicado como percentual do valor total do lote (ex: 10% sobre R$ 100.000,00 = R$ 10.000,00).
+                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                                <div class="w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </span>
+                            </label>
+                            <select id="sinal_valor_forma" name="sinal_valor_forma"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="valor" {{ old('sinal_valor_forma', 'porcentagem') == 'valor' ? 'selected' : '' }}>Valor</option>
+                                <option value="porcentagem" {{ old('sinal_valor_forma', 'porcentagem') == 'porcentagem' ? 'selected' : '' }}>Porcentagem</option>
+                            </select>
+                            @error('sinal_valor_forma')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
                         <div id="sinal-valor-container" class="hidden">
                             <label for="sinal_valor" class="block text-sm font-medium text-gray-700 mb-1">Valor do Sinal</label>
                             <input type="number" id="sinal_valor" name="sinal_valor" value="{{ old('sinal_valor') }}" step="0.01" min="0"
@@ -293,13 +317,16 @@ document.querySelector('form').addEventListener('submit', function(e) {
 
 document.getElementById('sinal').addEventListener('change', function() {
     const sinalTipoContainer = document.getElementById('sinal-tipo-container');
+    const sinalValorFormaContainer = document.getElementById('sinal-valor-forma-container');
     const sinalValorContainer = document.getElementById('sinal-valor-container');
 
     if (this.value === '1') {
         sinalTipoContainer.classList.remove('hidden');
+        sinalValorFormaContainer.classList.remove('hidden');
         sinalValorContainer.classList.remove('hidden');
     } else {
         sinalTipoContainer.classList.add('hidden');
+        sinalValorFormaContainer.classList.add('hidden');
         sinalValorContainer.classList.add('hidden');
     }
 });
@@ -310,6 +337,15 @@ document.getElementById('sinal_tipo')?.addEventListener('change', function() {
         hint.textContent = 'Digite o valor fixo (ex: 10000.00)';
     } else {
         hint.textContent = 'Digite a porcentagem (ex: 10 para 10%)';
+    }
+});
+
+document.getElementById('sinal_valor_forma')?.addEventListener('change', function() {
+    const hint = document.getElementById('sinal-valor-hint');
+    if (this.value === 'valor') {
+        hint.textContent = 'Digite o valor fixo do sinal (ex: 10000.00)';
+    } else {
+        hint.textContent = 'Digite a porcentagem do sinal (ex: 10 para 10%)';
     }
 });
 

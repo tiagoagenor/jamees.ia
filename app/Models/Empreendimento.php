@@ -25,6 +25,7 @@ class Empreendimento extends Model
         'maximo_parcelas',
         'sinal',
         'sinal_tipo',
+        'sinal_valor_forma',
         'sinal_valor',
         'juros_forma',
         'juros',
