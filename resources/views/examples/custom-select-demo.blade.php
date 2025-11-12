@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/custom-select.js') }}"></script>
     <style>
         .demo-container {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -73,33 +74,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
-                    @php
-                        $fixedItems = [
-                            ['id' => 1, 'codigo' => '1.1.1', 'nome' => 'Aluguel', 'categoria' => 'Despesas administrativas e comerciais'],
-                            ['id' => 2, 'codigo' => '1.1.2', 'nome' => 'Energia Elétrica', 'categoria' => 'Despesas administrativas e comerciais'],
-                            ['id' => 3, 'codigo' => '1.1.3', 'nome' => 'Água', 'categoria' => 'Despesas administrativas e comerciais'],
-                            ['id' => 4, 'codigo' => '1.1.4', 'nome' => 'Telefone', 'categoria' => 'Despesas administrativas e comerciais'],
-                            ['id' => 5, 'codigo' => '1.1.5', 'nome' => 'Confraternizações', 'categoria' => 'Despesas administrativas e comerciais'],
-                            ['id' => 6, 'codigo' => '1.2.1', 'nome' => 'Salários', 'categoria' => 'Despesas com pessoal'],
-                            ['id' => 7, 'codigo' => '1.2.2', 'nome' => 'Encargos Sociais', 'categoria' => 'Despesas com pessoal'],
-                            ['id' => 8, 'codigo' => '1.2.3', 'nome' => 'Vale Transporte', 'categoria' => 'Despesas com pessoal'],
-                            ['id' => 9, 'codigo' => '2.1.1', 'nome' => 'Vendas', 'categoria' => 'Receitas operacionais'],
-                            ['id' => 10, 'codigo' => '2.1.2', 'nome' => 'Serviços', 'categoria' => 'Receitas operacionais'],
-                        ];
-                    @endphp
-
-                    <x-custom-select
-                        name="plano_conta_fixed"
-                        id="plano_conta_fixed"
-                        label="Plano de Contas"
-                        placeholder="Digite para buscar..."
-                        :items="$fixedItems"
-                        item-value="id"
-                        item-title="nome"
-                        item-subtitle="categoria"
-                        item-code="codigo"
-                        mode="fixed"
-                    />
+                    <!-- Container onde o select será montado -->
+                    <div id="plano_conta_fixed_container"></div>
 
                     <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                         <p class="text-sm text-gray-600 mb-2">
@@ -112,18 +88,30 @@
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
                     <div class="code-block">
-                        <pre>&lt;x-custom-select
-    name="plano_conta_fixed"
-    id="plano_conta_fixed"
-    label="Plano de Contas"
-    placeholder="Digite para buscar..."
-    :items="$fixedItems"
-    item-value="id"
-    item-title="nome"
-    item-subtitle="categoria"
-    item-code="codigo"
-    mode="fixed"
-/&gt;</pre>
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="plano_conta_fixed_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select --&gt;
+&lt;script&gt;
+    const fixedItems = [
+        {id: 1, codigo: '1.1.1', nome: 'Aluguel', categoria: 'Despesas administrativas e comerciais'},
+        {id: 2, codigo: '1.1.2', nome: 'Energia Elétrica', categoria: 'Despesas administrativas e comerciais'},
+        // ... mais itens
+    ];
+
+    window.createCustomSelect('plano_conta_fixed_container', {
+        name: 'plano_conta_fixed',
+        id: 'plano_conta_fixed',
+        label: 'Plano de Contas',
+        placeholder: 'Digite para buscar...',
+        mode: 'fixed',
+        items: fixedItems,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        itemCode: 'codigo'
+    });
+&lt;/script&gt;</pre>
                     </div>
                 </div>
             </div>
@@ -142,40 +130,76 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
-                    <x-custom-select
-                        name="plano_conta_ajax"
-                        id="plano_conta_ajax"
-                        label="Plano de Contas (AJAX)"
-                        placeholder="Digite pelo menos 2 caracteres..."
-                        mode="ajax"
-                        ajax-url="http://localhost:8000/api/custom-select/search"
-                        ajax-method="GET"
-                        min-search-length="2"
-                        load-on-open="true"
-                    />
+                    <!-- Container onde o select será montado -->
+                    <div id="plano_conta_ajax_container"></div>
 
                     <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                         <p class="text-sm text-gray-600 mb-2">
                             <strong>Valor selecionado:</strong>
                         </p>
                         <p id="ajax-value-display" class="text-sm font-mono text-gray-800">Nenhum item selecionado</p>
+
+                        <div class="mt-4 space-x-2">
+                            <button onclick="document.getElementById('plano_conta_ajax_input').click()" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                                Clicar no Input
+                            </button>
+                            <button onclick="document.getElementById('plano_conta_ajax_input').focus()" class="bg-green-500 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                                Focus no Input
+                            </button>
+                            <button onclick="testBuscarViaAjax()" class="bg-purple-500 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm">
+                                Testar buscarViaAjax
+                            </button>
+                            <button onclick="console.clear()" class="bg-gray-500 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                Limpar Console
+                            </button>
+                        </div>
+
+                        <script>
+                            function testBuscarViaAjax() {
+                                console.log('=== TESTE MANUAL buscarViaAjax ===');
+                                console.log('Função existe?', typeof window.buscarViaAjax);
+                                if (typeof window.buscarViaAjax === 'function') {
+                                    console.log('Chamando buscarViaAjax...');
+                                    window.buscarViaAjax('plano_conta_ajax', '', {
+                                        ajaxUrl: 'http://localhost:8000/api/custom-select/search',
+                                        ajaxMethod: 'GET',
+                                        itemValue: 'id',
+                                        itemTitle: 'nome',
+                                        itemSubtitle: 'categoria',
+                                        itemCode: 'codigo'
+                                    });
+                                } else {
+                                    console.error('buscarViaAjax não está definida!');
+                                }
+                            }
+                        </script>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
                     <div class="code-block">
-                        <pre>&lt;x-custom-select
-    name="plano_conta_ajax"
-    id="plano_conta_ajax"
-    label="Plano de Contas (AJAX)"
-    placeholder="Digite pelo menos 2 caracteres..."
-    mode="ajax"
-    ajax-url="http://localhost:8000/api/custom-select/search"
-    ajax-method="GET"
-    min-search-length="2"
-    load-on-open="true"
-/&gt;</pre>
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="plano_conta_ajax_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select --&gt;
+&lt;script&gt;
+    window.createCustomSelect('plano_conta_ajax_container', {
+        name: 'plano_conta_ajax',
+        id: 'plano_conta_ajax',
+        label: 'Plano de Contas (AJAX)',
+        placeholder: 'Digite pelo menos 2 caracteres...',
+        mode: 'ajax',
+        ajaxUrl: 'http://localhost:8000/api/custom-select/search',
+        ajaxMethod: 'GET',
+        minSearchLength: 2,
+        loadOnOpen: true,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        itemCode: 'codigo'
+    });
+&lt;/script&gt;</pre>
                     </div>
                 </div>
             </div>
@@ -194,37 +218,32 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
-                    <x-custom-select
-                        name="plano_conta_pre_selected"
-                        id="plano_conta_pre_selected"
-                        label="Plano de Contas (Pré-selecionado)"
-                        placeholder="Digite para buscar..."
-                        :items="$fixedItems"
-                        item-value="id"
-                        item-title="nome"
-                        item-subtitle="categoria"
-                        item-code="codigo"
-                        mode="fixed"
-                        :value="3"
-                    />
+                    <!-- Container onde o select será montado -->
+                    <div id="plano_conta_pre_selected_container"></div>
                 </div>
 
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
                     <div class="code-block">
-                        <pre>&lt;x-custom-select
-    name="plano_conta_pre_selected"
-    id="plano_conta_pre_selected"
-    label="Plano de Contas (Pré-selecionado)"
-    placeholder="Digite para buscar..."
-    :items="$fixedItems"
-    item-value="id"
-    item-title="nome"
-    item-subtitle="categoria"
-    item-code="codigo"
-    mode="fixed"
-    :value="3"
-/&gt;</pre>
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="plano_conta_pre_selected_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select com valor pré-selecionado --&gt;
+&lt;script&gt;
+    window.createCustomSelect('plano_conta_pre_selected_container', {
+        name: 'plano_conta_pre_selected',
+        id: 'plano_conta_pre_selected',
+        label: 'Plano de Contas (Pré-selecionado)',
+        placeholder: 'Digite para buscar...',
+        mode: 'fixed',
+        items: fixedItems,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        itemCode: 'codigo',
+        value: 3  // Valor pré-selecionado
+    });
+&lt;/script&gt;</pre>
                     </div>
                 </div>
             </div>
@@ -243,79 +262,53 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
-                    <x-custom-select
-                        name="plano_conta_add_new"
-                        id="plano_conta_add_new"
-                        label="Plano de Contas (com Adicionar Novo)"
-                        placeholder="Digite para buscar..."
-                        :items="$fixedItems"
-                        item-value="id"
-                        item-title="nome"
-                        item-subtitle="categoria"
-                        item-code="codigo"
-                        mode="fixed"
-                        add-new-modal="plano-conta-modal"
-                        add-new-text="Adicionar novo plano de conta"
-                    />
+                    <!-- Container onde o select será montado -->
+                    <div id="plano_conta_add_new_container"></div>
                 </div>
 
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
                     <div class="code-block">
-                        <pre>&lt;x-custom-select
-    name="plano_conta_add_new"
-    id="plano_conta_add_new"
-    label="Plano de Contas (com Adicionar Novo)"
-    placeholder="Digite para buscar..."
-    :items="$fixedItems"
-    item-value="id"
-    item-title="nome"
-    item-subtitle="categoria"
-    item-code="codigo"
-    mode="fixed"
-    add-new-modal="plano-conta-modal"
-    add-new-text="Adicionar novo plano de conta"
-/&gt;</pre>
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="plano_conta_add_new_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select com botão adicionar novo --&gt;
+&lt;script&gt;
+    window.createCustomSelect('plano_conta_add_new_container', {
+        name: 'plano_conta_add_new',
+        id: 'plano_conta_add_new',
+        label: 'Plano de Contas (com Adicionar Novo)',
+        placeholder: 'Digite para buscar...',
+        mode: 'fixed',
+        items: fixedItems,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        itemCode: 'codigo',
+        addNewModal: 'plano-conta-modal',
+        addNewText: 'Adicionar novo plano de conta'
+    });
+&lt;/script&gt;</pre>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Exemplo 5: Com Botão "Adicionar Novo" - Cliente -->
+        <!-- Exemplo 5: Com Botão "Adicionar Novo" - Cliente (Fixed) -->
         <div class="demo-card p-8 mb-8">
             <h2 class="text-2xl font-bold text-gray-900 mb-4">
                 <i class="fas fa-user-plus text-teal-600 mr-2"></i>
-                Exemplo 5: Com Botão "Adicionar Novo" - Cliente
+                Exemplo 5: Cliente (Modo Fixed) com "Adicionar Novo"
             </h2>
             <p class="text-gray-600 mb-6">
-                Exemplo com botão para adicionar um novo cliente através de modal.
+                Exemplo com lista fixa de clientes e botão para adicionar um novo através de modal.
             </p>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
-                    @php
-                        $clientesItems = [
-                            ['id' => 1, 'nome' => 'João Silva', 'documento' => '123.456.789-00', 'email' => 'joao@exemplo.com'],
-                            ['id' => 2, 'nome' => 'Maria Santos', 'documento' => '987.654.321-00', 'email' => 'maria@exemplo.com'],
-                            ['id' => 3, 'nome' => 'Empresa ABC Ltda', 'documento' => '12.345.678/0001-90', 'email' => 'contato@abc.com'],
-                        ];
-                    @endphp
-
-                    <x-custom-select
-                        name="cliente_select"
-                        id="cliente_select"
-                        label="Cliente"
-                        placeholder="Digite para buscar..."
-                        :items="$clientesItems"
-                        item-value="id"
-                        item-title="nome"
-                        item-subtitle="email"
-                        item-code="documento"
-                        mode="fixed"
-                        add-new-modal="cliente-modal"
-                        add-new-text="Adicionar novo cliente"
-                    />
+                    <!-- Container onde o select será montado -->
+                    <div id="cliente_select_container"></div>
 
                     <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                         <p class="text-sm text-gray-600 mb-2">
@@ -328,20 +321,87 @@
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
                     <div class="code-block">
-                        <pre>&lt;x-custom-select
-    name="cliente_select"
-    id="cliente_select"
-    label="Cliente"
-    placeholder="Digite para buscar..."
-    :items="$clientesItems"
-    item-value="id"
-    item-title="nome"
-    item-subtitle="email"
-    item-code="documento"
-    mode="fixed"
-    add-new-modal="cliente-modal"
-    add-new-text="Adicionar novo cliente"
-/&gt;</pre>
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="cliente_select_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select de cliente --&gt;
+&lt;script&gt;
+    const clientesItems = [
+        {id: 1, nome: 'João Silva', documento: '123.456.789-00', email: 'joao@exemplo.com'},
+        {id: 2, nome: 'Maria Santos', documento: '987.654.321-00', email: 'maria@exemplo.com'},
+        {id: 3, nome: 'Empresa ABC Ltda', documento: '12.345.678/0001-90', email: 'contato@abc.com'}
+    ];
+
+    window.createCustomSelect('cliente_select_container', {
+        name: 'cliente_select',
+        id: 'cliente_select',
+        label: 'Cliente',
+        placeholder: 'Digite para buscar...',
+        mode: 'fixed',
+        items: clientesItems,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        itemCode: 'documento',
+        addNewModal: 'cliente-modal',
+        addNewText: 'Adicionar novo cliente'
+    });
+&lt;/script&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exemplo 6: Cliente AJAX com Botão "Adicionar Novo" -->
+        <div class="demo-card p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-users text-purple-600 mr-2"></i>
+                Exemplo 6: Cliente (Modo AJAX) com "Adicionar Novo"
+            </h2>
+            <p class="text-gray-600 mb-6">
+                Busca dinâmica de clientes via AJAX com botão para adicionar novo cliente através de modal.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
+                    <!-- Container onde o select será montado -->
+                    <div id="cliente_ajax_container"></div>
+
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <p class="text-sm text-gray-600 mb-2">
+                            <strong>Valor selecionado:</strong>
+                        </p>
+                        <p id="cliente-ajax-value-display" class="text-sm font-mono text-gray-800">Nenhum cliente selecionado</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
+                    <div class="code-block">
+                        <pre>&lt;!-- HTML: Container onde o select será montado --&gt;
+&lt;div id="cliente_ajax_container"&gt;&lt;/div&gt;
+
+&lt;!-- JavaScript: Inicializar o select de cliente com AJAX --&gt;
+&lt;script&gt;
+    window.createCustomSelect('cliente_ajax_container', {
+        name: 'cliente_ajax',
+        id: 'cliente_ajax',
+        label: 'Cliente (AJAX)',
+        placeholder: 'Digite para buscar cliente...',
+        mode: 'ajax',
+        ajaxUrl: 'http://localhost:8000/api/clientes/search',
+        ajaxMethod: 'GET',
+        minSearchLength: 2,
+        loadOnOpen: true,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        itemCode: 'documento',
+        addNewModal: 'cliente-modal',
+        addNewText: 'Adicionar novo cliente'
+    });
+&lt;/script&gt;</pre>
                     </div>
                 </div>
             </div>
@@ -452,40 +512,232 @@
     @stack('scripts')
 
     <script>
+        // Funções para abrir/fechar modais
+        window.openModal = function(modalId) {
+            console.log('Abrindo modal:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                console.error('Modal não encontrado:', modalId);
+            }
+        };
+
+        window.closeModal = function(modalId) {
+            console.log('Fechando modal:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+
+                // Limpar formulário se existir
+                const form = modal.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // Limpar erros de validação
+                    const errors = form.querySelectorAll('.text-red-600');
+                    errors.forEach(error => {
+                        error.classList.add('hidden');
+                        error.textContent = '';
+                    });
+                }
+            }
+        };
+
+        // Fechar modal ao clicar no backdrop
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-backdrop')) {
+                const modalId = e.target.id;
+                if (modalId) {
+                    closeModal(modalId);
+                }
+            }
+        });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('[id$="-modal"]');
+                modals.forEach(modal => {
+                    if (!modal.classList.contains('hidden')) {
+                        closeModal(modal.id);
+                    }
+                });
+            }
+        });
+
         // Atualizar displays de valor selecionado
         document.addEventListener('DOMContentLoaded', function() {
-            // Fixed mode
-            const fixedHidden = document.getElementById('plano_conta_fixed_hidden');
-            if (fixedHidden) {
-                fixedHidden.addEventListener('change', function() {
-                    const display = document.getElementById('fixed-value-display');
-                    if (display) {
-                        display.textContent = this.value || 'Nenhum item selecionado';
-                    }
-                });
+            // Verificar se a função existe
+            if (typeof window.createCustomSelect !== 'function') {
+                console.error('Função createCustomSelect não encontrada! Certifique-se de incluir o script custom-select.js');
+                return;
             }
 
-            // AJAX mode
-            const ajaxHidden = document.getElementById('plano_conta_ajax_hidden');
-            if (ajaxHidden) {
-                ajaxHidden.addEventListener('change', function() {
-                    const display = document.getElementById('ajax-value-display');
-                    if (display) {
-                        display.textContent = this.value || 'Nenhum item selecionado';
-                    }
-                });
-            }
+            // Dados para os selects em modo fixed
+            const fixedItems = [
+                {id: 1, codigo: '1.1.1', nome: 'Aluguel', categoria: 'Despesas administrativas e comerciais'},
+                {id: 2, codigo: '1.1.2', nome: 'Energia Elétrica', categoria: 'Despesas administrativas e comerciais'},
+                {id: 3, codigo: '1.1.3', nome: 'Água', categoria: 'Despesas administrativas e comerciais'},
+                {id: 4, codigo: '1.1.4', nome: 'Telefone', categoria: 'Despesas administrativas e comerciais'},
+                {id: 5, codigo: '1.1.5', nome: 'Confraternizações', categoria: 'Despesas administrativas e comerciais'},
+                {id: 6, codigo: '1.2.1', nome: 'Salários', categoria: 'Despesas com pessoal'},
+                {id: 7, codigo: '1.2.2', nome: 'Encargos Sociais', categoria: 'Despesas com pessoal'},
+                {id: 8, codigo: '1.2.3', nome: 'Vale Transporte', categoria: 'Despesas com pessoal'},
+                {id: 9, codigo: '2.1.1', nome: 'Vendas', categoria: 'Receitas operacionais'},
+                {id: 10, codigo: '2.1.2', nome: 'Serviços', categoria: 'Receitas operacionais'}
+            ];
 
-            // Cliente mode
-            const clienteHidden = document.getElementById('cliente_select_hidden');
-            if (clienteHidden) {
-                clienteHidden.addEventListener('change', function() {
-                    const display = document.getElementById('cliente-value-display');
-                    if (display) {
-                        display.textContent = this.value || 'Nenhum cliente selecionado';
-                    }
-                });
-            }
+            const clientesItems = [
+                {id: 1, nome: 'João Silva', documento: '123.456.789-00', email: 'joao@exemplo.com'},
+                {id: 2, nome: 'Maria Santos', documento: '987.654.321-00', email: 'maria@exemplo.com'},
+                {id: 3, nome: 'Empresa ABC Ltda', documento: '12.345.678/0001-90', email: 'contato@abc.com'}
+            ];
+
+            // Exemplo 1: Modo Fixed
+            window.createCustomSelect('plano_conta_fixed_container', {
+                name: 'plano_conta_fixed',
+                id: 'plano_conta_fixed',
+                label: 'Plano de Contas',
+                placeholder: 'Digite para buscar...',
+                mode: 'fixed',
+                items: fixedItems,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'categoria',
+                itemCode: 'codigo'
+            });
+
+            // Listener para atualizar display
+            setTimeout(() => {
+                const fixedHidden = document.getElementById('plano_conta_fixed_hidden');
+                if (fixedHidden) {
+                    fixedHidden.addEventListener('change', function() {
+                        const display = document.getElementById('fixed-value-display');
+                        if (display) {
+                            display.textContent = this.value || 'Nenhum item selecionado';
+                        }
+                    });
+                }
+            }, 100);
+
+            // Exemplo 2: Modo AJAX
+            window.createCustomSelect('plano_conta_ajax_container', {
+                name: 'plano_conta_ajax',
+                id: 'plano_conta_ajax',
+                label: 'Plano de Contas (AJAX)',
+                placeholder: 'Digite pelo menos 2 caracteres...',
+                mode: 'ajax',
+                ajaxUrl: 'http://localhost:8000/api/custom-select/search',
+                ajaxMethod: 'GET',
+                minSearchLength: 2,
+                loadOnOpen: true,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'categoria',
+                itemCode: 'codigo'
+            });
+
+            setTimeout(() => {
+                const ajaxHidden = document.getElementById('plano_conta_ajax_hidden');
+                if (ajaxHidden) {
+                    ajaxHidden.addEventListener('change', function() {
+                        const display = document.getElementById('ajax-value-display');
+                        if (display) {
+                            display.textContent = this.value || 'Nenhum item selecionado';
+                        }
+                    });
+                }
+            }, 100);
+
+            // Exemplo 3: Pré-selecionado
+            window.createCustomSelect('plano_conta_pre_selected_container', {
+                name: 'plano_conta_pre_selected',
+                id: 'plano_conta_pre_selected',
+                label: 'Plano de Contas (Pré-selecionado)',
+                placeholder: 'Digite para buscar...',
+                mode: 'fixed',
+                items: fixedItems,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'categoria',
+                itemCode: 'codigo',
+                value: 3
+            });
+
+            // Exemplo 4: Com botão adicionar novo
+            window.createCustomSelect('plano_conta_add_new_container', {
+                name: 'plano_conta_add_new',
+                id: 'plano_conta_add_new',
+                label: 'Plano de Contas (com Adicionar Novo)',
+                placeholder: 'Digite para buscar...',
+                mode: 'fixed',
+                items: fixedItems,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'categoria',
+                itemCode: 'codigo',
+                addNewModal: 'plano-conta-modal',
+                addNewText: 'Adicionar novo plano de conta'
+            });
+
+            // Exemplo 5: Cliente (Fixed)
+            window.createCustomSelect('cliente_select_container', {
+                name: 'cliente_select',
+                id: 'cliente_select',
+                label: 'Cliente',
+                placeholder: 'Digite para buscar...',
+                mode: 'fixed',
+                items: clientesItems,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'email',
+                addNewModal: 'cliente-modal',
+                addNewText: 'Adicionar novo cliente'
+            });
+
+            setTimeout(() => {
+                const clienteHidden = document.getElementById('cliente_select_hidden');
+                if (clienteHidden) {
+                    clienteHidden.addEventListener('change', function() {
+                        const display = document.getElementById('cliente-value-display');
+                        if (display) {
+                            display.textContent = this.value || 'Nenhum cliente selecionado';
+                        }
+                    });
+                }
+            }, 100);
+
+            // Exemplo 6: Cliente AJAX com Botão Adicionar Novo
+            window.createCustomSelect('cliente_ajax_container', {
+                name: 'cliente_ajax',
+                id: 'cliente_ajax',
+                label: 'Cliente (AJAX)',
+                placeholder: 'Digite para buscar cliente...',
+                mode: 'ajax',
+                ajaxUrl: 'http://localhost:8000/api/clientes/search',
+                ajaxMethod: 'GET',
+                minSearchLength: 2,
+                loadOnOpen: true,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'email',
+                addNewModal: 'cliente-modal',
+                addNewText: 'Adicionar novo cliente'
+            });
+
+            setTimeout(() => {
+                const clienteAjaxHidden = document.getElementById('cliente_ajax_hidden');
+                if (clienteAjaxHidden) {
+                    clienteAjaxHidden.addEventListener('change', function() {
+                        const display = document.getElementById('cliente-ajax-value-display');
+                        if (display) {
+                            display.textContent = this.value || 'Nenhum cliente selecionado';
+                        }
+                    });
+                }
+            }, 100);
         });
     </script>
 </body>

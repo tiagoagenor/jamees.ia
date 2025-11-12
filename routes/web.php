@@ -285,6 +285,46 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
         return view('examples.custom-select-demo');
     })->name('exemplos.custom-select');
 
+    // Rota AJAX para buscar clientes
+    Route::get('/api/clientes/search', function(\Illuminate\Http\Request $request) {
+        $search = $request->get('search', '');
+        
+        // Obter empresa atual do usuário autenticado
+        $user = Auth::user();
+        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        if (!$empresaAtual) {
+            return response()->json(['items' => []]);
+        }
+
+        $query = \App\Models\Cliente::where('empresa_id', $empresaAtual->id);
+
+        // Se houver busca (pelo menos 2 caracteres), filtrar por nome, documento ou email
+        // Se a busca estiver vazia, retornar todos os itens (para loadOnOpen)
+        if (strlen($search) >= 2) {
+            $searchLower = strtolower($search);
+            $query->where(function($q) use ($searchLower) {
+                $q->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%'])
+                  ->orWhereRaw('LOWER(documento) LIKE ?', ['%' . $searchLower . '%'])
+                  ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $searchLower . '%']);
+            });
+        }
+        
+        $query->orderBy('nome');
+        $clientes = $query->limit(100)->get();
+        
+        $items = $clientes->map(function($cliente) {
+            return [
+                'id' => $cliente->id,
+                'nome' => $cliente->nome,
+                'documento' => $cliente->documento_formatado ?? $cliente->documento,
+                'email' => $cliente->email ?? ''
+            ];
+        })->toArray();
+        
+        return response()->json(['items' => $items]);
+    })->name('api.clientes.search');
+
     // Rota AJAX para buscar itens do select personalizado (Plano de Contas)
     Route::get('/api/custom-select/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');

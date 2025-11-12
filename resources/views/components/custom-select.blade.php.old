@@ -28,6 +28,9 @@
     $id = $id ?? $name;
     $selectedItem = null;
 
+    // DEBUG: Verificar valores recebidos
+    \Log::info("Custom Select DEBUG - ID: $id, Mode: $mode, LoadOnOpen: " . ($loadOnOpen ? 'true' : 'false') . ", AJAX URL: $ajaxUrl");
+
     // Se for modo fixo, buscar item selecionado nos items
     if ($mode === 'fixed' && $value && count($items) > 0) {
         $selectedItem = collect($items)->firstWhere($itemValue, $value);
@@ -199,10 +202,16 @@
 
 @push('scripts')
 <script>
+    console.log('------------------------------------------------{{ $mode }}------------------------------------------------');
 // Função para buscar itens via AJAX (definir ANTES de initializeCustomSelect)
 if (typeof window.buscarViaAjax === 'undefined') {
     window.buscarViaAjax = function(selectId, searchTerm, config) {
-        console.log('buscarViaAjax chamado para:', selectId, 'com searchTerm:', searchTerm, 'config:', config);
+        console.log('[DEBUG] ═══════════════════════════════════════');
+        console.log('[DEBUG] buscarViaAjax CHAMADO!');
+        console.log('[DEBUG] selectId:', selectId);
+        console.log('[DEBUG] searchTerm:', searchTerm);
+        console.log('[DEBUG] config:', config);
+        console.log('[DEBUG] ═══════════════════════════════════════');
         config = config || {};
 
         // Obter URL AJAX da configuração passada ou do atributo data
@@ -215,7 +224,7 @@ if (typeof window.buscarViaAjax === 'undefined') {
         }
 
         if (!ajaxUrl || ajaxUrl === 'null' || ajaxUrl === '') {
-            console.error('AJAX URL não configurada para:', selectId, 'config:', config);
+            console.error('[ERROR] AJAX URL não configurada para:', selectId, 'config:', config);
             const loadingEl = document.getElementById(selectId + '_loading');
             const emptyEl = document.getElementById(selectId + '_empty');
             if (loadingEl) loadingEl.classList.add('hidden');
@@ -267,7 +276,7 @@ if (typeof window.buscarViaAjax === 'undefined') {
             return;
         }
 
-        console.log('Fazendo requisição AJAX para:', url.toString());
+        console.log('[SUCCESS] Fazendo requisição AJAX para:', url.toString());
 
         const method = config.ajaxMethod || 'GET';
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -281,14 +290,14 @@ if (typeof window.buscarViaAjax === 'undefined') {
             }
         })
         .then(response => {
-            console.log('Resposta recebida:', response.status, response.statusText);
+            console.log('[SUCCESS] Resposta recebida:', response.status, response.statusText);
             if (!response.ok) {
                 throw new Error('Erro na requisição: ' + response.status + ' ' + response.statusText);
             }
             return response.json();
         })
         .then(data => {
-            console.log('Dados recebidos:', data);
+            console.log('[SUCCESS] Dados recebidos:', data);
             if (loadingEl) loadingEl.classList.add('hidden');
 
             // Limpar itens anteriores
@@ -334,7 +343,7 @@ if (typeof window.buscarViaAjax === 'undefined') {
             }
         })
         .catch(error => {
-            console.error('Erro ao buscar itens:', error);
+            console.error('[ERROR] Erro ao buscar itens:', error);
             if (loadingEl) loadingEl.classList.add('hidden');
             if (emptyEl) {
                 emptyEl.textContent = 'Erro ao carregar itens: ' + (error.message || 'Tente novamente.');
@@ -347,6 +356,13 @@ if (typeof window.buscarViaAjax === 'undefined') {
 // Função global para inicializar selects personalizados (definir apenas uma vez)
 if (typeof window.initializeCustomSelect === 'undefined') {
     window.initializeCustomSelect = function(selectId) {
+    console.log('[INIT] ============================================');
+    console.log('[INIT] Inicializando:', selectId);
+    console.log('[INIT] Mode recebido do Blade:', '{{ $mode }}');
+    console.log('[INIT] LoadOnOpen do Blade:', {{ $loadOnOpen ? 'true' : 'false' }});
+    console.log('[INIT] AJAX URL do Blade:', '{{ $ajaxUrl }}');
+    console.log('[INIT] ============================================');
+
     const input = document.getElementById(selectId + '_input');
     const dropdown = document.getElementById(selectId + '_dropdown');
     const searchInput = document.getElementById(selectId + '_search');
@@ -361,12 +377,13 @@ if (typeof window.initializeCustomSelect === 'undefined') {
 
     // Função para abrir dropdown
     function openDropdown() {
+        console.log('[DEBUG] openDropdown chamado para:', selectId);
         if (!dropdown) {
             console.error('Dropdown not found for:', selectId);
             return;
         }
 
-        console.log('Opening dropdown for:', selectId); // Debug
+        console.log('[DEBUG] Opening dropdown for:', selectId);
 
         // Remover qualquer classe hidden
         dropdown.classList.remove('hidden');
@@ -379,48 +396,47 @@ if (typeof window.initializeCustomSelect === 'undefined') {
         // Forçar reflow para garantir que o display seja aplicado
         void dropdown.offsetHeight;
 
-        // Se for modo AJAX e loadOnOpen estiver ativado, mostrar loading IMEDIATAMENTE após abrir o dropdown
-        if ('{{ $mode }}' === 'ajax' && {{ $loadOnOpen ? 'true' : 'false' }}) {
+        // MODO AJAX com loadOnOpen: Carregar itens ao abrir dropdown
+        console.log('[DEBUG] Dropdown aberto - mode:', '{{ $mode }}', 'loadOnOpen:', {{ $loadOnOpen ? 'true' : 'false' }});
+
+        console.log('------------------------------------------------{{ $mode }}------------------------------------------------');
+        if ('{{ $mode }}' === 'ajax') {
             const listEl = document.getElementById(selectId + '_list');
             const existingItems = listEl ? listEl.querySelectorAll('.custom-select-item') : [];
 
+            console.log('[DEBUG] Itens já carregados:', existingItems.length);
+
             // Só carregar se não houver itens já carregados
             if (existingItems.length === 0) {
-                // Mostrar loading IMEDIATAMENTE após abrir o dropdown
+                console.log('[DEBUG] ▶ ETAPA 1: Mostrando "Carregando..."');
+
+                // ETAPA 1: Mostrar loading IMEDIATAMENTE
                 const loadingEl = document.getElementById(selectId + '_loading');
                 const emptyEl = document.getElementById(selectId + '_empty');
+
                 if (loadingEl) {
                     loadingEl.classList.remove('hidden');
+                    console.log('[DEBUG] ✓ "Carregando..." visível');
                 }
                 if (emptyEl) {
                     emptyEl.classList.add('hidden');
                 }
-            }
-        }
 
-        console.log('Dropdown display after open:', dropdown.style.display); // Debug
-        console.log('Dropdown visible:', dropdown.offsetHeight > 0); // Debug
+                console.log('[DEBUG] ▶ ETAPA 2: Preparando requisição AJAX...');
 
-        // Se for modo AJAX e loadOnOpen estiver ativado, carregar itens iniciais
-        if ('{{ $mode }}' === 'ajax' && {{ $loadOnOpen ? 'true' : 'false' }}) {
-            const listEl = document.getElementById(selectId + '_list');
-            const existingItems = listEl ? listEl.querySelectorAll('.custom-select-item') : [];
-
-            // Só carregar se não houver itens já carregados
-            if (existingItems.length === 0) {
-                // Obter URL do atributo data ou do blade
+                // ETAPA 2: Obter URL e configuração
                 const selectWrapper = document.querySelector('.custom-select-wrapper[data-select-id="' + selectId + '"]');
                 const urlFromData = selectWrapper ? selectWrapper.dataset.ajaxUrl : null;
-                const urlFromBlade = '{{ $ajaxUrl }}' || null;
+                const urlFromBlade = '{{ $ajaxUrl }}';
                 const finalUrl = urlFromData || urlFromBlade;
 
+                console.log('[DEBUG] URL encontrada:', finalUrl);
+
                 if (!finalUrl || finalUrl === 'null' || finalUrl === '') {
-                    console.error('URL AJAX não encontrada para:', selectId);
-                    const loadingEl = document.getElementById(selectId + '_loading');
-                    const emptyEl = document.getElementById(selectId + '_empty');
+                    console.error('[ERROR] URL AJAX não configurada!');
                     if (loadingEl) loadingEl.classList.add('hidden');
                     if (emptyEl) {
-                        emptyEl.textContent = 'URL AJAX não configurada';
+                        emptyEl.textContent = 'Erro: URL não configurada';
                         emptyEl.classList.remove('hidden');
                     }
                     return;
@@ -435,31 +451,24 @@ if (typeof window.initializeCustomSelect === 'undefined') {
                     itemCode: '{{ $itemCode }}'
                 };
 
-                // Pequeno delay para garantir que o loading apareça antes da requisição
+                console.log('[DEBUG] ▶ ETAPA 3: Fazendo requisição AJAX...');
+
+                // ETAPA 3: Fazer requisição AJAX (delay mínimo para garantir que o loading apareça)
                 setTimeout(() => {
                     if (typeof window.buscarViaAjax === 'function') {
-                        console.log('Chamando buscarViaAjax para:', selectId);
+                        console.log('[DEBUG] ✓ Chamando buscarViaAjax');
                         window.buscarViaAjax(selectId, '', ajaxConfig);
                     } else {
-                        console.error('buscarViaAjax não está definida ainda');
-                        // Tentar novamente após um pequeno delay
-                        setTimeout(() => {
-                            if (typeof window.buscarViaAjax === 'function') {
-                                window.buscarViaAjax(selectId, '', ajaxConfig);
-                            } else {
-                                console.error('buscarViaAjax ainda não está definida após timeout');
-                                // Esconder loading se der erro
-                                const loadingEl = document.getElementById(selectId + '_loading');
-                                const emptyEl = document.getElementById(selectId + '_empty');
-                                if (loadingEl) loadingEl.classList.add('hidden');
-                                if (emptyEl) {
-                                    emptyEl.textContent = 'Erro ao carregar. Tente novamente.';
-                                    emptyEl.classList.remove('hidden');
-                                }
-                            }
-                        }, 200);
+                        console.error('[ERROR] Função buscarViaAjax não está definida!');
+                        if (loadingEl) loadingEl.classList.add('hidden');
+                        if (emptyEl) {
+                            emptyEl.textContent = 'Erro ao carregar';
+                            emptyEl.classList.remove('hidden');
+                        }
                     }
-                }, 100);
+                }, 50);
+            } else {
+                console.log('[DEBUG] Itens já carregados, não fazendo nova requisição');
             }
         }
 
@@ -475,14 +484,14 @@ if (typeof window.initializeCustomSelect === 'undefined') {
 
     // Abrir ao focar no input
     input.addEventListener('focus', function(e) {
-        console.log('Input focused:', selectId); // Debug
+        console.log('[DEBUG] ►►► Input FOCUS event para:', selectId);
         e.stopPropagation();
         openDropdown();
     });
 
     // Abrir ao clicar diretamente no input
     input.addEventListener('click', function(e) {
-        console.log('Input clicked:', selectId); // Debug
+        console.log('[DEBUG] ►►► Input CLICK event para:', selectId);
         e.stopPropagation();
         openDropdown();
     });
@@ -895,19 +904,26 @@ if (typeof window.clearSelection === 'undefined') {
 // Inicializar este select quando o DOM estiver pronto
 (function() {
     const selectId = '{{ $id }}';
+    console.log('[DEBUG] ★ Iniciando inicialização do select:', selectId);
     function init() {
-        if (document.getElementById(selectId + '_input') && document.getElementById(selectId + '_dropdown')) {
-            console.log('Initializing custom select for:', selectId);
+        const inputEl = document.getElementById(selectId + '_input');
+        const dropdownEl = document.getElementById(selectId + '_dropdown');
+        console.log('[DEBUG] Verificando elementos - input:', !!inputEl, 'dropdown:', !!dropdownEl);
+        if (inputEl && dropdownEl) {
+            console.log('[DEBUG] ✓ Elementos encontrados, inicializando custom select para:', selectId);
             initializeCustomSelect(selectId);
         } else {
+            console.log('[DEBUG] Elementos não encontrados ainda, tentando novamente em 100ms...');
             // Tentar novamente após um pequeno delay se os elementos ainda não existirem
             setTimeout(init, 100);
         }
     }
 
     if (document.readyState === 'loading') {
+        console.log('[DEBUG] DOM ainda carregando, aguardando DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', init);
     } else {
+        console.log('[DEBUG] DOM já pronto, inicializando imediatamente...');
         init();
     }
 })();
