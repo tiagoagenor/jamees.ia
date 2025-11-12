@@ -200,6 +200,21 @@ class ClienteController extends Controller
         // Registrar no audit log
         AuditService::logCreate($cliente, "Criado cliente: {$cliente->nome}");
 
+        // Se for requisição AJAX, retornar JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cliente criado com sucesso!',
+                'cliente' => [
+                    'id' => $cliente->id,
+                    'nome' => $cliente->nome,
+                    'nome_completo' => $cliente->nome_completo,
+                    'documento' => $cliente->documento_formatado,
+                    'email' => $cliente->email
+                ]
+            ]);
+        }
+
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente criado com sucesso!');
     }

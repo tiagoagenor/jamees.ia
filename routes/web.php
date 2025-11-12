@@ -6,6 +6,7 @@ use App\Http\Controllers\LandingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 // Landing page
@@ -186,6 +187,10 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'index'])->name('plano-conta.index')->middleware('permission:plano-conta,listar');
     Route::get('/plano-conta/create', [App\Http\Controllers\PlanoContaController::class, 'create'])->name('plano-conta.create')->middleware('permission:plano-conta,criar');
     Route::post('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'store'])->name('plano-conta.store')->middleware('permission:plano-conta,criar');
+    
+    // Rotas API para modal de Plano de Conta
+    Route::get('/api/plano-conta/dres', [App\Http\Controllers\PlanoContaController::class, 'getDres'])->name('api.plano-conta.dres')->middleware('permission:plano-conta,criar');
+    Route::get('/api/plano-conta/parents', [App\Http\Controllers\PlanoContaController::class, 'getParents'])->name('api.plano-conta.parents')->middleware('permission:plano-conta,criar');
     Route::get('/plano-conta/{planoConta}', [App\Http\Controllers\PlanoContaController::class, 'show'])->name('plano-conta.show')->middleware('permission:plano-conta,visualizar');
     Route::get('/plano-conta/{planoConta}/edit', [App\Http\Controllers\PlanoContaController::class, 'edit'])->name('plano-conta.edit')->middleware('permission:plano-conta,editar');
     Route::put('/plano-conta/{planoConta}', [App\Http\Controllers\PlanoContaController::class, 'update'])->name('plano-conta.update')->middleware('permission:plano-conta,editar');
@@ -274,6 +279,80 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
 
     // Loteamento - Status de Lotes
     Route::resource('lote-status', App\Http\Controllers\LoteStatusController::class);
+
+    // Exemplo de Select Personalizado
+    Route::get('/exemplos/custom-select', function() {
+        return view('examples.custom-select-demo');
+    })->name('exemplos.custom-select');
+
+    // Rota AJAX para buscar itens do select personalizado (Plano de Contas)
+    Route::get('/api/custom-select/search', function(\Illuminate\Http\Request $request) {
+        $search = $request->get('search', '');
+        
+        // Obter empresa atual do usuário autenticado
+        $user = Auth::user();
+        $empresaAtual = $user ? $user->empresaAtual() : null;
+        
+        if (!$empresaAtual) {
+            return response()->json([
+                'items' => []
+            ]);
+        }
+
+        // Buscar planos de conta da empresa
+        $query = \App\Models\PlanoConta::where('empresa_id', $empresaAtual->id)
+            ->with('dre'); // Carregar relacionamento DRE para obter a categoria
+
+        // Se houver busca (pelo menos 2 caracteres), filtrar por nome, código ou categoria (DRE)
+        // Se a busca estiver vazia, retornar todos os itens (para loadOnOpen)
+        if (strlen($search) >= 2) {
+            $searchLower = strtolower($search);
+            $query->where(function($q) use ($searchLower) {
+                // Buscar por nome
+                $q->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%'])
+                  // Buscar por categoria (DRE)
+                  ->orWhereHas('dre', function($dreQuery) use ($searchLower) {
+                      $dreQuery->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%']);
+                  });
+                
+                // Buscar por código (ordem_pai e ordem_filho) - converter para string
+                // Usar CAST para compatibilidade com diferentes bancos
+                $driver = DB::connection()->getDriverName();
+                if ($driver === 'sqlite') {
+                    $q->orWhereRaw('CAST(ordem_pai AS TEXT) LIKE ?', ['%' . $searchLower . '%']);
+                    if (is_numeric($searchLower)) {
+                        $q->orWhereRaw('CAST(ordem_filho AS TEXT) LIKE ?', ['%' . $searchLower . '%']);
+                    }
+                } else {
+                    $q->orWhereRaw('CAST(ordem_pai AS CHAR) LIKE ?', ['%' . $searchLower . '%']);
+                    if (is_numeric($searchLower)) {
+                        $q->orWhereRaw('CAST(ordem_filho AS CHAR) LIKE ?', ['%' . $searchLower . '%']);
+                    }
+                }
+            });
+        }
+        // Se search estiver vazio, retornar todos os itens (sem filtro)
+
+        // Ordenar por ordem_pai e ordem_filho
+        $query->orderBy('ordem_pai')->orderBy('ordem_filho');
+
+        // Limitar resultados para evitar sobrecarga
+        $planosConta = $query->limit(100)->get();
+
+        // Formatar itens para o formato esperado pelo componente
+        $items = $planosConta->map(function($planoConta) {
+            return [
+                'id' => $planoConta->id,
+                'codigo' => $planoConta->getCodigoCompleto(),
+                'nome' => $planoConta->nome,
+                'categoria' => $planoConta->dre ? $planoConta->dre->nome : 'Sem categoria'
+            ];
+        })->toArray();
+
+        return response()->json([
+            'items' => $items
+        ]);
+    })->name('api.custom-select.search');
 
     // Loteamento - Quadras (dentro do empreendimento)
     Route::get('/empreendimentos/{empreendimento}/quadras', [App\Http\Controllers\QuadraController::class, 'index'])->name('quadras.index');

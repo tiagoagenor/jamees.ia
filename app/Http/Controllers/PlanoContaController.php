@@ -139,7 +139,72 @@ class PlanoContaController extends Controller
         // Registrar no audit log
         AuditService::logCreate($planoConta, "Criou plano de conta: {$planoConta->nome}");
 
+        // Se for requisição AJAX, retornar JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Plano de conta criado com sucesso!',
+                'plano_conta' => [
+                    'id' => $planoConta->id,
+                    'nome' => $planoConta->nome,
+                    'codigo' => $planoConta->getCodigoCompleto(),
+                    'categoria' => $planoConta->dre ? $planoConta->dre->nome : 'Sem categoria'
+                ]
+            ]);
+        }
+
         return redirect()->route('plano-conta.index')->with('success', 'Plano de conta criado com sucesso!');
+    }
+
+    /**
+     * Get DREs for modal
+     */
+    public function getDres()
+    {
+        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+
+        if (!$empresaPrincipal) {
+            return response()->json(['dres' => []], 403);
+        }
+
+        $dres = Dre::daEmpresa($empresaPrincipal->id)
+            ->ativos()
+            ->orderBy('nome')
+            ->get()
+            ->map(function($dre) {
+                return [
+                    'id' => $dre->id,
+                    'nome' => $dre->nome
+                ];
+            });
+
+        return response()->json(['dres' => $dres]);
+    }
+
+    /**
+     * Get parent PlanoContas for modal
+     */
+    public function getParents()
+    {
+        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+
+        if (!$empresaPrincipal) {
+            return response()->json(['plano_contas' => []], 403);
+        }
+
+        $planoContas = PlanoConta::daEmpresa($empresaPrincipal->id)
+            ->raiz()
+            ->orderBy('ordem_pai')
+            ->get()
+            ->map(function($conta) {
+                return [
+                    'id' => $conta->id,
+                    'nome' => $conta->nome,
+                    'codigo' => $conta->getCodigoCompleto()
+                ];
+            });
+
+        return response()->json(['plano_contas' => $planoContas]);
     }
 
     /**
