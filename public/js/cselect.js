@@ -502,6 +502,11 @@
         const ul = document.createElement('ul');
         ul.className = 'cselect-list';
 
+        // Adicionar margin-bottom se houver botão "Adicionar Novo" para não esconder o último item
+        if (config.addButton) {
+            ul.style.marginBottom = '1px'; // Altura aproximada do botão + padding
+        }
+
         config.items.forEach(item => {
             const li = document.createElement('li');
             li.className = 'cselect-item px-3 py-1.5 hover:bg-blue-50 cursor-pointer transition-colors text-sm';
@@ -591,6 +596,11 @@
                 const minLength = config.minSearchLength || 0;
                 const loadOnOpen = config.loadOnOpen !== false;
 
+                // Resetar highlight quando digitar
+                if (input._cselectResetHighlight) {
+                    input._cselectResetHighlight();
+                }
+
                 // Limpar timeout anterior
                 if (searchTimeout) {
                     clearTimeout(searchTimeout);
@@ -624,6 +634,11 @@
                 const searchTerm = e.target.value.trim().toLowerCase();
                 const minLength = config.minSearchLength || 0;
 
+                // Resetar highlight quando digitar
+                if (input._cselectResetHighlight) {
+                    input._cselectResetHighlight();
+                }
+
                 // Abrir dropdown ao digitar
                 openDropdown(dropdown);
 
@@ -638,10 +653,121 @@
             });
         }
 
+        // Navegação por teclado (setas e Enter)
+        let currentHighlightIndex = -1;
+
+        input.addEventListener('keydown', (e) => {
+            const items = dropdown.querySelectorAll('.cselect-item:not(.cselect-item-disabled)');
+
+            if (items.length === 0) {
+                return;
+            }
+
+            // Seta para baixo
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopPropagation();
+
+                openDropdown(dropdown);
+
+                // Remover highlight anterior
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].classList.remove('bg-blue-100');
+                }
+
+                // Se estiver no início ou sem highlight, começar do primeiro item
+                if (currentHighlightIndex < 0) {
+                    currentHighlightIndex = 0;
+                } else {
+                    // Avançar para próximo item
+                    currentHighlightIndex = (currentHighlightIndex + 1) % items.length;
+                }
+
+                // Adicionar highlight
+                if (items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].classList.add('bg-blue-100');
+                    // Scroll para o item se necessário
+                    items[currentHighlightIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+
+                log('⬇️ Navegando para item:', currentHighlightIndex);
+            }
+
+            // Seta para cima
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopPropagation();
+
+                openDropdown(dropdown);
+
+                // Remover highlight anterior
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].classList.remove('bg-blue-100');
+                }
+
+                // Voltar para item anterior (ou último se estiver no primeiro)
+                currentHighlightIndex = currentHighlightIndex <= 0 ? items.length - 1 : currentHighlightIndex - 1;
+
+                // Adicionar highlight
+                if (items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].classList.add('bg-blue-100');
+                    // Scroll para o item se necessário
+                    items[currentHighlightIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+
+                log('⬆️ Navegando para item:', currentHighlightIndex);
+            }
+
+            // Enter - selecionar item destacado
+            else if (e.key === 'Enter') {
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const item = items[currentHighlightIndex];
+                    const value = item.dataset.value;
+                    let displayText = '';
+
+                    if (item.dataset.title) {
+                        displayText = item.dataset.title;
+                    } else if (item.dataset.label) {
+                        displayText = item.dataset.label;
+                    } else {
+                        displayText = item.textContent.trim();
+                    }
+
+                    const subtitle = item.dataset.subtitle || null;
+
+                    log('✅ Item selecionado via Enter:', displayText, value, subtitle);
+                    selectItem(input, dropdown, container, value, displayText, config, log, subtitle);
+
+                    // Resetar índice
+                    currentHighlightIndex = -1;
+                }
+            }
+
+            // ESC - fechar dropdown
+            else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                closeDropdown(dropdown);
+                currentHighlightIndex = -1;
+            }
+        });
+
+        // Guardar referência para resetar highlight quando items forem atualizados
+        input._cselectHighlightIndex = () => currentHighlightIndex;
+        input._cselectResetHighlight = () => {
+            currentHighlightIndex = -1;
+            const items = dropdown.querySelectorAll('.cselect-item');
+            items.forEach(item => item.classList.remove('bg-blue-100'));
+        };
+
         // Fechar dropdown ao clicar fora
         document.addEventListener('click', (e) => {
             if (!container.contains(e.target)) {
                 closeDropdown(dropdown);
+                currentHighlightIndex = -1;
             }
         });
 
@@ -718,6 +844,20 @@
         if (!ul) {
             log('❌ Lista não encontrada');
             return;
+        }
+
+        // Manter margin-bottom se houver botão "Adicionar Novo"
+        const hasAddButton = listContainer.querySelector('.cselect-add-new') !== null;
+        if (hasAddButton) {
+            ul.style.marginBottom = '1px';
+        }
+
+        // Resetar highlight quando items forem atualizados
+        const dropdownId = dropdown.id;
+        const inputId = dropdownId.replace('_dropdown', '');
+        const input = document.getElementById(inputId);
+        if (input && input._cselectResetHighlight) {
+            input._cselectResetHighlight();
         }
 
         // Limpar itens existentes
@@ -837,6 +977,20 @@
         if (!ul) {
             log('❌ Lista não encontrada');
             return;
+        }
+
+        // Manter margin-bottom se houver botão "Adicionar Novo"
+        const hasAddButton = listContainer.querySelector('.cselect-add-new') !== null;
+        if (hasAddButton) {
+            ul.style.marginBottom = '1px';
+        }
+
+        // Resetar highlight quando items forem atualizados
+        const dropdownId = dropdown.id;
+        const inputId = dropdownId.replace('_dropdown', '');
+        const input = document.getElementById(inputId);
+        if (input && input._cselectResetHighlight) {
+            input._cselectResetHighlight();
         }
 
         // Limpar itens existentes (exceto o botão "Adicionar Novo" se existir)
