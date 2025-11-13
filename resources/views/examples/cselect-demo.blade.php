@@ -159,38 +159,132 @@
     </div>
 
     <!-- Exemplo 3: Com AJAX -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Exemplo 3: CSelect com AJAX</h2>
-
-        <div class="mb-4">
-            <div id="cselect_example_3"></div>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 text-white rounded-lg p-2">
+                    <i class="fas fa-cloud-download-alt text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 3: CSelect com AJAX</h2>
+            </div>
         </div>
 
-        <div class="mt-4 p-4 bg-gray-50 rounded">
-            <p class="text-sm font-semibold text-gray-700 mb-2">Código:</p>
-            <pre class="text-sm text-gray-800"><code>&lt;div id="cselect_example_3"&gt;&lt;/div&gt;
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
 
-&lt;script&gt;
-// Inicializar CSelect com AJAX aqui
-&lt;/script&gt;</code></pre>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (AJAX) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">minSearchLength</span>: <span class="text-orange-400">0</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>, <span class="text-gray-500">// Nome do parâmetro na URL (padrão: 'search')</span>
+        <span class="text-green-400">headers</span>: {
+            <span class="text-green-400">'Content-Type'</span>: <span class="text-yellow-300">'application/json'</span>
+        }
+    }
+});</code></pre>
+            </div>
         </div>
     </div>
 
-    <!-- Exemplo 4: Múltipla Seleção -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Exemplo 4: CSelect Múltipla Seleção</h2>
-
-        <div class="mb-4">
-            <div id="cselect_example_4"></div>
+    <!-- Exemplo 4: AJAX com Botão "Adicionar Novo" -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-teal-50 to-cyan-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-teal-500 text-white rounded-lg p-2">
+                    <i class="fas fa-cloud-plus text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 4: CSelect com AJAX e Botão "Adicionar Novo"</h2>
+            </div>
         </div>
 
-        <div class="mt-4 p-4 bg-gray-50 rounded">
-            <p class="text-sm font-semibold text-gray-700 mb-2">Código:</p>
-            <pre class="text-sm text-gray-800"><code>&lt;div id="cselect_example_4"&gt;&lt;/div&gt;
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
 
-&lt;script&gt;
-// Inicializar CSelect com múltipla seleção aqui
-&lt;/script&gt;</code></pre>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (AJAX + Adicionar) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_4"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_4" class="text-sm font-medium text-gray-800">
+                        Nenhum cliente selecionado
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">minSearchLength</span>: <span class="text-orange-400">0</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>, <span class="text-gray-500">// Nome do parâmetro na URL</span>
+        <span class="text-green-400">headers</span>: {
+            <span class="text-green-400">'Content-Type'</span>: <span class="text-yellow-300">'application/json'</span>
+        }
+    },
+    <span class="text-green-400">addButton</span>: {
+        <span class="text-green-400">text</span>: <span class="text-yellow-300">'Adicionar novo cliente'</span>
+    },
+    <span class="text-green-400">onClickButton</span>: <span class="text-pink-400">(selectId) =&gt;</span> {
+        window.<span class="text-purple-400">openModal</span>(<span class="text-yellow-300">'cliente-modal'</span>, selectId);
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, value, label);
+    }
+});</code></pre>
+            </div>
         </div>
     </div>
 
@@ -405,10 +499,49 @@
     });
 
     // Exemplo 3: Com AJAX
-    console.log('Inicializar Exemplo 3...');
+    const example3 = cSelect('#cliente_example_3', {
+        name: 'cliente_id',
+        debug: true,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET'
+        },
+        onSelect: (value, label) => {
+            console.log('Cliente selecionado via AJAX:', { value, label });
+        }
+    });
 
-    // Exemplo 4: Múltipla Seleção
-    console.log('Inicializar Exemplo 4...');
+    // Exemplo 4: AJAX com Botão "Adicionar Novo"
+    const example4 = cSelect('#cliente_example_4', {
+        name: 'cliente_id',
+        debug: true,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar novo cliente',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            console.log('Abrindo modal de novo cliente via AJAX...', selectId);
+            // O selectId é passado automaticamente pelo CSelect
+            // Abrir modal de cliente (o selectId será definido automaticamente)
+            window.openModal('cliente-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Cliente selecionado via AJAX:', { value, label });
+            document.getElementById('cliente_selected_value_4').textContent = `${label} (ID: ${value})`;
+        }
+    });
 
     // Exemplo 5: Cliente com Botão "Adicionar Novo"
     const example5 = cSelect('#cliente_example_5', {
@@ -456,7 +589,7 @@
     });
 
 
-    // Callback para quando um cliente for criado (Exemplo 5)
+    // Callback para quando um cliente for criado (Exemplos 4 e 5)
     // O modal de cliente já tem sua própria lógica de salvamento via AJAX
     // Aqui apenas atualizamos o select quando o cliente for criado
     // NOTA: O modal já chama selectItemProgrammatically, então aqui apenas adicionamos à lista
@@ -465,14 +598,22 @@
         window.onClienteCreated = function(cliente) {
             console.log('Cliente criado:', cliente);
 
-            // Adicionar à lista do select do Exemplo 5
-            if (typeof example5 !== 'undefined' && example5.config) {
-                const novoItem = {
-                    id: cliente.id.toString(),
-                    nome: cliente.nome || cliente.nome_completo,
-                    email: cliente.email || ''
-                };
+            const novoItem = {
+                id: cliente.id.toString(),
+                nome: cliente.nome || cliente.nome_completo,
+                email: cliente.email || ''
+            };
 
+            // Atualizar Exemplo 4 (AJAX) - apenas atualizar display se necessário
+            if (typeof example4 !== 'undefined') {
+                const displayEl = document.getElementById('cliente_selected_value_4');
+                if (displayEl) {
+                    displayEl.textContent = `${novoItem.nome} (ID: ${novoItem.id})`;
+                }
+            }
+
+            // Adicionar à lista do select do Exemplo 5 (dados fixos)
+            if (typeof example5 !== 'undefined' && example5.config) {
                 // Verificar se o item já não existe na lista
                 const itemExists = example5.config.items.some(item => item.id === novoItem.id);
                 if (!itemExists) {

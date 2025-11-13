@@ -347,7 +347,7 @@
         // Configurar opções padrão
         const config = {
             name: options.name || '',
-            items: options.items || getDefaultItems(),
+            items: options.items !== undefined ? options.items : (options.http ? [] : getDefaultItems()),
             minSearchLength: options.minSearchLength || 0,
             placeholder: options.placeholder || 'Digite para buscar',
             itemValue: options.itemValue || 'value',
@@ -355,6 +355,7 @@
             itemTitle: options.itemTitle || null,
             itemSubtitle: options.itemSubtitle || null,
             loadOnOpen: options.loadOnOpen !== false,
+            http: options.http || null, // { url: '...', method: 'GET', headers: {...} }
             addButton: options.addButton || null, // { text: 'Adicionar novo', class: 'btn-class' }
             modal: options.modal || null, // ID ou classe do modal existente (#id ou .class)
             modalHtml: options.modalHtml || null, // HTML do modal para criar dinamicamente
@@ -537,11 +538,11 @@
 
             // Container sticky para o botão (dentro do listContainer para funcionar com scroll)
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'sticky bottom-0 bg-white border-t border-gray-200 p-1.5';
+            buttonContainer.className = 'sticky bottom-0 bg-white border-t border-gray-200';
 
             const addNewBtn = document.createElement('button');
             addNewBtn.type = 'button';
-            addNewBtn.className = `cselect-add-new w-full flex items-center justify-center px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium ${buttonClass}`;
+            addNewBtn.className = `cselect-add-new w-full flex items-center justify-center px-3 py-1.5 bg-green-600 text-white hover:bg-green-700 transition-colors text-sm font-medium ${buttonClass}`;
             addNewBtn.innerHTML = `
                 <i class="fas fa-plus mr-1.5 text-xs"></i>
                 <span>${buttonText}</span>
@@ -564,6 +565,10 @@
         input.addEventListener('focus', () => {
             log('📂 Abrindo dropdown...');
             openDropdown(dropdown);
+            // Se não for AJAX e não houver texto no input, mostrar todos os items
+            if (!config.http && !input.value.trim()) {
+                filterLocalItems(dropdown, '', config, log);
+            }
         });
 
         // Abrir dropdown ao clicar no input
@@ -571,7 +576,67 @@
             e.stopPropagation();
             log('🖱️ Click no input...');
             openDropdown(dropdown);
+            // Se não for AJAX e não houver texto no input, mostrar todos os items
+            if (!config.http && !input.value.trim()) {
+                filterLocalItems(dropdown, '', config, log);
+            }
         });
+
+        // Busca AJAX quando configurado
+        if (config.http && config.http.url) {
+            let searchTimeout = null;
+
+            input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.trim();
+                const minLength = config.minSearchLength || 0;
+                const loadOnOpen = config.loadOnOpen !== false;
+
+                // Limpar timeout anterior
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+
+                // Verificar se deve fazer a busca
+                const shouldSearch = searchTerm.length >= minLength || (searchTerm.length === 0 && loadOnOpen);
+
+                if (shouldSearch) {
+                    // Debounce de 300ms
+                    searchTimeout = setTimeout(() => {
+                        performAjaxSearch(input, dropdown, searchTerm, config, log);
+                    }, 300);
+                } else {
+                    // Se não atender aos critérios, limpar lista
+                    clearDropdownItems(dropdown);
+                }
+            });
+
+            // Carregar dados ao abrir se loadOnOpen for true
+            if (config.loadOnOpen !== false) {
+                input.addEventListener('focus', () => {
+                    if (input.value.trim().length === 0) {
+                        performAjaxSearch(input, dropdown, '', config, log);
+                    }
+                }, { once: false });
+            }
+        } else {
+            // Filtro local quando não há AJAX
+            input.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.trim().toLowerCase();
+                const minLength = config.minSearchLength || 0;
+
+                // Abrir dropdown ao digitar
+                openDropdown(dropdown);
+
+                // Se o termo de busca for menor que o mínimo, mostrar todos os items
+                if (searchTerm.length < minLength) {
+                    filterLocalItems(dropdown, '', config, log);
+                    return;
+                }
+
+                // Filtrar items localmente
+                filterLocalItems(dropdown, searchTerm, config, log);
+            });
+        }
 
         // Fechar dropdown ao clicar fora
         document.addEventListener('click', (e) => {
@@ -627,6 +692,327 @@
                 }
             });
         }
+    }
+
+    /**
+     * Limpar itens do dropdown
+     */
+    function clearDropdownItems(dropdown) {
+        const ul = dropdown.querySelector('.cselect-list');
+        if (ul) {
+            ul.innerHTML = '';
+        }
+    }
+
+    /**
+     * Filtrar items localmente (quando não há AJAX)
+     */
+    function filterLocalItems(dropdown, searchTerm, config, log) {
+        const listContainer = dropdown.querySelector('.cselect-list-container');
+        if (!listContainer) {
+            log('❌ Container de lista não encontrado');
+            return;
+        }
+
+        const ul = listContainer.querySelector('.cselect-list');
+        if (!ul) {
+            log('❌ Lista não encontrada');
+            return;
+        }
+
+        // Limpar itens existentes
+        const existingItems = ul.querySelectorAll('.cselect-item');
+        existingItems.forEach(item => item.remove());
+
+        // Filtrar items baseado no termo de busca
+        let filteredItems = config.items || [];
+
+        if (searchTerm) {
+            filteredItems = config.items.filter(item => {
+                // Buscar no label (modo simples)
+                if (config.itemLabel && !config.itemTitle) {
+                    const label = (item[config.itemLabel] || '').toLowerCase();
+                    return label.includes(searchTerm);
+                }
+
+                // Buscar no title e subtitle (modo duas linhas)
+                if (config.itemTitle) {
+                    const title = (item[config.itemTitle] || '').toLowerCase();
+                    const subtitle = config.itemSubtitle ? (item[config.itemSubtitle] || '').toLowerCase() : '';
+                    return title.includes(searchTerm) || subtitle.includes(searchTerm);
+                }
+
+                // Fallback: buscar em qualquer propriedade string do item
+                return Object.values(item).some(value => {
+                    if (typeof value === 'string') {
+                        return value.toLowerCase().includes(searchTerm);
+                    }
+                    return false;
+                });
+            });
+        }
+
+        // Adicionar items filtrados
+        if (filteredItems.length > 0) {
+            filteredItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'cselect-item px-3 py-1.5 hover:bg-blue-50 cursor-pointer transition-colors text-sm';
+                li.dataset.value = item[config.itemValue];
+
+                // Se tiver title e subtitle, criar estrutura com duas linhas
+                if (config.itemTitle && config.itemSubtitle) {
+                    const title = item[config.itemTitle] || '';
+                    const subtitle = item[config.itemSubtitle] || '';
+
+                    li.innerHTML = `
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-medium text-gray-900 text-sm leading-tight">${title}</span>
+                            <span class="text-xs text-gray-500 leading-tight">${subtitle}</span>
+                        </div>
+                    `;
+                    li.dataset.title = title;
+                    li.dataset.subtitle = subtitle;
+                } else {
+                    // Modo simples (apenas label)
+                    const label = item[config.itemLabel] || '';
+                    li.textContent = label;
+                    li.dataset.label = label;
+                }
+
+                ul.appendChild(li);
+            });
+
+            // Reanexar event listeners aos novos itens
+            const newItems = ul.querySelectorAll('.cselect-item');
+            newItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = item.dataset.value;
+                    let displayText = '';
+                    if (item.dataset.title) {
+                        displayText = item.dataset.title;
+                    } else if (item.dataset.label) {
+                        displayText = item.dataset.label;
+                    } else {
+                        displayText = item.textContent.trim();
+                    }
+                    const subtitle = item.dataset.subtitle || null;
+
+                    // Buscar container e input para passar para selectItem
+                    const dropdownId = dropdown.id;
+                    const inputId = dropdownId.replace('_dropdown', '');
+                    const input = document.getElementById(inputId);
+                    const container = input ? input.closest('.cselect-container') : null;
+
+                    if (input && container) {
+                        const instance = window.cSelectInstances ? window.cSelectInstances[input.id] : null;
+                        const config = instance ? instance.config : null;
+                        const log = instance ? instance.input._cselectLog : () => {};
+
+                        log('✅ Item selecionado:', displayText, value, subtitle);
+                        selectItem(input, dropdown, container, value, displayText, config, log, subtitle);
+                    }
+                });
+            });
+        } else {
+            // Mostrar mensagem de "nenhum resultado"
+            const li = document.createElement('li');
+            li.className = 'cselect-item px-3 py-1.5 text-gray-500 text-sm text-center';
+            li.textContent = 'Nenhum resultado encontrado';
+            ul.appendChild(li);
+        }
+    }
+
+    /**
+     * Atualizar itens do dropdown com dados da API
+     */
+    function updateDropdownItems(dropdown, items, config, log) {
+        const listContainer = dropdown.querySelector('.cselect-list-container');
+        if (!listContainer) {
+            log('❌ Container de lista não encontrado');
+            return;
+        }
+
+        const ul = listContainer.querySelector('.cselect-list');
+        if (!ul) {
+            log('❌ Lista não encontrada');
+            return;
+        }
+
+        // Limpar itens existentes (exceto o botão "Adicionar Novo" se existir)
+        const existingItems = ul.querySelectorAll('.cselect-item');
+        existingItems.forEach(item => item.remove());
+
+        // Adicionar novos itens
+        if (items && items.length > 0) {
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'cselect-item px-3 py-1.5 hover:bg-blue-50 cursor-pointer transition-colors text-sm';
+                li.dataset.value = item[config.itemValue];
+
+                // Se tiver title e subtitle, criar estrutura com duas linhas
+                if (config.itemTitle && config.itemSubtitle) {
+                    const title = item[config.itemTitle] || '';
+                    const subtitle = item[config.itemSubtitle] || '';
+
+                    li.innerHTML = `
+                        <div class="flex flex-col gap-0.5">
+                            <span class="font-medium text-gray-900 text-sm leading-tight">${title}</span>
+                            <span class="text-xs text-gray-500 leading-tight">${subtitle}</span>
+                        </div>
+                    `;
+                    li.dataset.title = title;
+                    li.dataset.subtitle = subtitle;
+                } else {
+                    // Modo simples (apenas label)
+                    const label = item[config.itemLabel] || '';
+                    li.textContent = label;
+                    li.dataset.label = label;
+                }
+
+                ul.appendChild(li);
+            });
+
+            // Reanexar event listeners aos novos itens
+            const newItems = ul.querySelectorAll('.cselect-item');
+            newItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const value = item.dataset.value;
+                    let displayText = '';
+                    if (item.dataset.title) {
+                        displayText = item.dataset.title;
+                    } else if (item.dataset.label) {
+                        displayText = item.dataset.label;
+                    } else {
+                        displayText = item.textContent.trim();
+                    }
+                    const subtitle = item.dataset.subtitle || null;
+
+                    // Buscar container e input para passar para selectItem
+                    const dropdownId = dropdown.id;
+                    const inputId = dropdownId.replace('_dropdown', '');
+                    const input = document.getElementById(inputId);
+                    const container = input ? input.closest('.cselect-container') : null;
+
+                    if (input && container) {
+                        const instance = window.cSelectInstances ? window.cSelectInstances[input.id] : null;
+                        const config = instance ? instance.config : null;
+                        const log = instance ? instance.input._cselectLog : () => {};
+
+                        log('✅ Item selecionado:', displayText, value, subtitle);
+                        selectItem(input, dropdown, container, value, displayText, config, log, subtitle);
+                    }
+                });
+            });
+        } else {
+            // Mostrar mensagem de "nenhum resultado"
+            const li = document.createElement('li');
+            li.className = 'cselect-item px-3 py-1.5 text-gray-500 text-sm text-center';
+            li.textContent = 'Nenhum resultado encontrado';
+            ul.appendChild(li);
+        }
+    }
+
+    /**
+     * Realizar busca AJAX
+     */
+    function performAjaxSearch(input, dropdown, searchTerm, config, log) {
+        if (!config.http || !config.http.url) {
+            log('❌ Configuração HTTP não encontrada');
+            return;
+        }
+
+        log('🔍 Buscando via AJAX:', searchTerm);
+
+        // Abrir dropdown antes de fazer a requisição
+        openDropdown(dropdown);
+
+        // Mostrar loading
+        const listContainer = dropdown.querySelector('.cselect-list-container');
+        const ul = listContainer ? listContainer.querySelector('.cselect-list') : null;
+        if (ul) {
+            ul.innerHTML = '<li class="cselect-item px-3 py-1.5 text-gray-500 text-sm text-center">Carregando...</li>';
+        }
+
+        // Preparar nome do parâmetro de busca (search como padrão se não especificado)
+        const searchParam = config.http.searchParam || 'search';
+
+        // Preparar URL
+        let url = config.http.url;
+        if (searchTerm) {
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}${searchParam}=${encodeURIComponent(searchTerm)}`;
+        }
+
+        // Preparar headers
+        let headers = {};
+
+        // Se não tiver headers ou se tiver headers mas não tiver Content-Type, adicionar como default
+        if (!config.http.headers || !config.http.headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        // Adicionar headers customizados se existirem
+        if (config.http.headers) {
+            headers = { ...headers, ...config.http.headers };
+        }
+
+        // Preparar método (GET como padrão se não especificado)
+        const method = (config.http.method || 'GET').toUpperCase();
+
+        // Preparar opções do fetch
+        const fetchOptions = {
+            method: method,
+            headers: headers
+        };
+
+        // Adicionar body para métodos POST, PUT, PATCH
+        if (['POST', 'PUT', 'PATCH'].includes(method)) {
+            const bodyData = {};
+            bodyData[searchParam] = searchTerm;
+            fetchOptions.body = JSON.stringify(bodyData);
+        }
+
+        log('📡 Requisição AJAX:', { url, method, headers });
+
+        // Fazer requisição
+        fetch(url, fetchOptions)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                log('✅ Dados recebidos:', data);
+
+                // Esperar que a resposta seja um array ou tenha uma propriedade 'items' ou 'data'
+                let items = [];
+                if (Array.isArray(data)) {
+                    items = data;
+                } else if (data.items && Array.isArray(data.items)) {
+                    items = data.items;
+                } else if (data.data && Array.isArray(data.data)) {
+                    items = data.data;
+                } else {
+                    log('⚠️ Formato de dados não reconhecido:', data);
+                }
+
+                // Atualizar dropdown com os itens
+                updateDropdownItems(dropdown, items, config, log);
+
+                // Abrir dropdown se não estiver aberto
+                openDropdown(dropdown);
+            })
+            .catch(error => {
+                log('❌ Erro na requisição AJAX:', error);
+
+                // Mostrar mensagem de erro
+                if (ul) {
+                    ul.innerHTML = '<li class="cselect-item px-3 py-1.5 text-red-500 text-sm text-center">Erro ao carregar dados</li>';
+                }
+            });
     }
 
     /**
