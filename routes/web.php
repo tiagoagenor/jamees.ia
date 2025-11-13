@@ -187,7 +187,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'index'])->name('plano-conta.index')->middleware('permission:plano-conta,listar');
     Route::get('/plano-conta/create', [App\Http\Controllers\PlanoContaController::class, 'create'])->name('plano-conta.create')->middleware('permission:plano-conta,criar');
     Route::post('/plano-conta', [App\Http\Controllers\PlanoContaController::class, 'store'])->name('plano-conta.store')->middleware('permission:plano-conta,criar');
-    
+
     // Rotas API para modal de Plano de Conta
     Route::get('/api/plano-conta/dres', [App\Http\Controllers\PlanoContaController::class, 'getDres'])->name('api.plano-conta.dres')->middleware('permission:plano-conta,criar');
     Route::get('/api/plano-conta/parents', [App\Http\Controllers\PlanoContaController::class, 'getParents'])->name('api.plano-conta.parents')->middleware('permission:plano-conta,criar');
@@ -285,10 +285,15 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
         return view('examples.custom-select-demo');
     })->name('exemplos.custom-select');
 
+    // Exemplo de CSelect
+    Route::get('/exemplos/cselect', function() {
+        return view('examples.cselect-demo');
+    })->name('exemplos.cselect');
+
     // Rota AJAX para buscar clientes
     Route::get('/api/clientes/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
-        
+
         // Obter empresa atual do usuário autenticado
         $user = Auth::user();
         $empresaAtual = $user ? $user->empresaAtual() : null;
@@ -309,10 +314,10 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
                   ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $searchLower . '%']);
             });
         }
-        
+
         $query->orderBy('nome');
         $clientes = $query->limit(100)->get();
-        
+
         $items = $clientes->map(function($cliente) {
             return [
                 'id' => $cliente->id,
@@ -321,18 +326,18 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
                 'email' => $cliente->email ?? ''
             ];
         })->toArray();
-        
+
         return response()->json(['items' => $items]);
     })->name('api.clientes.search');
 
     // Rota AJAX para buscar itens do select personalizado (Plano de Contas)
     Route::get('/api/custom-select/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
-        
+
         // Obter empresa atual do usuário autenticado
         $user = Auth::user();
         $empresaAtual = $user ? $user->empresaAtual() : null;
-        
+
         if (!$empresaAtual) {
             return response()->json([
                 'items' => []
@@ -354,7 +359,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
                   ->orWhereHas('dre', function($dreQuery) use ($searchLower) {
                       $dreQuery->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%']);
                   });
-                
+
                 // Buscar por código (ordem_pai e ordem_filho) - converter para string
                 // Usar CAST para compatibilidade com diferentes bancos
                 $driver = DB::connection()->getDriverName();
@@ -393,6 +398,131 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
             'items' => $items
         ]);
     })->name('api.custom-select.search');
+
+    // Rota AJAX para buscar centros de custo
+    Route::get('/api/centro-custo/search', function(\Illuminate\Http\Request $request) {
+        $search = $request->get('search', '');
+        $user = Auth::user();
+        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        if (!$empresaAtual) {
+            return response()->json(['items' => []]);
+        }
+
+        $query = \App\Models\CentroCusto::where('empresa_id', $empresaAtual->id)
+            ->where('status', 1); // Apenas ativos
+
+        // Se houver busca, filtrar; caso contrário, retornar todos (para loadOnOpen)
+        if (strlen($search) >= 2) {
+            $searchLower = strtolower($search);
+            $query->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%']);
+        }
+
+        $query->orderBy('nome');
+        $centroCustos = $query->limit(100)->get();
+
+        $items = $centroCustos->map(function($centroCusto) {
+            return [
+                'id' => $centroCusto->id,
+                'nome' => $centroCusto->nome,
+                'status' => $centroCusto->status
+            ];
+        })->toArray();
+
+        return response()->json(['items' => $items]);
+    })->name('api.centro-custo.search');
+
+    // Rota AJAX para buscar formas de pagamento
+    Route::get('/api/forma-pagamento/search', function(\Illuminate\Http\Request $request) {
+        $search = $request->get('search', '');
+        $user = Auth::user();
+        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        if (!$empresaAtual) {
+            return response()->json(['items' => []]);
+        }
+
+        $query = \App\Models\FormaPagamento::where('empresa_id', $empresaAtual->id)
+            ->where('disponivel', 1); // Apenas disponíveis
+
+        // Se houver busca, filtrar; caso contrário, retornar todos (para loadOnOpen)
+        if (strlen($search) >= 2) {
+            $searchLower = strtolower($search);
+            $query->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%']);
+        }
+
+        $query->orderBy('nome');
+        $formasPagamento = $query->limit(100)->get();
+
+        $items = $formasPagamento->map(function($formaPagamento) {
+            return [
+                'id' => $formaPagamento->id,
+                'nome' => $formaPagamento->nome,
+                'modalidade' => $formaPagamento->modalidade->getLabel() ?? ''
+            ];
+        })->toArray();
+
+        return response()->json(['items' => $items]);
+    })->name('api.forma-pagamento.search');
+
+    // Rota AJAX para buscar contas bancárias
+    Route::get('/api/conta-empresa/search', function(\Illuminate\Http\Request $request) {
+        $search = $request->get('search', '');
+        $user = Auth::user();
+        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        if (!$empresaAtual) {
+            return response()->json(['items' => []]);
+        }
+
+        $query = \App\Models\ContaEmpresa::where('empresa_id', $empresaAtual->id)
+            ->where('status', 1) // Apenas ativas
+            ->with('banco');
+
+        // Se houver busca, filtrar; caso contrário, retornar todos (para loadOnOpen)
+        if (strlen($search) >= 2) {
+            $searchLower = strtolower($search);
+            $query->where(function($q) use ($searchLower) {
+                $q->whereRaw('LOWER(nome) LIKE ?', ['%' . $searchLower . '%'])
+                  ->orWhereHas('banco', function($bancoQuery) use ($searchLower) {
+                      $bancoQuery->whereRaw('LOWER(nome_normalizado) LIKE ?', ['%' . $searchLower . '%']);
+                  });
+            });
+        }
+
+        $query->orderBy('nome');
+        $contasEmpresa = $query->limit(100)->get();
+
+        $items = $contasEmpresa->map(function($contaEmpresa) {
+            return [
+                'id' => $contaEmpresa->id,
+                'nome' => $contaEmpresa->nome,
+                'banco' => $contaEmpresa->banco ? $contaEmpresa->banco->nome_normalizado : '',
+                'tipo' => $contaEmpresa->tipo->getLabel() ?? ''
+            ];
+        })->toArray();
+
+        return response()->json(['items' => $items]);
+    })->name('api.conta-empresa.search');
+
+    // Rota AJAX para buscar todos os bancos
+    Route::get('/api/bancos/ativos', function() {
+        $bancos = \App\Models\Banco::orderBy('nome_normalizado')->get();
+
+        $items = $bancos->map(function($banco) {
+            return [
+                'id' => $banco->id,
+                'nome_normalizado' => $banco->nome_normalizado,
+                'numero_banco' => $banco->numero_banco
+            ];
+        })->toArray();
+
+        return response()->json([
+            'bancos' => $items,
+            'total' => count($items),
+            'debug' => 'Total de bancos retornados: ' . count($items)
+        ]);
+    })->name('api.bancos.ativos');
 
     // Loteamento - Quadras (dentro do empreendimento)
     Route::get('/empreendimentos/{empreendimento}/quadras', [App\Http\Controllers\QuadraController::class, 'index'])->name('quadras.index');

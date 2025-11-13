@@ -114,6 +114,19 @@ class CentroCustoController extends Controller
         // Registrar no audit log
         AuditService::logCreate($centroCusto, "Criou centro de custo: {$centroCusto->nome}");
 
+        // Se for requisição AJAX, retornar JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Centro de custo criado com sucesso!',
+                'centro_custo' => [
+                    'id' => $centroCusto->id,
+                    'nome' => $centroCusto->nome,
+                    'status' => $centroCusto->status
+                ]
+            ]);
+        }
+
         return redirect()->route('centro-custo.index')->with('success', 'Centro de custo criado com sucesso!');
     }
 

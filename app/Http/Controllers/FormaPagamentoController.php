@@ -134,6 +134,19 @@ class FormaPagamentoController extends Controller
         // Registrar no audit log
         AuditService::logCreate($formaPagamento, "Criou forma de pagamento: {$formaPagamento->nome}");
 
+        // Se for requisição AJAX, retornar JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Forma de pagamento criada com sucesso!',
+                'forma_pagamento' => [
+                    'id' => $formaPagamento->id,
+                    'nome' => $formaPagamento->nome,
+                    'modalidade' => $formaPagamento->modalidade->getLabel() ?? ''
+                ]
+            ]);
+        }
+
         return redirect()->route('forma-pagamento.index')->with('success', 'Forma de pagamento criada com sucesso!');
     }
 

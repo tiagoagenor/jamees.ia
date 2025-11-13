@@ -140,12 +140,11 @@ window.createCustomSelect = function(target, options) {
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="${config.placeholder}"
                 autocomplete="off"
-                ${config.required ? 'required' : ''}
             >
         `;
     }
 
-    // Input hidden para o valor real
+    // Input hidden para o valor real (este sim deve ter required)
     html += `
             <input
                 type="hidden"
@@ -313,7 +312,7 @@ window.clearCustomSelect = function(selectId) {
         newInput.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
         newInput.placeholder = config.placeholder;
         newInput.autocomplete = 'off';
-        if (config.required) newInput.required = true;
+        // NÃO adicionar required no input visual, apenas no hidden input
 
         // Inserir no inputContainer antes do hidden input
         if (inputContainer) {

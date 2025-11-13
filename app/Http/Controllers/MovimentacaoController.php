@@ -327,7 +327,7 @@ class MovimentacaoController extends Controller
             $request->validate([
                 'plano_conta_id' => 'required|exists:plano_conta,id',
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
-                'conta_empresa_id' => 'required|exists:conta_empresa,id',
+                'conta_empresa_id' => 'nullable|exists:conta_empresa,id',
                 'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
@@ -344,7 +344,6 @@ class MovimentacaoController extends Controller
             ], [
                 'plano_conta_id.required' => 'O campo Plano de Contas é obrigatório.',
                 'plano_conta_id.exists' => 'O Plano de Contas selecionado é inválido.',
-                'conta_empresa_id.required' => 'O campo Conta Bancária é obrigatório.',
                 'conta_empresa_id.exists' => 'A Conta Bancária selecionada é inválida.',
                 'descricao.required' => 'O campo Descrição é obrigatório.',
                 'parcelas.required' => 'É necessário gerar pelo menos uma parcela.',
@@ -364,7 +363,7 @@ class MovimentacaoController extends Controller
                 'plano_conta_id' => 'required|exists:plano_conta,id',
                 'centro_custo_id' => 'nullable|exists:centro_custo,id',
                 'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
-                'conta_empresa_id' => 'required|exists:conta_empresa,id',
+                'conta_empresa_id' => 'nullable|exists:conta_empresa,id',
                 'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
@@ -381,7 +380,6 @@ class MovimentacaoController extends Controller
                 'plano_conta_id.exists' => 'O Plano de Contas selecionado é inválido.',
                 'forma_pagamento_id.required' => 'O campo Forma de Pagamento é obrigatório.',
                 'forma_pagamento_id.exists' => 'A Forma de Pagamento selecionada é inválida.',
-                'conta_empresa_id.required' => 'O campo Conta Bancária é obrigatório.',
                 'conta_empresa_id.exists' => 'A Conta Bancária selecionada é inválida.',
                 'descricao.required' => 'O campo Descrição é obrigatório.',
                 'vencimento.required' => 'O campo Vencimento é obrigatório.',
@@ -568,6 +566,7 @@ class MovimentacaoController extends Controller
                 ->with('success', $mensagem);
 
         } catch (\Exception $e) {
+            dd($e);
             DB::rollBack();
             return redirect()
                 ->back()
@@ -847,7 +846,7 @@ class MovimentacaoController extends Controller
             'plano_conta_id' => 'required|exists:plano_conta,id',
             'centro_custo_id' => 'nullable|exists:centro_custo,id',
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
-            'conta_empresa_id' => 'required|exists:conta_empresa,id',
+            'conta_empresa_id' => 'nullable|exists:conta_empresa,id',
             'entidade_tipo' => 'nullable|integer|in:1,2,3,4,5',
             'entidade_id' => 'nullable|string',
             'descricao' => 'required|string|max:255',
@@ -1287,7 +1286,7 @@ class MovimentacaoController extends Controller
         $request->validate([
             'data_compensacao' => 'required|date',
             'forma_pagamento_id' => 'required|exists:forma_pagamento,id',
-            'conta_empresa_id' => 'required|exists:conta_empresa,id',
+            'conta_empresa_id' => 'nullable|exists:conta_empresa,id',
             'valor_bruto' => 'required|numeric|min:0',
             'juros' => 'nullable|numeric',
             'desconto' => 'nullable|numeric|min:0',

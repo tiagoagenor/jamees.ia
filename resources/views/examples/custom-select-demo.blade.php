@@ -407,6 +407,152 @@
             </div>
         </div>
 
+        <!-- Exemplo 7: Formulário com Validação -->
+        <div class="demo-card p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                Exemplo 7: Formulário com Validação
+            </h2>
+            <p class="text-gray-600 mb-6">
+                Demonstração completa de um formulário com campos obrigatórios, validação e mensagens de erro.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Demonstração</h3>
+
+                    <form id="exemplo-form-validacao" class="space-y-4">
+                        <!-- Nome -->
+                        <div>
+                            <label for="form_nome" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nome Completo <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   id="form_nome"
+                                   name="nome"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Digite seu nome completo">
+                            <p id="form_nome_error" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="form_email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email"
+                                   id="form_email"
+                                   name="email"
+                                   required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="seu@email.com">
+                            <p id="form_email_error" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
+
+                        <!-- Cliente (Select com validação) -->
+                        <div>
+                            <div id="form_cliente_container"></div>
+                            <p id="form_cliente_error" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
+
+                        <!-- Plano de Conta (Select com validação AJAX) -->
+                        <div>
+                            <div id="form_plano_conta_container"></div>
+                            <p id="form_plano_conta_error" class="mt-1 text-sm text-red-600 hidden"></p>
+                        </div>
+
+                        <!-- Observações -->
+                        <div>
+                            <label for="form_observacoes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Observações
+                            </label>
+                            <textarea id="form_observacoes"
+                                      name="observacoes"
+                                      rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="Observações opcionais..."></textarea>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex gap-4 pt-4">
+                            <button type="submit"
+                                    class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium">
+                                <i class="fas fa-save mr-2"></i>
+                                Enviar Formulário
+                            </button>
+                            <button type="reset"
+                                    class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors font-medium">
+                                <i class="fas fa-undo mr-2"></i>
+                                Limpar
+                            </button>
+                        </div>
+
+                        <!-- Resultado -->
+                        <div id="form-resultado" class="hidden mt-4 p-4 rounded-lg"></div>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Código</h3>
+                    <div class="code-block">
+                        <pre>&lt;form id="exemplo-form-validacao"&gt;
+    &lt;!-- Campo de texto normal --&gt;
+    &lt;input type="text" name="nome" required&gt;
+
+    &lt;!-- Custom Select obrigatório --&gt;
+    &lt;div id="form_cliente_container"&gt;&lt;/div&gt;
+
+    &lt;!-- JavaScript: Inicializar com required --&gt;
+    &lt;script&gt;
+        window.createCustomSelect('form_cliente_container', {
+            name: 'cliente_id',
+            id: 'form_cliente',
+            label: 'Cliente',
+            required: true,
+            mode: 'fixed',
+            items: clientesItems,
+            itemValue: 'id',
+            itemTitle: 'nome',
+            itemSubtitle: 'email',
+            itemCode: 'documento'
+        });
+
+        // Validação no submit
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Limpar erros
+            document.querySelectorAll('[id$="_error"]').forEach(el =&gt; {
+                el.classList.add('hidden');
+            });
+
+            // Validar campos
+            let isValid = true;
+
+            // Validar cliente
+            const clienteId = document.getElementById('form_cliente_hidden').value;
+            if (!clienteId) {
+                document.getElementById('form_cliente_error')
+                    .textContent = 'Selecione um cliente';
+                document.getElementById('form_cliente_error')
+                    .classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Processar formulário
+                const formData = new FormData(form);
+                console.log('Dados:', Object.fromEntries(formData));
+            }
+        });
+    &lt;/script&gt;
+&lt;/form&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Documentação de Parâmetros -->
         <div class="demo-card p-8">
             <h2 class="text-2xl font-bold text-gray-900 mb-4">
@@ -738,6 +884,164 @@
                     });
                 }
             }, 100);
+
+            // Exemplo 7: Formulário com Validação
+            window.createCustomSelect('form_cliente_container', {
+                name: 'cliente_id',
+                id: 'form_cliente',
+                label: 'Cliente',
+                placeholder: 'Selecione um cliente',
+                required: true,
+                mode: 'fixed',
+                items: clientesItems,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'email',
+                itemCode: 'documento'
+            });
+
+            window.createCustomSelect('form_plano_conta_container', {
+                name: 'plano_conta_id',
+                id: 'form_plano_conta',
+                label: 'Plano de Conta',
+                placeholder: 'Digite para buscar...',
+                required: true,
+                mode: 'ajax',
+                ajaxUrl: 'http://localhost:8000/api/custom-select/search',
+                ajaxMethod: 'GET',
+                minSearchLength: 2,
+                loadOnOpen: true,
+                itemValue: 'id',
+                itemTitle: 'nome',
+                itemSubtitle: 'categoria',
+                itemCode: 'codigo'
+            });
+
+            // Validação do formulário
+            const formValidacao = document.getElementById('exemplo-form-validacao');
+            if (formValidacao) {
+                formValidacao.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // Limpar erros anteriores
+                    document.querySelectorAll('[id^="form_"][id$="_error"]').forEach(el => {
+                        el.classList.add('hidden');
+                        el.textContent = '';
+                    });
+
+                    let isValid = true;
+
+                    // Validar nome
+                    const nome = document.getElementById('form_nome').value.trim();
+                    if (!nome) {
+                        document.getElementById('form_nome_error').textContent = 'Nome é obrigatório';
+                        document.getElementById('form_nome_error').classList.remove('hidden');
+                        isValid = false;
+                    } else if (nome.length < 3) {
+                        document.getElementById('form_nome_error').textContent = 'Nome deve ter pelo menos 3 caracteres';
+                        document.getElementById('form_nome_error').classList.remove('hidden');
+                        isValid = false;
+                    }
+
+                    // Validar email
+                    const email = document.getElementById('form_email').value.trim();
+                    if (!email) {
+                        document.getElementById('form_email_error').textContent = 'Email é obrigatório';
+                        document.getElementById('form_email_error').classList.remove('hidden');
+                        isValid = false;
+                    } else if (!email.includes('@')) {
+                        document.getElementById('form_email_error').textContent = 'Email inválido';
+                        document.getElementById('form_email_error').classList.remove('hidden');
+                        isValid = false;
+                    }
+
+                    // Validar cliente
+                    const clienteId = document.getElementById('form_cliente_hidden').value;
+                    if (!clienteId) {
+                        document.getElementById('form_cliente_error').textContent = 'Por favor, selecione um cliente';
+                        document.getElementById('form_cliente_error').classList.remove('hidden');
+                        isValid = false;
+                    }
+
+                    // Validar plano de conta
+                    const planoContaId = document.getElementById('form_plano_conta_hidden').value;
+                    if (!planoContaId) {
+                        document.getElementById('form_plano_conta_error').textContent = 'Por favor, selecione um plano de conta';
+                        document.getElementById('form_plano_conta_error').classList.remove('hidden');
+                        isValid = false;
+                    }
+
+                    // Se tudo válido, mostrar sucesso
+                    if (isValid) {
+                        const formData = new FormData(formValidacao);
+                        const dados = Object.fromEntries(formData);
+
+                        console.log('Formulário válido! Dados:', dados);
+
+                        const resultadoDiv = document.getElementById('form-resultado');
+                        resultadoDiv.className = 'mt-4 p-4 rounded-lg bg-green-50 border border-green-200';
+                        resultadoDiv.innerHTML = `
+                            <h4 class="text-green-800 font-semibold mb-2">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Formulário enviado com sucesso!
+                            </h4>
+                            <div class="text-sm text-green-700">
+                                <p><strong>Nome:</strong> ${dados.nome}</p>
+                                <p><strong>Email:</strong> ${dados.email}</p>
+                                <p><strong>Cliente ID:</strong> ${dados.cliente_id}</p>
+                                <p><strong>Plano de Conta ID:</strong> ${dados.plano_conta_id}</p>
+                                ${dados.observacoes ? `<p><strong>Observações:</strong> ${dados.observacoes}</p>` : ''}
+                            </div>
+                        `;
+                        resultadoDiv.classList.remove('hidden');
+
+                        // Scroll para o resultado
+                        resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        const resultadoDiv = document.getElementById('form-resultado');
+                        resultadoDiv.className = 'mt-4 p-4 rounded-lg bg-red-50 border border-red-200';
+                        resultadoDiv.innerHTML = `
+                            <h4 class="text-red-800 font-semibold mb-2">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                Por favor, corrija os erros acima
+                            </h4>
+                        `;
+                        resultadoDiv.classList.remove('hidden');
+                    }
+                });
+
+                // Reset do formulário
+                formValidacao.addEventListener('reset', function() {
+                    // Limpar erros
+                    document.querySelectorAll('[id^="form_"][id$="_error"]').forEach(el => {
+                        el.classList.add('hidden');
+                        el.textContent = '';
+                    });
+
+                    // Limpar resultado
+                    document.getElementById('form-resultado').classList.add('hidden');
+
+                    // Limpar custom selects
+                    setTimeout(() => {
+                        const clienteHidden = document.getElementById('form_cliente_hidden');
+                        const planoContaHidden = document.getElementById('form_plano_conta_hidden');
+
+                        if (clienteHidden) clienteHidden.value = '';
+                        if (planoContaHidden) planoContaHidden.value = '';
+
+                        // Remover displays selecionados
+                        const displays = document.querySelectorAll('[id^="form_"][id$="_selected_display"]');
+                        displays.forEach(display => display.remove());
+
+                        // Mostrar inputs novamente
+                        const inputs = document.querySelectorAll('[id^="form_"][id$="_input"]');
+                        inputs.forEach(input => {
+                            input.style.display = 'block';
+                            input.value = '';
+                        });
+                    }, 100);
+                });
+            }
         });
     </script>
 </body>

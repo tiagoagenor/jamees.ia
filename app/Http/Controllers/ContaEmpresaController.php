@@ -110,6 +110,20 @@ class ContaEmpresaController extends Controller
         // Registrar no audit log
         AuditService::logCreate($contaEmpresa, "Criou conta bancária: {$contaEmpresa->nome}");
 
+        // Se for requisição AJAX, retornar JSON
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Conta bancária criada com sucesso!',
+                'conta_empresa' => [
+                    'id' => $contaEmpresa->id,
+                    'nome' => $contaEmpresa->nome,
+                    'banco' => $contaEmpresa->banco ? $contaEmpresa->banco->nome_normalizado : '',
+                    'tipo' => $contaEmpresa->tipo->getLabel() ?? ''
+                ]
+            ]);
+        }
+
         return redirect()->route('conta-empresa.index')
             ->with('success', 'Conta bancária criada com sucesso!');
     }
