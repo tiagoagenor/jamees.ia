@@ -203,7 +203,7 @@
 
 @push('scripts')
 <script>
-// Variáveis globais para contadores
+// Variáveis globais para contadores (específicas do modal de cliente)
 let modalContatoIndex = 0;
 let modalEnderecoIndex = 0;
 
@@ -211,328 +211,240 @@ let modalEnderecoIndex = 0;
 if (typeof window.openClienteModal === 'undefined') {
     window.openClienteModal = function() {
         // Limpar formulário
-        document.getElementById('cliente-form').reset();
+        const form = document.getElementById('cliente-form');
+        if (form) form.reset();
+        
         // Limpar erros
         document.querySelectorAll('[id^="modal_"][id$="_error"]').forEach(el => {
             el.classList.add('hidden');
             el.textContent = '';
         });
+        
         // Esconder campos condicionais
-        document.getElementById('modal_nome_fantasia_field').style.display = 'none';
-        document.getElementById('modal_razao_social_field').style.display = 'none';
+        const nomeFantasiaField = document.getElementById('modal_nome_fantasia_field');
+        const razaoSocialField = document.getElementById('modal_razao_social_field');
+        if (nomeFantasiaField) nomeFantasiaField.style.display = 'none';
+        if (razaoSocialField) razaoSocialField.style.display = 'none';
+        
         // Limpar contatos e endereços
-        document.getElementById('modal_contatos-container').innerHTML = '';
-        document.getElementById('modal_enderecos-container').innerHTML = '';
+        const contatosContainer = document.getElementById('modal_contatos-container');
+        const enderecosContainer = document.getElementById('modal_enderecos-container');
+        if (contatosContainer) contatosContainer.innerHTML = '';
+        if (enderecosContainer) enderecosContainer.innerHTML = '';
+        
         modalContatoIndex = 0;
         modalEnderecoIndex = 0;
-        // Abrir modal
-        openModal('{{ $modalId }}');
+        
+        // Abrir modal usando função do CSelect
+        if (typeof window.openModal === 'function') {
+            window.openModal('{{ $modalId }}');
+        }
     };
 }
 
-// Mostrar/ocultar campos baseado no tipo de pessoa
+// Inicializar máscaras e eventos quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', function() {
     const tipoPessoaSelect = document.getElementById('modal_tipo_pessoa');
     const nomeFantasiaField = document.getElementById('modal_nome_fantasia_field');
     const razaoSocialField = document.getElementById('modal_razao_social_field');
     const documentoInput = document.getElementById('modal_documento');
 
+    // Mostrar/ocultar campos baseado no tipo de pessoa
     if (tipoPessoaSelect) {
         tipoPessoaSelect.addEventListener('change', function() {
             if (this.value === '2') { // Pessoa Jurídica
-                nomeFantasiaField.style.display = 'block';
-                razaoSocialField.style.display = 'block';
+                if (nomeFantasiaField) nomeFantasiaField.style.display = 'block';
+                if (razaoSocialField) razaoSocialField.style.display = 'block';
             } else {
-                nomeFantasiaField.style.display = 'none';
-                razaoSocialField.style.display = 'none';
+                if (nomeFantasiaField) nomeFantasiaField.style.display = 'none';
+                if (razaoSocialField) razaoSocialField.style.display = 'none';
             }
         });
     }
 
-    // Máscara para documento
-    if (documentoInput) {
-        documentoInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            const tipoPessoa = document.getElementById('modal_tipo_pessoa').value;
-
-            if (tipoPessoa == '2') { // PJ - CNPJ
-                if (value.length > 14) value = value.substring(0, 14);
-                if (value.length >= 2) {
-                    e.target.value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-                }
-            } else { // PF - CPF
-                if (value.length > 11) value = value.substring(0, 11);
-                if (value.length >= 3) {
-                    e.target.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                }
-            }
-        });
+    // Aplicar máscara de CPF/CNPJ usando função do CSelect
+    if (documentoInput && typeof window.applyCpfCnpjMask === 'function') {
+        window.applyCpfCnpjMask(documentoInput);
     }
 
-    // Máscara para telefones
+    // Aplicar máscara de telefone usando função do CSelect
     const telefoneInputs = ['modal_telefone_comercial', 'modal_celular'];
     telefoneInputs.forEach(function(inputId) {
         const input = document.getElementById(inputId);
-        if (input) {
-            input.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.substring(0, 11);
-
-                if (value.length >= 2) {
-                    if (value.length <= 10) {
-                        e.target.value = `(${value.substring(0, 2)}) ${value.substring(2, 6)}-${value.substring(6)}`;
-                    } else {
-                        e.target.value = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7)}`;
-                    }
-                } else if (value.length > 0) {
-                    e.target.value = `(${value}`;
-                }
-            });
+        if (input && typeof window.applyPhoneMask === 'function') {
+            window.applyPhoneMask(input);
         }
     });
 });
 
-// Funções para gerenciar contatos
+// Funções para gerenciar contatos (usando funções genéricas do CSelect)
 function adicionarContatoModal() {
-    const container = document.getElementById('modal_contatos-container');
-    const contatoItem = document.createElement('div');
-    contatoItem.className = 'contato-item border rounded-lg p-4 mb-4 bg-gray-50';
-    contatoItem.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="font-medium text-gray-900">Contato ${modalContatoIndex + 1}</h4>
-            <button type="button" onclick="removerContatoModal(this)" class="text-red-600 hover:text-red-800">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                <input type="text" name="contatos[${modalContatoIndex}][nome]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                       placeholder="Nome do contato">
+    if (typeof window.addDynamicItem !== 'function') {
+        console.error('Função addDynamicItem não encontrada. Certifique-se de que cselect.js está carregado.');
+        return;
+    }
+
+    window.addDynamicItem({
+        containerId: 'modal_contatos-container',
+        itemClass: 'contato-item',
+        itemIndex: modalContatoIndex,
+        template: (index) => `
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="font-medium text-gray-900">Contato ${index + 1}</h4>
+                <button type="button" onclick="removerContatoModal(this)" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Contato</label>
-                <input type="text" name="contatos[${modalContatoIndex}][contato]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                       placeholder="Email ou telefone">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                    <input type="text" name="contatos[${index}][nome]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="Nome do contato">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contato</label>
+                    <input type="text" name="contatos[${index}][contato]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="Email ou telefone">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                    <input type="text" name="contatos[${index}][cargo]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="Cargo/função">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Observação</label>
+                    <input type="text" name="contatos[${index}][observacao]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="Observações">
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                <input type="text" name="contatos[${modalContatoIndex}][cargo]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                       placeholder="Cargo/função">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Observação</label>
-                <input type="text" name="contatos[${modalContatoIndex}][observacao]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                       placeholder="Observações">
-            </div>
-        </div>
-    `;
-    container.appendChild(contatoItem);
+        `
+    });
+
     modalContatoIndex++;
 }
 
 function removerContatoModal(button) {
-    const contatoItem = button.closest('.contato-item');
-    contatoItem.remove();
+    if (typeof window.removeDynamicItem === 'function') {
+        window.removeDynamicItem(button, 'contato-item');
+    } else {
+        const contatoItem = button.closest('.contato-item');
+        if (contatoItem) contatoItem.remove();
+    }
 }
 
-// Funções para gerenciar endereços
+// Funções para gerenciar endereços (usando funções genéricas do CSelect)
 function adicionarEnderecoModal() {
-    const container = document.getElementById('modal_enderecos-container');
-    const enderecoItem = document.createElement('div');
-    enderecoItem.className = 'endereco-item border rounded-lg p-4 mb-4 bg-gray-50';
-    enderecoItem.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="font-medium text-gray-900">Endereço ${modalEnderecoIndex + 1}</h4>
-            <button type="button" onclick="removerEnderecoModal(this)" class="text-red-600 hover:text-red-800">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][cep]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="00000-000">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][logradouro]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="Rua, Avenida, etc.">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][numero]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="123">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][complemento]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="Apto, Sala, etc.">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][bairro]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="Nome do bairro">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][cidade]"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="Nome da cidade">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <input type="text" name="enderecos[${modalEnderecoIndex}][estado]" maxlength="2"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
-                       placeholder="SP">
-            </div>
-        </div>
-    `;
-    container.appendChild(enderecoItem);
-    
-    // Adicionar máscara de CEP
-    const cepInput = enderecoItem.querySelector('input[name*="[cep]"]');
-    if (cepInput) {
-        cepInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.replace(/(\d{5})(\d{3})/, '$1-$2');
-            e.target.value = value;
-        });
+    if (typeof window.addDynamicItem !== 'function') {
+        console.error('Função addDynamicItem não encontrada. Certifique-se de que cselect.js está carregado.');
+        return;
     }
-    
+
+    window.addDynamicItem({
+        containerId: 'modal_enderecos-container',
+        itemClass: 'endereco-item',
+        itemIndex: modalEnderecoIndex,
+        template: (index) => `
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="font-medium text-gray-900">Endereço ${index + 1}</h4>
+                <button type="button" onclick="removerEnderecoModal(this)" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                    <input type="text" name="enderecos[${index}][cep]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="00000-000">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
+                    <input type="text" name="enderecos[${index}][logradouro]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="Rua, Avenida, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número</label>
+                    <input type="text" name="enderecos[${index}][numero]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="123">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
+                    <input type="text" name="enderecos[${index}][complemento]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="Apto, Sala, etc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+                    <input type="text" name="enderecos[${index}][bairro]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="Nome do bairro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                    <input type="text" name="enderecos[${index}][cidade]"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="Nome da cidade">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <input type="text" name="enderecos[${index}][estado]" maxlength="2"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 text-sm"
+                           placeholder="SP">
+                </div>
+            </div>
+        `
+    });
+
     modalEnderecoIndex++;
 }
 
 function removerEnderecoModal(button) {
-    const enderecoItem = button.closest('.endereco-item');
-    enderecoItem.remove();
+    if (typeof window.removeDynamicItem === 'function') {
+        window.removeDynamicItem(button, 'endereco-item');
+    } else {
+        const enderecoItem = button.closest('.endereco-item');
+        if (enderecoItem) enderecoItem.remove();
+    }
 }
 
-// Função para salvar cliente
+// Função para salvar cliente (usando função genérica do CSelect)
 function saveCliente() {
-    const form = document.getElementById('cliente-form');
-    const formData = new FormData(form);
-    
-    // Limpar erros anteriores
-    document.querySelectorAll('[id^="modal_"][id$="_error"]').forEach(el => {
-        el.classList.add('hidden');
-        el.textContent = '';
-    });
+    if (typeof window.submitFormAjax !== 'function') {
+        console.error('Função submitFormAjax não encontrada. Certifique-se de que cselect.js está carregado.');
+        return;
+    }
 
-    // Mostrar loading
-    const saveButton = event.target;
-    const originalText = saveButton.innerHTML;
-    saveButton.disabled = true;
-    saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+    const modal = document.getElementById('{{ $modalId }}');
+    const selectId = modal ? modal.dataset.selectId : null;
 
-    fetch('{{ route("clientes.store") }}', {
+    window.submitFormAjax({
+        formId: 'cliente-form',
+        url: '{{ route("clientes.store") }}',
         method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw { response: { json: () => Promise.resolve(data) }, status: response.status };
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Fechar modal
-            closeModal('{{ $modalId }}');
-            
-            // Mostrar mensagem de sucesso
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: data.message || 'Cliente criado com sucesso!',
-                    timer: 2000,
-                    showConfirmButton: false
+        selectId: selectId,
+        selectItemFunction: (selectId, data) => {
+            if (selectId && typeof window.selectItemProgrammatically === 'function') {
+                window.selectItemProgrammatically(selectId, {
+                    id: data.cliente.id,
+                    nome: data.cliente.nome || data.cliente.nome_completo,
+                    nome_completo: data.cliente.nome_completo || data.cliente.nome,
+                    documento: data.cliente.documento || '',
+                    email: data.cliente.email || ''
                 });
             }
-
-            // Selecionar automaticamente no custom-select que abriu o modal
-            const modal = document.getElementById('{{ $modalId }}');
-            const selectId = modal ? modal.dataset.selectId : null;
-            
-            if (selectId && typeof window.selectItemProgrammatically === 'function') {
-                // Pequeno delay para garantir que o DOM esteja atualizado
-                setTimeout(() => {
-                    // Selecionar o cliente criado no select
-                    window.selectItemProgrammatically(selectId, {
-                        id: data.cliente.id,
-                        nome: data.cliente.nome || data.cliente.nome_completo,
-                        nome_completo: data.cliente.nome_completo || data.cliente.nome,
-                        documento: data.cliente.documento || '',
-                        email: data.cliente.email || ''
-                    });
-                }, 100);
-            }
-
+        },
+        onSuccess: (data) => {
             // Se houver callback, executar (para atualizar o select)
             if (typeof window.onClienteCreated === 'function') {
                 window.onClienteCreated(data.cliente);
             }
-
-            // Não recarregar a página, apenas fechar o modal
-            // A seleção já foi feita acima
-        } else {
-            throw new Error(data.message || 'Erro ao salvar');
         }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        
-        // Se for erro de validação
-        if (error.response) {
-            error.response.json().then(data => {
-                if (data.errors) {
-                    Object.keys(data.errors).forEach(field => {
-                        const errorEl = document.getElementById('modal_' + field + '_error');
-                        if (errorEl) {
-                            errorEl.textContent = data.errors[field][0];
-                            errorEl.classList.remove('hidden');
-                        }
-                    });
-                } else if (data.message) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erro!',
-                            text: data.message
-                        });
-                    }
-                }
-            });
-        } else {
-            // Erro genérico
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro!',
-                    text: error.message || 'Erro ao salvar cliente. Tente novamente.'
-                });
-            }
-        }
-    })
-    .finally(() => {
-        saveButton.disabled = false;
-        saveButton.innerHTML = originalText;
     });
 }
 </script>

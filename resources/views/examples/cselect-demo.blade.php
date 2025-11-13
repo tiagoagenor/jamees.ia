@@ -5,21 +5,55 @@
 @section('content')
 <!-- Incluir Font Awesome para ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Incluir SweetAlert2 para notificações -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">CSelect - Demonstração</h1>
-        <p class="text-gray-600">Exemplos de uso do componente CSelect</p>
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-12 mb-12 shadow-xl">
+    <div class="container mx-auto px-4">
+        <div class="text-center">
+            <div class="inline-block bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                <i class="fas fa-code text-4xl"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">CSelect</h1>
+            <p class="text-xl text-blue-100 max-w-2xl mx-auto">
+                Componente de Select Personalizado para Laravel - Moderno, Flexível e Fácil de Usar
+            </p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm backdrop-blur-sm">
+                    <i class="fas fa-check-circle mr-2"></i>Customizável
+                </span>
+                <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm backdrop-blur-sm">
+                    <i class="fas fa-check-circle mr-2"></i>Responsivo
+                </span>
+                <span class="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm backdrop-blur-sm">
+                    <i class="fas fa-check-circle mr-2"></i>AJAX Ready
+                </span>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="container mx-auto px-4 pb-12">
 
     <!-- Exemplo 1: Básico -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 p-6 pb-0">Exemplo 1: CSelect Básico</h2>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-500 text-white rounded-lg p-2">
+                    <i class="fas fa-play text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 1: CSelect Básico</h2>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
             <!-- Lado Esquerdo: Demonstração -->
-            <div class="p-6 border-r border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-600 mb-4 uppercase">Demonstração</h3>
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Forma de pagamento *</label>
@@ -33,19 +67,24 @@
                 </div>
 
                 <!-- Debug: Mostrar valor do input hidden -->
-                <div id="debug_example_1" class="p-3 bg-blue-50 border border-blue-200 rounded-md hidden">
-                    <p class="text-sm font-semibold text-blue-800 mb-1">🔍 Valor selecionado:</p>
-                    <p class="text-xs text-blue-700">
-                        <strong>ID:</strong> <span id="debug_hidden_id_1"></span><br>
-                        <strong>Name:</strong> <span id="debug_hidden_name_1"></span><br>
-                        <strong>Value:</strong> <span id="debug_hidden_value_1" class="font-mono bg-blue-100 px-1"></span>
+                <div id="debug_example_1" class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hidden">
+                    <p class="text-xs font-semibold text-blue-800 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-info-circle mr-1"></i>Valor selecionado
                     </p>
+                    <div class="space-y-1 text-xs text-blue-700">
+                        <p><strong class="font-semibold">ID:</strong> <span id="debug_hidden_id_1" class="font-mono bg-blue-100 px-2 py-0.5 rounded"></span></p>
+                        <p><strong class="font-semibold">Name:</strong> <span id="debug_hidden_name_1" class="font-mono bg-blue-100 px-2 py-0.5 rounded"></span></p>
+                        <p><strong class="font-semibold">Value:</strong> <span id="debug_hidden_value_1" class="font-mono bg-blue-100 px-2 py-0.5 rounded"></span></p>
+                    </div>
                 </div>
             </div>
 
             <!-- Lado Direito: Código -->
             <div class="bg-gray-900 p-6">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4 uppercase">Código</h3>
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
                 <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-gray-500">&lt;!-- Input principal SEM name --&gt;</span>
 <span class="text-blue-400">&lt;input</span>
     <span class="text-green-400">type</span>=<span class="text-yellow-300">"text"</span>
@@ -69,13 +108,23 @@
     </div>
 
     <!-- Exemplo 2: Com Dados Fixos e Subtitle -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 p-6 pb-0">Exemplo 2: CSelect com Title e Subtitle</h2>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-green-50 to-teal-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-green-500 text-white rounded-lg p-2">
+                    <i class="fas fa-layer-group text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 2: CSelect com Title e Subtitle</h2>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
             <!-- Lado Esquerdo: Demonstração -->
-            <div class="p-6 border-r border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-600 mb-4 uppercase">Demonstração</h3>
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Produto *</label>
@@ -91,7 +140,10 @@
 
             <!-- Lado Direito: Código -->
             <div class="bg-gray-900 p-6">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4 uppercase">Código</h3>
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
                 <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#produto'</span>, {
     <span class="text-green-400">name</span>: <span class="text-yellow-300">'produto_id'</span>,
     <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
@@ -143,13 +195,23 @@
     </div>
 
     <!-- Exemplo 5: Com Botão "Adicionar Novo" -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 p-6 pb-0">Exemplo 5: Cliente (Modo Fixed) com "Adicionar Novo"</h2>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-purple-500 text-white rounded-lg p-2">
+                    <i class="fas fa-plus-circle text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 5: Cliente (Modo Fixed) com "Adicionar Novo"</h2>
+            </div>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
             <!-- Lado Esquerdo: Demonstração -->
-            <div class="p-6 border-r border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-600 mb-4 uppercase">Demonstração</h3>
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
@@ -162,83 +224,43 @@
                     >
                 </div>
 
-                <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                    <p class="text-xs text-gray-600">
-                        <strong>Valor selecionado:</strong> <span id="cliente_selected_value_5" class="text-gray-800">Nenhum cliente selecionado</span>
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_5" class="text-sm font-medium text-gray-800">
+                        Nenhum cliente selecionado
                     </p>
                 </div>
             </div>
 
             <!-- Lado Direito: Código -->
             <div class="bg-gray-900 p-6">
-                <h3 class="text-sm font-semibold text-gray-400 mb-4 uppercase">Código</h3>
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
                 <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente'</span>, {
     <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
     <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
     <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
     <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
     <span class="text-green-400">items</span>: [...],
-    <span class="text-green-400">addNewButton</span>: {
+    <span class="text-green-400">addButton</span>: {
         <span class="text-green-400">text</span>: <span class="text-yellow-300">'Adicionar novo cliente'</span>
     },
-    <span class="text-green-400">onAddNew</span>: <span class="text-pink-400">() =&gt;</span> {
-        <span class="text-gray-500">// Abrir modal</span>
-        document.<span class="text-purple-400">getElementById</span>(<span class="text-yellow-300">'modal'</span>)
-            .<span class="text-purple-400">classList</span>.<span class="text-purple-400">remove</span>(<span class="text-yellow-300">'hidden'</span>);
+    <span class="text-green-400">onClickButton</span>: <span class="text-pink-400">(selectId) =&gt;</span> {
+        <span class="text-gray-500">// selectId é passado automaticamente pelo CSelect</span>
+        <span class="text-gray-500">// Abrir modal e definir selectId automaticamente</span>
+        window.<span class="text-purple-400">openModal</span>(<span class="text-yellow-300">'meu-modal'</span>, selectId);
     }
 });</code></pre>
             </div>
         </div>
     </div>
 
-    <!-- Modal Adicionar Cliente (Exemplo 5) -->
-    <div id="modal_cliente_example_5" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4 rounded-t-lg">
-                <h3 class="text-xl font-semibold text-white">Adicionar Novo Cliente</h3>
-            </div>
-
-            <div class="p-6">
-                <form id="form_cliente_example_5">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome *</label>
-                        <input
-                            type="text"
-                            id="cliente_nome_5"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                        <input
-                            type="email"
-                            id="cliente_email_5"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            required
-                        >
-                    </div>
-
-                    <div class="flex gap-3 mt-6">
-                        <button
-                            type="submit"
-                            class="flex-1 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                        >
-                            Salvar
-                        </button>
-                        <button
-                            type="button"
-                            onclick="document.getElementById('modal_cliente_example_5').classList.add('hidden')"
-                            class="flex-1 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                        >
-                            Cancelar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <!-- Modal de Cliente -->
+    <x-modals.cliente-modal />
 
     <!-- Exemplo 6: Com Valor Pré-selecionado -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -315,6 +337,9 @@
         </div>
     </div>
 </div>
+
+<!-- Incluir CSelect CSS -->
+<link rel="stylesheet" href="{{ asset('css/cselect.css') }}">
 
 <!-- Incluir CSelect JS -->
 <script src="{{ asset('js/cselect.js') }}"></script>
@@ -396,15 +421,33 @@
             { id: '1', nome: 'João Silva', email: 'joao@exemplo.com' },
             { id: '2', nome: 'Maria Santos', email: 'maria@exemplo.com' },
             { id: '3', nome: 'Empresa ABC Ltda', email: 'contato@abc.com' },
-            { id: '4', nome: 'Pedro Oliveira', email: 'pedro@exemplo.com' }
+            { id: '4', nome: 'Pedro Oliveira', email: 'pedro@exemplo.com' },
+            { id: '5', nome: 'Ana Costa', email: 'ana.costa@exemplo.com' },
+            { id: '6', nome: 'Carlos Mendes', email: 'carlos.mendes@exemplo.com' },
+            { id: '7', nome: 'Fernanda Lima', email: 'fernanda.lima@exemplo.com' },
+            { id: '8', nome: 'Roberto Alves', email: 'roberto.alves@exemplo.com' },
+            { id: '9', nome: 'Juliana Ferreira', email: 'juliana.ferreira@exemplo.com' },
+            { id: '10', nome: 'Lucas Souza', email: 'lucas.souza@exemplo.com' },
+            { id: '11', nome: 'Patricia Rocha', email: 'patricia.rocha@exemplo.com' },
+            { id: '12', nome: 'Rafael Martins', email: 'rafael.martins@exemplo.com' },
+            { id: '13', nome: 'Camila Barbosa', email: 'camila.barbosa@exemplo.com' },
+            { id: '14', nome: 'Thiago Ribeiro', email: 'thiago.ribeiro@exemplo.com' },
+            { id: '15', nome: 'Amanda Dias', email: 'amanda.dias@exemplo.com' },
+            { id: '16', nome: 'Bruno Carvalho', email: 'bruno.carvalho@exemplo.com' },
+            { id: '17', nome: 'Gabriela Nunes', email: 'gabriela.nunes@exemplo.com' },
+            { id: '18', nome: 'Marcelo Araújo', email: 'marcelo.araujo@exemplo.com' },
+            { id: '19', nome: 'Larissa Monteiro', email: 'larissa.monteiro@exemplo.com' },
+            { id: '20', nome: 'Felipe Cardoso', email: 'felipe.cardoso@exemplo.com' }
         ],
-        addNewButton: {
+        addButton: {
             text: 'Adicionar novo cliente',
             class: ''
         },
-        onAddNew: () => {
-            console.log('Abrindo modal de novo cliente...');
-            document.getElementById('modal_cliente_example_5').classList.remove('hidden');
+        onClickButton: (selectId) => {
+            console.log('Abrindo modal de novo cliente...', selectId);
+            // O selectId é passado automaticamente pelo CSelect
+            // Abrir modal de cliente (o selectId será definido automaticamente)
+            window.openModal('cliente-modal', selectId);
         },
         onSelect: (value, label) => {
             console.log('Cliente selecionado:', { value, label });
@@ -412,33 +455,38 @@
         }
     });
 
-    // Formulário do modal (Exemplo 5)
-    document.getElementById('form_cliente_example_5').addEventListener('submit', (e) => {
-        e.preventDefault();
 
-        const nome = document.getElementById('cliente_nome_5').value;
-        const email = document.getElementById('cliente_email_5').value;
+    // Callback para quando um cliente for criado (Exemplo 5)
+    // O modal de cliente já tem sua própria lógica de salvamento via AJAX
+    // Aqui apenas atualizamos o select quando o cliente for criado
+    // NOTA: O modal já chama selectItemProgrammatically, então aqui apenas adicionamos à lista
+    // e atualizamos o display, sem chamar setValue novamente para evitar duplicação
+    if (typeof window.onClienteCreated === 'undefined') {
+        window.onClienteCreated = function(cliente) {
+            console.log('Cliente criado:', cliente);
 
-        // Simular salvamento
-        console.log('Salvando novo cliente:', { nome, email });
+            // Adicionar à lista do select do Exemplo 5
+            if (typeof example5 !== 'undefined' && example5.config) {
+                const novoItem = {
+                    id: cliente.id.toString(),
+                    nome: cliente.nome || cliente.nome_completo,
+                    email: cliente.email || ''
+                };
 
-        // Gerar ID fictício
-        const novoId = (Math.random() * 1000).toFixed(0);
+                // Verificar se o item já não existe na lista
+                const itemExists = example5.config.items.some(item => item.id === novoItem.id);
+                if (!itemExists) {
+                    example5.config.items.push(novoItem);
+                }
 
-        // Adicionar à lista do select (simulação - na prática seria via AJAX)
-        const currentItems = example5.config.items;
-        currentItems.push({ id: novoId, nome: nome, email: email });
-
-        // Selecionar o novo cliente automaticamente
-        example5.setValue(novoId, nome);
-
-        // Fechar modal e limpar form
-        document.getElementById('modal_cliente_example_5').classList.add('hidden');
-        document.getElementById('form_cliente_example_5').reset();
-
-        // Feedback
-        alert(`Cliente "${nome}" adicionado com sucesso!`);
-    });
+                // Atualizar display (não chamar setValue aqui pois o modal já faz isso)
+                const displayEl = document.getElementById('cliente_selected_value_5');
+                if (displayEl) {
+                    displayEl.textContent = `${novoItem.nome} (ID: ${novoItem.id})`;
+                }
+            }
+        };
+    }
 
     // Exemplo 6: Com Valor Pré-selecionado
     console.log('Inicializar Exemplo 6...');
@@ -463,15 +511,27 @@
 </script>
 
 <!-- Documentação de Parâmetros -->
-<div class="container mx-auto px-4 py-8 mt-12 border-t-4 border-blue-500">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">📚 Documentação de Parâmetros</h1>
-        <p class="text-gray-600">Referência completa de todas as opções disponíveis do CSelect</p>
+<div class="container mx-auto px-4 py-12 mt-16">
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-12 text-white">
+        <div class="text-center">
+            <div class="inline-block bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                <i class="fas fa-book text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-3">📚 Documentação de Parâmetros</h1>
+            <p class="text-xl text-indigo-100 max-w-2xl mx-auto">
+                Referência completa de todas as opções disponíveis do CSelect
+            </p>
+        </div>
     </div>
 
     <!-- Sintaxe Básica -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">🚀 Sintaxe Básica</h2>
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-lg p-8 mb-8 border border-blue-100">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-blue-500 text-white rounded-lg p-2">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">🚀 Sintaxe Básica</h2>
+        </div>
         <pre class="bg-gray-900 text-gray-100 p-4 rounded-md overflow-x-auto"><code>cSelect(selector, options)</code></pre>
 
         <div class="mt-4">
@@ -487,9 +547,12 @@
     </div>
 
     <!-- Tabela de Parâmetros -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-            <h2 class="text-2xl font-semibold text-white">⚙️ Parâmetros de Configuração</h2>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100">
+        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-6 py-5 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-cog text-white text-2xl"></i>
+                <h2 class="text-2xl font-bold text-white">⚙️ Parâmetros de Configuração</h2>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -527,7 +590,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Array de objetos com as opções do select. Cada objeto deve ter as propriedades definidas em <code>itemValue</code> e <code>itemLabel</code></td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Array de objetos com as opções do select. Cada objeto deve ter as propriedades definidas em <code>itemValue</code> e <code>itemLabel</code> (ou <code>itemTitle</code>/<code>itemSubtitle</code> para layout de duas linhas)</td>
                     </tr>
 
                     <!-- minSearchLength -->
@@ -566,7 +629,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade que contém o valor do item</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do objeto que contém o valor único do item (será usado no input hidden e no callback <code>onSelect</code>)</td>
                     </tr>
 
                     <!-- itemLabel -->
@@ -579,7 +642,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade que contém o texto exibido do item (modo simples)</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do objeto que contém o texto exibido do item (modo simples, uma linha). Use este parâmetro quando não estiver usando <code>itemTitle</code> e <code>itemSubtitle</code></td>
                     </tr>
 
                     <!-- itemTitle -->
@@ -592,7 +655,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do título (linha principal). Use com <code>itemSubtitle</code> para layout de duas linhas</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do objeto que contém o título (linha principal em negrito). Use junto com <code>itemSubtitle</code> para criar um layout de duas linhas no dropdown. Quando um item é selecionado, apenas o título é exibido (o subtítulo não aparece)</td>
                     </tr>
 
                     <!-- itemSubtitle -->
@@ -605,7 +668,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do subtítulo (linha secundária). Use com <code>itemTitle</code> para layout de duas linhas</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Nome da propriedade do objeto que contém o subtítulo (linha secundária em cinza). Use junto com <code>itemTitle</code> para criar um layout de duas linhas no dropdown. O subtítulo aparece apenas no dropdown, não no item selecionado</td>
                     </tr>
 
                     <!-- loadOnOpen -->
@@ -618,7 +681,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Se deve carregar os dados ao abrir o dropdown</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Se <code>true</code>, carrega os dados automaticamente ao abrir o dropdown. Útil para requisições AJAX ou quando os dados precisam ser carregados sob demanda</td>
                     </tr>
 
                     <!-- debug -->
@@ -659,15 +722,83 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-700">Callback executado quando a seleção é removida (click na lixeira)</td>
                     </tr>
+
+                    <!-- addButton -->
+                    <tr class="hover:bg-gray-50 bg-teal-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-teal-100 text-teal-800 px-2 py-1 rounded">addButton</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">object</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Configuração do botão "Adicionar Novo" que aparece fixo no final do dropdown. Formato: <code>{ text: 'Adicionar novo', class: 'btn-class' }</code>. Se <code>modal</code> ou <code>modalHtml</code> estiver configurado, o botão abrirá o modal automaticamente</td>
+                    </tr>
+
+                    <!-- onClickButton -->
+                    <tr class="hover:bg-gray-50 bg-teal-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-teal-100 text-teal-800 px-2 py-1 rounded">onClickButton</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">function</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Callback executado quando o botão "Adicionar Novo" é clicado. Recebe o <code>selectId</code> (ID do input) como parâmetro. Use apenas se não estiver usando <code>modal</code> ou <code>modalHtml</code>. Se o modal estiver configurado, ele será aberto automaticamente e este callback não será executado. Exemplo: <code>onClickButton: (selectId) => { window.openModal('meu-modal', selectId); }</code></td>
+                    </tr>
+
+                    <!-- modal -->
+                    <tr class="hover:bg-gray-50 bg-purple-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">modal</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">ID ou classe CSS do modal existente no DOM (ex: <code>'#meu-modal'</code> ou <code>'.modal-classe'</code>). O modal será aberto automaticamente ao clicar no botão "Adicionar Novo"</td>
+                    </tr>
+
+                    <!-- modalHtml -->
+                    <tr class="hover:bg-gray-50 bg-purple-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">modalHtml</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">HTML do modal para criar dinamicamente. Use quando não tiver um modal existente no DOM. O modal será criado e adicionado ao <code>body</code></td>
+                    </tr>
+
+                    <!-- modalId -->
+                    <tr class="hover:bg-gray-50 bg-purple-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">modalId</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">ID único para o modal criado dinamicamente (usado apenas com <code>modalHtml</code>). Se não fornecido, será gerado automaticamente</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <!-- Métodos Retornados -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
-            <h2 class="text-2xl font-semibold text-white">🔧 Métodos Retornados</h2>
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100">
+        <div class="bg-gradient-to-r from-green-600 via-teal-600 to-emerald-600 px-6 py-5 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-tools text-white text-2xl"></i>
+                <h2 class="text-2xl font-bold text-white">🔧 Métodos Retornados</h2>
+            </div>
         </div>
 
         <div class="p-6">
@@ -703,13 +834,38 @@ select.setValue('2', 'Boleto Bancário'); // Seleciona o item programaticamente<
                     <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', {...});
 select.clear(); // Remove a seleção e volta ao input</code></pre>
                 </div>
+
+                <!-- openModal() -->
+                <div class="border-l-4 border-purple-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded">openModal()</code>
+                    </h3>
+                    <p class="text-gray-700 mb-2">Abre o modal associado ao CSelect (se configurado com <code>modal</code> ou <code>modalHtml</code>).</p>
+                    <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', { modal: '#meu-modal' });
+select.openModal(); // Abre o modal</code></pre>
+                </div>
+
+                <!-- closeModal() -->
+                <div class="border-l-4 border-purple-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded">closeModal()</code>
+                    </h3>
+                    <p class="text-gray-700 mb-2">Fecha o modal associado ao CSelect.</p>
+                    <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', { modal: '#meu-modal' });
+select.closeModal(); // Fecha o modal</code></pre>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Exemplos Práticos -->
-    <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg shadow-md p-6 mb-8">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">💡 Exemplos Práticos</h2>
+    <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-rose-50 rounded-xl shadow-lg p-8 mb-8 border border-purple-100">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="bg-purple-500 text-white rounded-lg p-2">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">💡 Exemplos Práticos</h2>
+        </div>
 
         <!-- Exemplo 1: Básico -->
         <div class="mb-6">
@@ -790,8 +946,13 @@ select.clear();</code></pre>
     </div>
 
     <!-- Notas Importantes -->
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
-        <h2 class="text-xl font-semibold text-yellow-800 mb-3">⚠️ Notas Importantes</h2>
+    <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-400 p-8 rounded-r-xl shadow-md">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="bg-yellow-400 text-white rounded-lg p-2">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="text-xl font-bold text-yellow-800">⚠️ Notas Importantes</h2>
+        </div>
         <ul class="list-disc list-inside space-y-2 text-yellow-900">
             <li>O input HTML <strong>NÃO precisa</strong> ter o atributo <code>name</code> - ele é passado via JavaScript</li>
             <li>O componente cria automaticamente um <code>&lt;input type="hidden"&gt;</code> com o <code>name</code> especificado</li>
