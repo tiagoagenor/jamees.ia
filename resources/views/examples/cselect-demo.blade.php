@@ -824,11 +824,37 @@ example11.<span class="text-purple-400">clear</span>();</code></pre>
                     </p>
                 </div>
 
+                <div class="mb-4 flex gap-2">
+                    <button
+                        type="button"
+                        onclick="updateExample12Values();"
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm"
+                    >
+                        Atualizar Valores (getValue)
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example12False.clear(); example12True.clear(); updateExample12Values();"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar Ambos
+                    </button>
+                </div>
+
                 <div class="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
                     <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                        <i class="fas fa-code text-green-500 mr-1"></i>Verificar no DevTools
+                        <i class="fas fa-code text-green-500 mr-1"></i>Valores obtidos com getValue()
                     </p>
-                    <p class="text-xs text-gray-700">
+                    <p id="example_12_values" class="text-xs text-gray-700">
+                        Nenhum valor selecionado ainda
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-info-circle text-blue-600 mr-1"></i>Verificar no DevTools
+                    </p>
+                    <p class="text-xs text-blue-700">
                         Abra o DevTools (F12) e inspecione os elementos. O primeiro campo terá um input hidden, o segundo não.
                     </p>
                 </div>
@@ -846,6 +872,9 @@ example11.<span class="text-purple-400">clear</span>();</code></pre>
     <span class="text-green-400">hideHiddenInput</span>: <span class="text-orange-400">false</span>, <span class="text-gray-500">// Cria input hidden</span>
     <span class="text-green-400">http</span>: {
         <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado (com input hidden):'</span>, { value, label });
     }
 });
 
@@ -860,7 +889,13 @@ example11.<span class="text-purple-400">clear</span>();</code></pre>
         <span class="text-gray-500">// Gerenciar valor manualmente</span>
         console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Valor selecionado:'</span>, value);
     }
-});</code></pre>
+});
+
+<span class="text-gray-500">// Obter valores (funciona em ambos os casos)</span>
+<span class="text-gray-500">// hideHiddenInput: false - retorna do input hidden</span>
+<span class="text-gray-500">// hideHiddenInput: true - retorna do config.selectedValue</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">valor1</span> = example12False.<span class="text-purple-400">getValue</span>();
+<span class="text-purple-400">const</span> <span class="text-blue-400">valor2</span> = example12True.<span class="text-purple-400">getValue</span>();</code></pre>
             </div>
         </div>
     </div>
@@ -970,6 +1005,342 @@ console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'
             .textContent = <span class="text-yellow-300">'Nenhum valor selecionado'</span>;
     }
 }</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 14: CSelect com Refresh Button -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-purple-500 text-white rounded-lg p-2">
+                    <i class="fas fa-sync-alt text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 14: CSelect com Botão de Atualizar (Refresh)</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (com botão de atualizar) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_14"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 flex gap-2">
+                    <button
+                        type="button"
+                        onclick="example14.refresh()"
+                        class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors text-sm"
+                    >
+                        <i class="fas fa-sync-alt mr-1"></i>
+                        Forçar Refresh (refresh())
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example14.clear()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar
+                    </button>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-purple-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_value_display_14" class="text-sm font-medium text-gray-800">
+                        Nenhum cliente selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb text-blue-600 mr-1"></i>Dica
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        Quando o input está ativo (sem item selecionado), você verá um ícone de atualizar (sincronização) no canto direito do input, na mesma posição onde a lixeira aparece quando há um item selecionado. Este botão recarrega os dados da API com o termo de busca atual. O botão só aparece quando <code>http.refresh: true</code> está configurado e o input está visível.
+                    </p>
+                    <p class="text-xs text-blue-700">
+                        Você também pode forçar um refresh programaticamente usando o método <code>refresh()</code>, que limpa o cache e busca novamente os dados da API. Use o botão acima para testar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example14</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_14'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">minSearchLength</span>: <span class="text-orange-400">0</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>,
+        <span class="text-green-400">refresh</span>: <span class="text-orange-400">true</span> <span class="text-gray-500">// Ativa o botão de atualizar</span>
+    },
+    <span class="text-green-400">onSelect</span>: (<span class="text-blue-400">value</span>, <span class="text-blue-400">label</span>) => {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, { value, label });
+    }
+});
+
+<span class="text-gray-500">// Forçar refresh programaticamente</span>
+example14.<span class="text-purple-400">refresh</span>(); <span class="text-gray-500">// Limpa cache e busca novamente</span></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 15: CSelect com setValue() e forceRefresh -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-500 text-white rounded-lg p-2">
+                    <i class="fas fa-sync text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 15: CSelect com setValue() e forceRefresh</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_15"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ID para setValue (exemplo)</label>
+                    <input
+                        type="text"
+                        id="cliente_id_example_15"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Digite o ID do cliente..."
+                        value="c1702650-d9fb-48e9-b67b-112fe8ce9ab8"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 flex flex-col gap-2">
+                    <button
+                        type="button"
+                        onclick="const id = document.getElementById('cliente_id_example_15').value; if(id) example15.setValue(id, '', false);"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                    >
+                        setValue(id, '', false) - Usar Cache
+                    </button>
+                    <button
+                        type="button"
+                        onclick="const id = document.getElementById('cliente_id_example_15').value; if(id) example15.setValue(id, '', true);"
+                        class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors text-sm"
+                    >
+                        setValue(id, '', true) - Force Refresh
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example15.clear()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar
+                    </button>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-indigo-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_value_display_15" class="text-sm font-medium text-gray-800">
+                        Nenhum cliente selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb text-blue-600 mr-1"></i>Dica
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        O método <code>setValue(id, label, forceRefresh)</code> aceita um terceiro parâmetro opcional <code>forceRefresh</code> (padrão: <code>false</code>).
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        Quando <code>forceRefresh</code> é <code>false</code> (padrão), o método usa o cache se disponível, evitando requisições desnecessárias.
+                    </p>
+                    <p class="text-xs text-blue-700">
+                        Quando <code>forceRefresh</code> é <code>true</code>, o método ignora o cache e sempre faz uma nova busca AJAX, garantindo dados atualizados.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example15</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_15'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">minSearchLength</span>: <span class="text-orange-400">0</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: (<span class="text-blue-400">value</span>, <span class="text-blue-400">label</span>) => {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, { value, label });
+    }
+});
+
+<span class="text-gray-500">// Usar cache (padrão)</span>
+example15.<span class="text-purple-400">setValue</span>(<span class="text-yellow-300">'id-do-cliente'</span>, <span class="text-yellow-300">''</span>, <span class="text-orange-400">false</span>);
+
+<span class="text-gray-500">// Forçar refresh (ignorar cache)</span>
+example15.<span class="text-purple-400">setValue</span>(<span class="text-yellow-300">'id-do-cliente'</span>, <span class="text-yellow-300">''</span>, <span class="text-orange-400">true</span>);</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 16: CSelect com hideHiddenInput() dinâmico -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-pink-500 text-white rounded-lg p-2">
+                    <i class="fas fa-toggle-on text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 16: CSelect com hideHiddenInput() dinâmico</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_16"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 flex flex-col gap-2">
+                    <button
+                        type="button"
+                        onclick="example16.hideHiddenInput(true); updateExample16Status();"
+                        class="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors text-sm"
+                    >
+                        hideHiddenInput(true) - Remover Input Hidden
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example16.hideHiddenInput(false); updateExample16Status();"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                    >
+                        hideHiddenInput(false) - Criar Input Hidden
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example16.clear(); updateExample16Status();"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar
+                    </button>
+                </div>
+
+                <div class="mb-4 p-4 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-pink-500 mr-1"></i>Status do Input Hidden
+                    </p>
+                    <p id="example_16_status" class="text-sm font-medium text-gray-800">
+                        Verificando...
+                    </p>
+                </div>
+
+                <div class="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-code text-green-500 mr-1"></i>Valor atual (getValue)
+                    </p>
+                    <p id="example_16_value" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb text-blue-600 mr-1"></i>Dica
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        Use <code>hideHiddenInput(true)</code> para remover o input hidden e gerenciar o valor manualmente via JavaScript.
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        Use <code>hideHiddenInput(false)</code> para criar o input hidden novamente e permitir que o valor seja enviado no formulário.
+                    </p>
+                    <p class="text-xs text-blue-700">
+                        Abra o DevTools (F12) e inspecione o elemento para ver o input hidden sendo criado/removido.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">select</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#meu_input'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>
+    }
+});
+
+<span class="text-gray-500">// Remover input hidden</span>
+select.<span class="text-purple-400">hideHiddenInput</span>(<span class="text-orange-400">true</span>);
+
+<span class="text-gray-500">// Criar input hidden novamente</span>
+select.<span class="text-purple-400">hideHiddenInput</span>(<span class="text-orange-400">false</span>);
+
+<span class="text-gray-500">// O valor é preservado durante a transição</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">valor</span> = select.<span class="text-purple-400">getValue</span>();</code></pre>
             </div>
         </div>
     </div>
@@ -1374,6 +1745,101 @@ console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'
         }
     };
 
+    // Exemplo 14: CSelect com Refresh Button
+    const example14 = cSelect('#cliente_example_14', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search',
+            refresh: true // Ativa o botão de atualizar no dropdown
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_value_display_14').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+    window.example14 = example14;
+
+    // Exemplo 15: CSelect com setValue() e forceRefresh
+    const example15 = cSelect('#cliente_example_15', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_value_display_15').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+    window.example15 = example15;
+
+    // Exemplo 16: CSelect com hideHiddenInput() dinâmico
+    const example16 = cSelect('#cliente_example_16', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            updateExample16Status();
+            updateExample16Value();
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+    window.example16 = example16;
+
+    // Função para atualizar o status do input hidden
+    window.updateExample16Status = function() {
+        const container = document.getElementById('cliente_example_16')?.closest('.cselect-container');
+        const hiddenInput = container?.querySelector('.cselect-hidden-input');
+        const statusEl = document.getElementById('example_16_status');
+        
+        if (statusEl) {
+            if (hiddenInput) {
+                statusEl.innerHTML = '<span class="text-green-600">✅ Input hidden existe</span><br><small class="text-gray-600">ID: ' + hiddenInput.id + '</small>';
+            } else {
+                statusEl.innerHTML = '<span class="text-pink-600">❌ Input hidden não existe</span><br><small class="text-gray-600">Valor gerenciado via config.selectedValue</small>';
+            }
+        }
+        
+        // Também atualizar o valor
+        updateExample16Value();
+    };
+
+    // Função para atualizar o valor exibido
+    window.updateExample16Value = function() {
+        const valueEl = document.getElementById('example_16_value');
+        if (valueEl && example16) {
+            const valor = example16.getValue();
+            valueEl.textContent = valor || 'Nenhum valor selecionado';
+        }
+    };
+
+    // Atualizar status inicial
+    setTimeout(() => {
+        updateExample16Status();
+        updateExample16Value();
+    }, 100);
+
     // Exemplo 12: CSelect com hideHiddenInput
     const example12False = cSelect('#cliente_example_12_false', {
         name: 'cliente_id_false',
@@ -1390,8 +1856,10 @@ console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'
         },
         onSelect: (value, label) => {
             console.log('Cliente selecionado (com input hidden):', { value, label });
+            updateExample12Values();
         }
     });
+    window.example12False = example12False;
 
     const example12True = cSelect('#cliente_example_12_true', {
         name: 'cliente_id_true',
@@ -1409,8 +1877,24 @@ console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'
         onSelect: (value, label) => {
             console.log('Cliente selecionado (sem input hidden):', { value, label });
             console.log('Valor deve ser gerenciado manualmente via JavaScript');
+            updateExample12Values();
         }
     });
+    window.example12True = example12True;
+
+    // Função para atualizar os valores exibidos
+    function updateExample12Values() {
+        const val1 = example12False.getValue();
+        const val2 = example12True.getValue();
+        const display = document.getElementById('example_12_values');
+        if (display) {
+            let html = '<div class="space-y-1">';
+            html += `<div><strong>hideHiddenInput: false</strong>: ${val1 || 'Nenhum valor'}</div>`;
+            html += `<div><strong>hideHiddenInput: true</strong>: ${val2 || 'Nenhum valor'}</div>`;
+            html += '</div>';
+            display.innerHTML = html;
+        }
+    }
 
     // Exemplo 10 (enabled): Para comparação
     const example10Enabled = cSelect('#cliente_example_10_enabled', {
@@ -1766,6 +2250,84 @@ console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-700">ID único para o modal criado dinamicamente (usado apenas com <code>modalHtml</code>). Se não fornecido, será gerado automaticamente</td>
                     </tr>
+
+                    <!-- http -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">object</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Configuração para requisições AJAX. Objeto com propriedades: <code>url</code> (string, obrigatório), <code>method</code> (string, padrão: 'GET'), <code>headers</code> (object, opcional), <code>searchParam</code> (string, padrão: 'search'), <code>refresh</code> (boolean, padrão: false). Exemplo: <code>{ url: '/api/clientes', method: 'GET', refresh: true }</code></td>
+                    </tr>
+
+                    <!-- http.url -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http.url</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">URL da API para buscar os dados. Quando configurado, o CSelect fará requisições AJAX para buscar os itens. O termo de busca será adicionado como parâmetro de query (nome do parâmetro definido em <code>http.searchParam</code>)</td>
+                    </tr>
+
+                    <!-- http.method -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http.method</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>'GET'</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Método HTTP para a requisição AJAX. Valores aceitos: <code>'GET'</code>, <code>'POST'</code>, <code>'PUT'</code>, <code>'PATCH'</code>. Para métodos POST/PUT/PATCH, o termo de busca será enviado no body como JSON</td>
+                    </tr>
+
+                    <!-- http.headers -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http.headers</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">object</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>{}</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Headers customizados para a requisição AJAX. Se não fornecido ou se não tiver <code>Content-Type</code>, será adicionado automaticamente <code>'Content-Type': 'application/json'</code>. Para rotas <code>/api/*</code>, o header <code>Authorization: Bearer {token}</code> é adicionado automaticamente (JWT)</td>
+                    </tr>
+
+                    <!-- http.searchParam -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http.searchParam</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>'search'</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Nome do parâmetro de query usado na URL para enviar o termo de busca. Exemplo: se <code>searchParam: 'q'</code>, a URL será <code>/api/clientes?q=termo</code>. Se não fornecido, usa <code>'search'</code> como padrão</td>
+                    </tr>
+
+                    <!-- http.refresh -->
+                    <tr class="hover:bg-gray-50 bg-orange-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">http.refresh</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">boolean</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>false</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Se <code>true</code>, exibe um botão de atualizar (ícone de sincronização) no canto direito do input quando ele está ativo (sem item selecionado). O botão força uma nova busca AJAX ignorando o cache. O botão aparece na mesma posição onde a lixeira aparece quando há um item selecionado</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -1797,11 +2359,23 @@ const valor = select.getValue(); // Retorna '1', '2', etc.</code></pre>
                 <!-- setValue() -->
                 <div class="border-l-4 border-green-500 pl-4 py-2">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                        <code class="bg-green-100 text-green-800 px-2 py-1 rounded">setValue(value, label)</code>
+                        <code class="bg-green-100 text-green-800 px-2 py-1 rounded">setValue(value, label, forceRefresh)</code>
                     </h3>
                     <p class="text-gray-700 mb-2">Define o valor selecionado programaticamente.</p>
+                    <p class="text-gray-600 text-sm mb-2"><strong>Parâmetros:</strong></p>
+                    <ul class="text-gray-600 text-sm mb-2 list-disc list-inside space-y-1">
+                        <li><code>value</code> (string, obrigatório): ID do item a ser selecionado</li>
+                        <li><code>label</code> (string, opcional): Label do item. Se não fornecido e houver AJAX configurado, o CSelect buscará automaticamente da API</li>
+                        <li><code>forceRefresh</code> (boolean, opcional, padrão: <code>false</code>): Se <code>true</code>, ignora o cache e sempre faz uma nova busca AJAX. Se <code>false</code>, usa o cache se disponível</li>
+                    </ul>
                     <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', {...});
-select.setValue('2', 'Boleto Bancário'); // Seleciona o item programaticamente</code></pre>
+
+// Usar cache se disponível (padrão)
+select.setValue('2', 'Boleto Bancário');
+select.setValue('2', '', false); // Equivale ao acima
+
+// Forçar refresh (ignorar cache)
+select.setValue('2', '', true);</code></pre>
                 </div>
 
                 <!-- clear() -->
@@ -1832,6 +2406,39 @@ select.openModal(); // Abre o modal</code></pre>
                     <p class="text-gray-700 mb-2">Fecha o modal associado ao CSelect.</p>
                     <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', { modal: '#meu-modal' });
 select.closeModal(); // Fecha o modal</code></pre>
+                </div>
+
+                <!-- disable() -->
+                <div class="border-l-4 border-gray-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded">disable()</code>
+                    </h3>
+                    <p class="text-gray-700 mb-2">Desabilita o input do CSelect, impedindo interação do usuário. Fecha o dropdown se estiver aberto.</p>
+                    <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', {...});
+select.disable(); // Desabilita o campo</code></pre>
+                </div>
+
+                <!-- enable() -->
+                <div class="border-l-4 border-gray-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <code class="bg-gray-100 text-gray-800 px-2 py-1 rounded">enable()</code>
+                    </h3>
+                    <p class="text-gray-700 mb-2">Habilita o input do CSelect, permitindo interação do usuário.</p>
+                    <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', {...});
+select.enable(); // Habilita o campo</code></pre>
+                </div>
+
+                <!-- refresh() -->
+                <div class="border-l-4 border-indigo-500 pl-4 py-2">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                        <code class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded">refresh()</code>
+                    </h3>
+                    <p class="text-gray-700 mb-2">Força uma atualização dos dados via AJAX, ignorando o cache. Limpa o cache do termo atual e faz uma nova busca.</p>
+                    <p class="text-gray-600 text-sm mb-2"><strong>Nota:</strong> Disponível apenas quando <code>http</code> está configurado.</p>
+                    <pre class="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto text-sm"><code>const select = cSelect('#meu_input', {
+    http: { url: '/api/clientes' }
+});
+select.refresh(); // Força atualização ignorando cache</code></pre>
                 </div>
             </div>
         </div>

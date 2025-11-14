@@ -441,7 +441,7 @@
             itemTitle: options.itemTitle || null,
             itemSubtitle: options.itemSubtitle || null,
             loadOnOpen: options.loadOnOpen !== false,
-            http: options.http || null, // { url: '...', method: 'GET', headers: {...} }
+            http: options.http || null, // { url: '...', method: 'GET', headers: {...}, refresh: true/false }
             addButton: options.addButton || null, // { text: 'Adicionar novo', class: 'btn-class' }
             modal: options.modal || null, // ID ou classe do modal existente (#id ou .class)
             modalHtml: options.modalHtml || null, // HTML do modal para criar dinamicamente
@@ -522,7 +522,7 @@
                 // Se não houver input hidden (hideHiddenInput: true), retornar do config
                 return config.selectedValue || '';
             },
-            setValue: (value, label) => selectItemProgrammatically(input, value, label),
+            setValue: (value, label, forceRefresh = false) => selectItemProgrammatically(input, value, label, forceRefresh),
             openModal: () => openCSelectModal(modalElement, log, input.id),
             closeModal: () => closeCSelectModal(modalElement, log),
             disable: () => {
@@ -540,8 +540,95 @@
             enable: () => {
                 input.disabled = false;
                 log('✅ CSelect habilitado');
-            }
+            },
+            refresh: () => {
+                // Forçar refresh: limpar cache e buscar novamente
+                if (config.http && config.http.url) {
+                    const container = input.closest('.cselect-container');
+                    const dropdown = container ? container.querySelector('.cselect-dropdown') : null;
+                    if (dropdown) {
+                        // Verificar se o dropdown está aberto
+                        const isDropdownOpen = !dropdown.classList.contains('hidden');
+
+                        // Limpar cache do termo atual
+                        const currentSearchTerm = input.value.trim();
+                        const cacheKey = currentSearchTerm || '__empty__';
+                        if (config._ajaxCache) {
+                            delete config._ajaxCache[cacheKey];
+                        }
+                        // Resetar último termo para forçar nova busca
+                        config._lastSearchTerm = '';
+
+                        // Se o dropdown estiver aberto, fazer busca normal (que abre o dropdown)
+                        if (isDropdownOpen) {
+                            performAjaxSearch(input, dropdown, currentSearchTerm, config, log);
+                            log('🔄 Refresh forçado (dropdown aberto)');
+                        } else {
+                            // Se o dropdown estiver fechado, fazer busca sem abrir
+                            refreshWithoutOpeningDropdown(input, dropdown, currentSearchTerm, config, log);
+                            log('🔄 Refresh forçado (dropdown fechado)');
+                        }
+                    }
+                } else {
+                    log('⚠️ Refresh não disponível: configuração HTTP não encontrada');
+                }
+            },
         };
+
+        // Adicionar método hideHiddenInput após criar a instância
+        instance.hideHiddenInput = function(hide = true) {
+            const container = input.closest('.cselect-container');
+            if (!container) {
+                log('❌ Container não encontrado');
+                return instance;
+            }
+
+            // Obter valor atual antes de fazer mudanças
+            const hiddenInput = getHiddenInput(input);
+            const currentValue = hiddenInput ? hiddenInput.value : (config.selectedValue || '');
+
+            // Atualizar config
+            config.hideHiddenInput = hide;
+
+            if (hide) {
+                // Remover input hidden se existir
+                if (hiddenInput) {
+                    // Salvar valor no config antes de remover
+                    config.selectedValue = currentValue;
+                    hiddenInput.remove();
+                    log('🗑️ Input hidden removido');
+                } else {
+                    // Se não existir, apenas atualizar config
+                    config.selectedValue = currentValue;
+                    log('✅ Config atualizado (hideHiddenInput: true)');
+                }
+            } else {
+                // Criar input hidden se não existir
+                let newHiddenInput = container.querySelector('.cselect-hidden-input');
+                if (!newHiddenInput) {
+                    newHiddenInput = document.createElement('input');
+                    newHiddenInput.type = 'hidden';
+                    newHiddenInput.className = 'cselect-hidden-input';
+                    newHiddenInput.name = config.name;
+                    newHiddenInput.id = `${input.id}_hidden`;
+                    container.appendChild(newHiddenInput);
+                    log('✅ Input hidden criado:', newHiddenInput.id);
+                }
+
+                // Atualizar valor do input hidden com o valor atual
+                if (currentValue) {
+                    newHiddenInput.value = currentValue;
+                    log('📝 Valor do input hidden atualizado:', { id: newHiddenInput.id, name: newHiddenInput.name, value: currentValue });
+                }
+
+                // Limpar selectedValue do config já que agora temos input hidden
+                config.selectedValue = '';
+                log('✅ Config atualizado (hideHiddenInput: false)');
+            }
+
+            return instance;
+        };
+
         window.cSelectInstances[input.id] = instance;
 
         // Se houver valor pré-selecionado, selecionar automaticamente
@@ -694,6 +781,51 @@
             container.appendChild(dropdown);
         }
 
+        // Criar botão de refresh se configurado (posicionado absolutamente no input)
+        if (config.http && config.http.refresh === true) {
+            let refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+            if (!refreshWrapper) {
+                // Criar wrapper para posicionar o botão sobre o input
+                refreshWrapper = document.createElement('div');
+                refreshWrapper.className = 'cselect-refresh-wrapper absolute right-2 top-1/2 transform -translate-y-1/2 z-10';
+                refreshWrapper.style.pointerEvents = 'none'; // Permitir cliques através do wrapper
+
+                const refreshBtn = document.createElement('button');
+                refreshBtn.type = 'button';
+                refreshBtn.className = 'cselect-refresh-btn text-gray-400 hover:text-blue-500 transition-colors text-xs p-1';
+                refreshBtn.style.pointerEvents = 'auto'; // Habilitar cliques no botão
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+
+                // Verificar se há item selecionado para decidir se mostra ou não
+                const hasSelected = container.querySelector('.cselect-selected');
+                refreshWrapper.style.display = hasSelected ? 'none' : 'block';
+
+                // Event listener para atualizar a busca AJAX (forçar refresh ignorando cache)
+                refreshBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const currentSearchTerm = input.value.trim();
+                    // Limpar cache do termo atual para forçar nova busca
+                    const cacheKey = currentSearchTerm || '__empty__';
+                    if (config._ajaxCache) {
+                        delete config._ajaxCache[cacheKey];
+                    }
+                    // Resetar último termo para forçar nova busca
+                    config._lastSearchTerm = '';
+                    // Fazer nova busca
+                    performAjaxSearch(input, dropdown, currentSearchTerm, config, log);
+                });
+
+                refreshWrapper.appendChild(refreshBtn);
+                container.appendChild(refreshWrapper);
+            }
+        }
+
+        // Inicializar cache de resultados AJAX
+        if (config.http && !config._ajaxCache) {
+            config._ajaxCache = {}; // { 'searchTerm': { items: [...], timestamp: ... } }
+            config._lastSearchTerm = ''; // Último termo de busca usado
+        }
+
         // Guardar config e log no input para uso posterior
         input._cselectConfig = config;
         input._cselectLog = log;
@@ -756,14 +888,15 @@
 
         listContainer.appendChild(ul);
 
+        // Container para botões fixos no final (apenas Adicionar Novo)
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'sticky bottom-0 bg-white border-t border-gray-200';
+        let hasButtons = false;
+
         // Adicionar botão "Adicionar Novo" se configurado (fixo no final)
         if (config.addButton) {
             const buttonText = config.addButton.text || 'Adicionar novo';
             const buttonClass = config.addButton.class || '';
-
-            // Container sticky para o botão (dentro do listContainer para funcionar com scroll)
-            const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'sticky bottom-0 bg-white border-t border-gray-200';
 
             const addNewBtn = document.createElement('button');
             addNewBtn.type = 'button';
@@ -773,8 +906,13 @@
                 <span>${buttonText}</span>
             `;
 
-            buttonContainer.appendChild(addNewBtn);
-            listContainer.appendChild(buttonContainer);
+            buttonsContainer.appendChild(addNewBtn);
+            hasButtons = true;
+        }
+
+        // Adicionar container de botões apenas se houver botões
+        if (hasButtons) {
+            listContainer.appendChild(buttonsContainer);
         }
 
         dropdown.appendChild(listContainer);
@@ -798,6 +936,25 @@
             if (!config.http && !input.value.trim()) {
                 filterLocalItems(dropdown, '', config, log);
             }
+            // Se for AJAX, verificar cache e buscar se necessário
+            if (config.http && config.http.url) {
+                const currentValue = input.value.trim();
+                // Se o valor mudou desde a última busca, fazer nova busca
+                if (config._lastSearchTerm !== currentValue) {
+                    performAjaxSearch(input, dropdown, currentValue, config, log);
+                } else {
+                    // Se o valor não mudou, usar cache se disponível
+                    const cacheKey = currentValue || '__empty__';
+                    const cachedResult = config._ajaxCache && config._ajaxCache[cacheKey];
+                    if (cachedResult) {
+                        log('💾 Usando cache ao focar:', currentValue);
+                        updateDropdownItems(dropdown, cachedResult.items, config, log);
+                    } else {
+                        // Se não houver cache, buscar
+                        performAjaxSearch(input, dropdown, currentValue, config, log);
+                    }
+                }
+            }
         });
 
         // Abrir dropdown ao clicar no input (se não estiver disabled)
@@ -812,6 +969,25 @@
             // Se não for AJAX e não houver texto no input, mostrar todos os items
             if (!config.http && !input.value.trim()) {
                 filterLocalItems(dropdown, '', config, log);
+            }
+            // Se for AJAX, verificar cache e buscar se necessário
+            if (config.http && config.http.url) {
+                const currentValue = input.value.trim();
+                // Se o valor mudou desde a última busca, fazer nova busca
+                if (config._lastSearchTerm !== currentValue) {
+                    performAjaxSearch(input, dropdown, currentValue, config, log);
+                } else {
+                    // Se o valor não mudou, usar cache se disponível
+                    const cacheKey = currentValue || '__empty__';
+                    const cachedResult = config._ajaxCache && config._ajaxCache[cacheKey];
+                    if (cachedResult) {
+                        log('💾 Usando cache ao clicar:', currentValue);
+                        updateDropdownItems(dropdown, cachedResult.items, config, log);
+                    } else {
+                        // Se não houver cache, buscar
+                        performAjaxSearch(input, dropdown, currentValue, config, log);
+                    }
+                }
             }
         });
 
@@ -852,13 +1028,8 @@
             });
 
             // Carregar dados ao abrir se loadOnOpen for true
-            if (config.loadOnOpen !== false) {
-                input.addEventListener('focus', () => {
-                    if (input.value.trim().length === 0) {
-                        performAjaxSearch(input, dropdown, '', config, log);
-                    }
-                }, { once: false });
-            }
+            // Nota: A lógica de cache já está implementada no evento focus acima
+            // Este listener adicional não é mais necessário pois o focus já trata o cache
         } else {
             // Filtro local quando não há AJAX
             input.addEventListener('input', (e) => {
@@ -1318,6 +1489,30 @@
             return;
         }
 
+        // Inicializar cache se não existir
+        if (!config._ajaxCache) {
+            config._ajaxCache = {};
+        }
+        if (config._lastSearchTerm === undefined) {
+            config._lastSearchTerm = '';
+        }
+
+        // Verificar se já temos cache para este termo de busca
+        const cacheKey = searchTerm || '__empty__';
+        const cachedResult = config._ajaxCache[cacheKey];
+        const isSameSearchTerm = config._lastSearchTerm === searchTerm;
+
+        // Se temos cache e o termo não mudou, usar cache
+        if (cachedResult && isSameSearchTerm) {
+            log('💾 Usando cache para termo:', searchTerm);
+            openDropdown(dropdown);
+            updateDropdownItems(dropdown, cachedResult.items, config, log);
+            return;
+        }
+
+        // Se o termo mudou, limpar cache do termo anterior (opcional - manter cache de outros termos)
+        // Mas vamos manter cache de todos os termos para permitir voltar a termos anteriores
+
         log('🔍 Buscando via AJAX:', searchTerm);
 
         // Abrir dropdown antes de fazer a requisição
@@ -1435,6 +1630,14 @@
                     log('⚠️ Formato de dados não reconhecido:', data);
                 }
 
+                // Salvar no cache
+                const cacheKey = searchTerm || '__empty__';
+                config._ajaxCache[cacheKey] = {
+                    items: items,
+                    timestamp: Date.now()
+                };
+                config._lastSearchTerm = searchTerm;
+
                 // Atualizar dropdown com os itens
                 updateDropdownItems(dropdown, items, config, log);
 
@@ -1448,6 +1651,138 @@
                 if (ul) {
                     ul.innerHTML = '<li class="cselect-item px-3 py-1.5 text-red-500 text-sm text-center">Erro ao carregar dados</li>';
                 }
+            });
+    }
+
+    /**
+     * Atualizar valores sem abrir o dropdown (para refresh quando dropdown está fechado)
+     */
+    async function refreshWithoutOpeningDropdown(input, dropdown, searchTerm, config, log) {
+        if (!config.http || !config.http.url) {
+            log('❌ Configuração HTTP não encontrada');
+            return;
+        }
+
+        // Inicializar cache se não existir
+        if (!config._ajaxCache) {
+            config._ajaxCache = {};
+        }
+
+        log('🔍 Buscando via AJAX (sem abrir dropdown):', searchTerm);
+
+        // Preparar nome do parâmetro de busca
+        const searchParam = config.http.searchParam || 'search';
+
+        // Preparar URL
+        let url = config.http.url;
+        if (searchTerm) {
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}${searchParam}=${encodeURIComponent(searchTerm)}`;
+        }
+
+        // Preparar headers
+        let headers = {};
+        if (!config.http.headers || !config.http.headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+        if (config.http.headers) {
+            headers = { ...headers, ...config.http.headers };
+        }
+
+        // Preparar método
+        const method = (config.http.method || 'GET').toUpperCase();
+
+        // Verificar se a URL requer JWT
+        const requiresJwt = config.http.useJwt !== false && (
+            config.http.useJwt === true ||
+            config.http.url.includes('/api/')
+        );
+
+        // Função para fazer a requisição com retry em caso de 401
+        const makeRequest = async (retryCount = 0) => {
+            const requestHeaders = { ...headers };
+
+            // Adicionar JWT token se necessário
+            if (requiresJwt) {
+                let jwtToken = getOrGenerateJwtToken();
+
+                if (!jwtToken || retryCount > 0) {
+                    jwtToken = await generateJwtToken();
+                }
+
+                if (jwtToken) {
+                    requestHeaders['Authorization'] = `Bearer ${jwtToken}`;
+                } else {
+                    log('⚠️ Não foi possível obter token JWT');
+                }
+            }
+
+            // Preparar opções do fetch
+            const fetchOptions = {
+                method: method,
+                headers: requestHeaders
+            };
+
+            // Adicionar body para métodos POST, PUT, PATCH
+            if (['POST', 'PUT', 'PATCH'].includes(method)) {
+                const bodyData = {};
+                bodyData[searchParam] = searchTerm;
+                fetchOptions.body = JSON.stringify(bodyData);
+            }
+
+            log('📡 Requisição AJAX (sem abrir):', { url, method, headers: requestHeaders });
+
+            const response = await fetch(url, fetchOptions);
+
+            // Se receber 401 e usar JWT, tentar gerar novo token e refazer
+            if (response.status === 401 && requiresJwt && retryCount === 0) {
+                log('🔄 Token expirado ou inválido, gerando novo token...');
+                const newToken = await generateJwtToken();
+                if (newToken) {
+                    return makeRequest(1); // Retry com novo token
+                } else {
+                    throw new Error('Não foi possível autenticar. Por favor, recarregue a página.');
+                }
+            }
+
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+
+            return response.json();
+        };
+
+        // Fazer requisição
+        makeRequest()
+            .then(data => {
+                log('✅ Dados recebidos (sem abrir dropdown):', data);
+
+                // Extrair items da resposta
+                let items = [];
+                if (Array.isArray(data)) {
+                    items = data;
+                } else if (data.items && Array.isArray(data.items)) {
+                    items = data.items;
+                } else if (data.data && Array.isArray(data.data)) {
+                    items = data.data;
+                } else {
+                    log('⚠️ Formato de dados não reconhecido:', data);
+                }
+
+                // Salvar no cache
+                const cacheKey = searchTerm || '__empty__';
+                config._ajaxCache[cacheKey] = {
+                    items: items,
+                    timestamp: Date.now()
+                };
+                config._lastSearchTerm = searchTerm;
+
+                // Atualizar dropdown com os itens (sem abrir o dropdown)
+                updateDropdownItems(dropdown, items, config, log);
+                log('✅ Valores atualizados (dropdown permanece fechado)');
+            })
+            .catch(error => {
+                log('❌ Erro na requisição AJAX (sem abrir):', error);
             });
     }
 
@@ -1483,6 +1818,12 @@
 
         // Esconder input original
         input.style.display = 'none';
+
+        // Esconder botão de refresh quando input está oculto
+        const refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+        if (refreshWrapper) {
+            refreshWrapper.style.display = 'none';
+        }
 
         // Criar display do item selecionado
         const selectedDisplay = createSelectedDisplay(value, label, input.id, subtitle, input);
@@ -1587,6 +1928,12 @@
         // Mostrar input original novamente
         input.style.display = '';
         input.value = '';
+
+        // Mostrar botão de refresh quando input está visível
+        const refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+        if (refreshWrapper) {
+            refreshWrapper.style.display = 'block';
+        }
 
         // Callback onClear
         if (config.onClear && typeof config.onClear === 'function') {
@@ -1758,7 +2105,7 @@
         }
     }
 
-    function selectItemProgrammatically(input, value, label) {
+    function selectItemProgrammatically(input, value, label, forceRefresh = false) {
         const container = input.closest('.cselect-container');
         if (!container) return;
 
@@ -1776,14 +2123,87 @@
             return itemVal && (itemVal.toString() === value.toString() || itemVal === value);
         });
 
+        // Se tiver label fornecido, usar diretamente sem buscar da API (ignorar forceRefresh se tiver label)
         // Se não tiver label fornecido OU se não existir na lista, e tiver AJAX configurado, buscar da API
-        // Isso garante que sempre busque os dados atualizados da API quando não houver label
-        // Se tiver label fornecido E o item existir na lista, usar diretamente sem buscar da API
         const hasLabel = label !== undefined && label !== null && String(label).trim() !== '';
-        const shouldFetchFromApi = config.http && config.http.url && (!hasLabel || !itemExists);
+
+        // Se tiver label, usar diretamente sem fazer busca AJAX
+        if (hasLabel) {
+            selectItem(input, dropdown, container, value, label, config, log);
+            return;
+        }
+
+        // Se não tiver label, verificar se precisa buscar da API
+        const shouldFetchFromApi = config.http && config.http.url && !itemExists;
 
         if (shouldFetchFromApi) {
-            log('🔍 Item não encontrado na lista, buscando via AJAX...');
+            // Se forceRefresh for true, ignorar cache e fazer busca AJAX
+            if (forceRefresh) {
+                log('🔄 ForceRefresh ativado, ignorando cache e fazendo busca AJAX...');
+                // Limpar cache do termo atual para forçar nova busca
+                const cacheKeysToCheck = ['__empty__', ''];
+                for (const cacheKey of cacheKeysToCheck) {
+                    if (config._ajaxCache && config._ajaxCache[cacheKey]) {
+                        delete config._ajaxCache[cacheKey];
+                    }
+                }
+            } else {
+                // Verificar cache antes de fazer busca AJAX
+                // Verificar cache com termo vazio (busca inicial) e também com outros termos possíveis
+                const cacheKeysToCheck = ['__empty__', '']; // Verificar ambos os formatos de chave
+                let cachedResult = null;
+                let foundInCache = false;
+
+                for (const cacheKey of cacheKeysToCheck) {
+                    cachedResult = config._ajaxCache && config._ajaxCache[cacheKey];
+                    if (cachedResult && cachedResult.items) {
+                        foundInCache = true;
+                        break;
+                    }
+                }
+
+                if (foundInCache && cachedResult && cachedResult.items) {
+                    // Procurar o item no cache
+                    const foundItem = cachedResult.items.find(item => {
+                        const itemVal = item[itemValue] || item.id || item.value;
+                        return itemVal && (itemVal.toString() === value.toString() || itemVal === value);
+                    });
+
+                    if (foundItem) {
+                        log('💾 Item encontrado no cache, usando dados do cache');
+
+                        // Adicionar à lista se não existir
+                        if (config.items) {
+                            const itemExistsInList = config.items.some(i => {
+                                const iVal = i[itemValue] || i.id || i.value;
+                                return iVal && (iVal.toString() === foundItem.id.toString() || iVal === foundItem.id);
+                            });
+
+                            if (!itemExistsInList) {
+                                const newItem = {};
+                                newItem[itemValue] = foundItem.id || foundItem[itemValue] || value;
+                                if (config.itemTitle) {
+                                    newItem[config.itemTitle] = foundItem[config.itemTitle] || foundItem.nome || foundItem.label || label || '';
+                                }
+                                if (config.itemSubtitle && foundItem[config.itemSubtitle]) {
+                                    newItem[config.itemSubtitle] = foundItem[config.itemSubtitle];
+                                }
+                                config.items.push(newItem);
+                            }
+                        }
+
+                        // Selecionar o item encontrado no cache
+                        const finalValue = foundItem[itemValue] || foundItem.id || value;
+                        const finalLabel = foundItem[config.itemTitle] || foundItem.nome || foundItem.label || label || '';
+                        selectItem(input, dropdown, container, finalValue, finalLabel, config, log);
+                        log('✅ Item selecionado usando cache');
+                        return; // Não fazer busca AJAX, já encontramos no cache
+                    }
+                }
+            }
+
+            // Se não encontrou no cache, fazer busca AJAX
+            log('🔍 Item não encontrado na lista nem no cache, buscando via AJAX...');
 
             const searchParam = config.http.searchParam || 'search';
             const url = new URL(config.http.url);
@@ -1867,15 +2287,73 @@
                             selectItem(input, dropdown, container, finalValue, finalLabel, config, log);
                             log('✅ Item encontrado e selecionado via AJAX');
                         } else {
-                            // Se não encontrou, usar o valor e label fornecidos mesmo assim
-                            log('⚠️ Item não encontrado na API, selecionando com valor fornecido');
-                            selectItem(input, dropdown, container, value, label, config, log);
+                            // Se não encontrou, manter o input visível (não selecionar)
+                            log('⚠️ Item não encontrado na API, mantendo input visível');
+
+                            // Remover display selecionado se existir
+                            const existingSelected = container.querySelector('.cselect-selected');
+                            if (existingSelected) {
+                                existingSelected.remove();
+                            }
+
+                            // Mostrar input original
+                            input.style.display = '';
+                            input.value = '';
+
+                            // Mostrar botão de refresh quando input está visível
+                            const refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+                            if (refreshWrapper) {
+                                refreshWrapper.style.display = 'block';
+                            }
+
+                            // Limpar hidden input se existir
+                            const hiddenInput = container.querySelector('.cselect-hidden-input');
+                            if (hiddenInput) {
+                                hiddenInput.value = '';
+                            }
+
+                            // Limpar valor do config se hideHiddenInput for true
+                            if (config.hideHiddenInput) {
+                                config.selectedValue = '';
+                            }
+
+                            // Resetar flag
+                            config._isProgrammaticSelection = false;
                         }
                     })
                     .catch(error => {
                         log('❌ Erro ao buscar item via AJAX:', error);
-                        // Em caso de erro, tentar selecionar mesmo assim com o valor fornecido
-                        selectItem(input, dropdown, container, value, label, config, log);
+                        // Em caso de erro, manter o input visível (não selecionar)
+
+                        // Remover display selecionado se existir
+                        const existingSelected = container.querySelector('.cselect-selected');
+                        if (existingSelected) {
+                            existingSelected.remove();
+                        }
+
+                        // Mostrar input original
+                        input.style.display = '';
+                        input.value = '';
+
+                        // Mostrar botão de refresh quando input está visível
+                        const refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+                        if (refreshWrapper) {
+                            refreshWrapper.style.display = 'block';
+                        }
+
+                        // Limpar hidden input se existir
+                        const hiddenInput = container.querySelector('.cselect-hidden-input');
+                        if (hiddenInput) {
+                            hiddenInput.value = '';
+                        }
+
+                        // Limpar valor do config se hideHiddenInput for true
+                        if (config.hideHiddenInput) {
+                            config.selectedValue = '';
+                        }
+
+                        // Resetar flag
+                        config._isProgrammaticSelection = false;
                     });
             };
 
@@ -1902,7 +2380,58 @@
             }
         } else {
             // Se o item existe ou não tem AJAX, selecionar diretamente
-            selectItem(input, dropdown, container, value, label, config, log);
+            // Se não tiver label fornecido mas o item existe na lista, buscar o label do item
+            let finalLabel = label;
+            if (!hasLabel && itemExists && config.items) {
+                const foundItem = config.items.find(item => {
+                    const itemVal = item[itemValue] || item.id || item.value;
+                    return itemVal && (itemVal.toString() === value.toString() || itemVal === value);
+                });
+                if (foundItem) {
+                    const itemTitle = config.itemTitle || 'nome';
+                    const itemSubtitle = config.itemSubtitle || null;
+                    finalLabel = foundItem[itemTitle] || foundItem.nome || foundItem.label || '';
+                    // Não usar subtitle no label final, apenas o title
+                }
+            }
+
+            // Se não encontrou o item na lista e não tem label, manter input visível
+            if (!itemExists && !hasLabel && !finalLabel) {
+                log('⚠️ Item não encontrado na lista e sem label fornecido, mantendo input visível');
+
+                // Remover display selecionado se existir
+                const existingSelected = container.querySelector('.cselect-selected');
+                if (existingSelected) {
+                    existingSelected.remove();
+                }
+
+                // Mostrar input original
+                input.style.display = '';
+                input.value = '';
+
+                // Mostrar botão de refresh quando input está visível
+                const refreshWrapper = container.querySelector('.cselect-refresh-wrapper');
+                if (refreshWrapper) {
+                    refreshWrapper.style.display = 'block';
+                }
+
+                // Limpar hidden input se existir
+                const hiddenInput = container.querySelector('.cselect-hidden-input');
+                if (hiddenInput) {
+                    hiddenInput.value = '';
+                }
+
+                // Limpar valor do config se hideHiddenInput for true
+                if (config.hideHiddenInput) {
+                    config.selectedValue = '';
+                }
+
+                // Resetar flag
+                config._isProgrammaticSelection = false;
+                return;
+            }
+
+            selectItem(input, dropdown, container, value, finalLabel, config, log);
         }
     }
 

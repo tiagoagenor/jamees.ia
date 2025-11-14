@@ -1011,36 +1011,12 @@ $(document).ready(function() {
             }, 100);
         }
         if (centroCustoId && typeof centroCustoParcelamento !== 'undefined' && centroCustoParcelamento) {
-            // Buscar o item e definir o valor no CSelect
-            fetch('{{ route("api.centro-custo.search") }}?search=')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.items && data.items.length > 0) {
-                        const item = data.items.find(i => i.id == centroCustoId);
-                        if (item) {
-                            centroCustoParcelamento.setValue(item.id, item.nome);
-                        }
-                    }
-                })
-                .catch(() => {
-                    console.error('Erro ao sincronizar centro de custo para parcelamento');
-                });
+            // O CSelect fará o AJAX automaticamente se necessário
+            centroCustoParcelamento.setValue(centroCustoId);
         }
         if (contaEmpresaId && typeof contaEmpresaParcelamento !== 'undefined' && contaEmpresaParcelamento) {
-            // Buscar o item e definir o valor no CSelect
-            fetch('{{ route("api.conta-empresa.search") }}?search=')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.items && data.items.length > 0) {
-                        const item = data.items.find(i => i.id == contaEmpresaId);
-                        if (item) {
-                            contaEmpresaParcelamento.setValue(item.id, item.nome);
-                        }
-                    }
-                })
-                .catch(() => {
-                    console.error('Erro ao sincronizar conta bancária para parcelamento');
-                });
+            // O CSelect fará o AJAX automaticamente se necessário
+            contaEmpresaParcelamento.setValue(contaEmpresaId);
         }
         $('#valor_parcelamento').val(valor);
         $('#juros_parcelamento').val(juros);
@@ -1051,48 +1027,6 @@ $(document).ready(function() {
         $('#desconto_parcelamento').val(desconto);
     }
 
-    function sincronizarCamposParaNormal() {
-        const descricao = $('#descricao_parcelamento').val();
-        // Usar o hidden input do CSelect do modo parcelamento
-        const planoContaParcelamentoInput = document.getElementById('plano_conta_id_parcelamento');
-        const planoContaHidden = planoContaParcelamentoInput ? document.getElementById('plano_conta_id_parcelamento_hidden') : null;
-        const planoContaId = planoContaHidden ? planoContaHidden.value : null;
-        const centroCustoParcelamentoInput = document.getElementById('centro_custo_id_parcelamento');
-        const centroCustoHidden = centroCustoParcelamentoInput ? document.getElementById('centro_custo_id_parcelamento_hidden') : null;
-        const centroCustoId = centroCustoHidden ? centroCustoHidden.value : null;
-        const formaPagamentoId = $('#forma_pagamento_id_hidden').val() || $('#forma_pagamento_id').val();
-        const contaEmpresaParcelamentoInput = document.getElementById('conta_empresa_id_parcelamento');
-        const contaEmpresaHidden = contaEmpresaParcelamentoInput ? document.getElementById('conta_empresa_id_parcelamento_hidden') : null;
-        const contaEmpresaId = contaEmpresaHidden ? contaEmpresaHidden.value : null;
-        const valor = $('#valor_parcelamento').val();
-        const juros = $('#juros_parcelamento').val();
-        const multa = $('#multa_parcelamento').val();
-        const desconto = $('#desconto_parcelamento').val();
-        const jurosTipo = $('#juros_tipo_parcelamento').val();
-        const jurosForma = $('#juros_forma_parcelamento').val();
-        const multaForma = $('#multa_forma_parcelamento').val();
-
-        $('#descricao').val(descricao);
-        // Sincronizar para o hidden input do custom-select do modo normal
-        if (planoContaId) {
-            $('#plano_conta_id_hidden').val(planoContaId);
-        }
-        if (centroCustoId) {
-            $('#centro_custo_id_hidden').val(centroCustoId);
-        }
-        if (contaEmpresaId) {
-            $('#conta_empresa_id_hidden').val(contaEmpresaId);
-        }
-        $('#valor').val(valor);
-        $('#juros').val(juros);
-        $('#multa').val(multa);
-        $('#juros_tipo').val(jurosTipo);
-        $('#juros_forma').val(jurosForma);
-        $('#multa_forma').val(multaForma);
-        $('#desconto').val(desconto);
-        calcularTotal();
-    }
-
     // Função alternarModo - movida para antes das chamadas mas depois das variáveis
     function alternarModo(isAtivo) {
         if (isAtivo) {
@@ -1100,9 +1034,21 @@ $(document).ready(function() {
             if (window.cSelects && window.cSelects['planoContaNormal'] && window.cSelects['planoContaParcelamento']) {
                 const planoContaNormalValue = window.cSelects['planoContaNormal'].getValue();
                 if (planoContaNormalValue && planoContaNormalValue !== '') {
+                    window.cSelects['planoContaNormal'].hideHiddenInput(true)
+                    window.cSelects['planoContaParcelamento'].hideHiddenInput(false);
                     window.cSelects['planoContaParcelamento'].setValue(planoContaNormalValue);
                 }
                 console.log("Existe!");
+            }
+
+            if (window.cSelects && window.cSelects['centroCustoNormal'] && window.cSelects['centroCustoParcelamento']) {
+                const centroCustoNormalValue = window.cSelects['centroCustoNormal'].getValue();
+                if (centroCustoNormalValue && centroCustoNormalValue !== '') {
+                    window.cSelects['centroCustoNormal'].hideHiddenInput(true)
+                    window.cSelects['centroCustoParcelamento'].hideHiddenInput(false);
+                    window.cSelects['centroCustoParcelamento'].setValue(centroCustoNormalValue);
+                }
+                console.log("Centro de Custo existe!");
             }
 
             // Sincronizar valores dos campos ANTES de desabilitar os campos do modo normal
@@ -1163,22 +1109,28 @@ $(document).ready(function() {
             setTimeout(() => {
                 anexarListenerGerarParcelas();
             }, 100);
+
         } else {
             if (window.cSelects && window.cSelects['planoContaNormal'] && window.cSelects['planoContaParcelamento']) {
                 const planoContaNormalValue = window.cSelects['planoContaParcelamento'].getValue();
                 if (planoContaNormalValue && planoContaNormalValue !== '') {
+                    window.cSelects['planoContaNormal'].hideHiddenInput(false)
+                    window.cSelects['planoContaParcelamento'].hideHiddenInput(true);
                     window.cSelects['planoContaNormal'].setValue(planoContaNormalValue);
                 }
                 console.log("Existe!");
+
+            if (window.cSelects && window.cSelects['centroCustoNormal'] && window.cSelects['centroCustoParcelamento']) {
+                const centroCustoNormalValue = window.cSelects['centroCustoParcelamento'].getValue();
+                if (centroCustoNormalValue && centroCustoNormalValue !== '') {
+                    window.cSelects['centroCustoNormal'].hideHiddenInput(false)
+                    window.cSelects['centroCustoParcelamento'].hideHiddenInput(true);
+                    window.cSelects['centroCustoNormal'].setValue(centroCustoNormalValue);
+                }
+                console.log("Centro de Custo existe!");
             }
-
-            // Sincronizar valores dos campos ANTES de desabilitar os campos do modo parcelamento
-            // Isso garante que os valores sejam copiados corretamente
-            sincronizarCamposParaNormal();
-
-            $modoNormal.removeClass('hidden');
-            $modoParcelamento.addClass('hidden');
-
+                console.log("Centro de Custo existe!");
+            }
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
             $('.toggle-parcelamento').prop('checked', false);
@@ -1901,7 +1853,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Evitar loop infinito verificando se já estamos sincronizando
             if (typeof planoContaParcelamento !== 'undefined' && planoContaParcelamento && value && !planoContaParcelamento.config._isSyncing) {
                 planoContaParcelamento.config._isSyncing = true;
-                planoContaParcelamento.setValue(value, label);
+                planoContaParcelamento.setValue(value)
                 planoContaParcelamento.config._isSyncing = false;
             }
         }
@@ -1939,7 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
     @endphp
 
     const planoContaParcelamento = cSelect('#plano_conta_id_parcelamento', {
-        name: 'plano_conta_id_parcelamento',
+        name: 'plano_conta_id',
         debug: false,
         itemValue: 'id',
         itemTitle: 'nome',
@@ -1964,7 +1916,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Evitar loop infinito verificando se já estamos sincronizando
             if (typeof planoContaNormal !== 'undefined' && planoContaNormal && value && !planoContaNormal.config._isSyncing) {
                 planoContaNormal.config._isSyncing = true;
-                planoContaNormal.setValue(value, label);
+                planoContaNormal.setValue(value);
                 planoContaNormal.config._isSyncing = false;
             }
         }
@@ -2024,21 +1976,9 @@ document.addEventListener('DOMContentLoaded', function() {
         onSelect: (value, label) => {
             console.log('Centro de custo selecionado:', { value, label });
             // Sincronizar com o campo do modo parcelamento se existir
+            // O CSelect fará o AJAX automaticamente se necessário
             if (typeof centroCustoParcelamento !== 'undefined' && centroCustoParcelamento && value) {
-                // Buscar o item e definir o valor no CSelect
-                fetch('{{ route("api.centro-custo.search") }}?search=')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.items && data.items.length > 0) {
-                            const item = data.items.find(i => i.id == value);
-                            if (item) {
-                                centroCustoParcelamento.setValue(item.id, item.nome);
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        console.error('Erro ao sincronizar centro de custo para parcelamento');
-                    });
+                centroCustoParcelamento.setValue(value);
             }
         }
     });
@@ -2050,23 +1990,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.cSelects['centroCustoNormal'] = centroCustoNormal;
 
     @if($oldCentroCustoId)
-        // Se houver valor antigo, buscar e selecionar
-        fetch('{{ route("api.centro-custo.search") }}?search=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    const item = data.items.find(i => i.id == '{{ $oldCentroCustoId }}');
-                    if (item && centroCustoNormal) {
-                        centroCustoNormal.setValue(item.id, item.nome);
-                    }
-                }
-            })
-            .catch(() => {
-                console.error('Erro ao carregar centro de custo antigo');
-            });
+        // Se houver valor antigo, selecionar (o CSelect fará o AJAX automaticamente)
+        if (centroCustoNormal) {
+            centroCustoNormal.setValue('{{ $oldCentroCustoId }}');
+        }
     @endif
-
-    // Callback para quando um centro de custo for criado
     if (typeof window.onCentroCustoCreated === 'undefined') {
         window.onCentroCustoCreated = function(centroCusto) {
             console.log('Centro de custo criado:', centroCusto);
@@ -2087,12 +2015,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const centroCustoParcelamento = cSelect('#centro_custo_id_parcelamento', {
         name: 'centro_custo_id_parcelamento',
         debug: false,
-        itemValue: 'id',
-        itemTitle: 'nome',
-        minSearchLength: 2,
-        http: {
-            url: '{{ route("api.centro-custo.search") }}',
-            method: 'GET',
             searchParam: 'search'
         },
         addButton: {
@@ -2112,38 +2034,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.cSelects = {};
     }
     window.cSelects['centroCustoParcelamento'] = centroCustoParcelamento;
-
-    @if($oldCentroCustoIdParcelamento)
-        // Se houver valor antigo, buscar e selecionar
-        fetch('{{ route("api.centro-custo.search") }}?search=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    const item = data.items.find(i => i.id == '{{ $oldCentroCustoIdParcelamento }}');
-                    if (item && centroCustoParcelamento) {
-                        centroCustoParcelamento.setValue(item.id, item.nome);
-                    }
-                }
-            })
-            .catch(() => {
-                console.error('Erro ao carregar centro de custo antigo (parcelamento)');
-            });
-    @endif
-
-    // Atualizar callback para também atualizar o modo parcelamento
-    if (typeof window.onCentroCustoCreated !== 'undefined') {
-        const originalCallback = window.onCentroCustoCreated;
-        window.onCentroCustoCreated = function(centroCusto) {
-            // Chamar callback original
-            originalCallback(centroCusto);
-
-            // Atualizar também o modo parcelamento se existir
-            if (typeof centroCustoParcelamento !== 'undefined' && centroCustoParcelamento) {
-                const nome = centroCusto.nome || '';
-                centroCustoParcelamento.setValue(centroCusto.id, nome);
-            }
-        };
-    }
 
     // CSelect para Forma de Pagamento (Modo Normal)
     @php
@@ -2174,29 +2064,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Salvar no objeto global
-    if (!window.cSelects) {
-        window.cSelects = {};
-    }
-    window.cSelects['formaPagamentoNormal'] = formaPagamentoNormal;
-
     @if($oldFormaPagamentoId)
-        // Se houver valor antigo, buscar e selecionar
-        fetch('{{ route("api.forma-pagamento.search") }}?search=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    const item = data.items.find(i => i.id == '{{ $oldFormaPagamentoId }}');
-                    if (item && formaPagamentoNormal) {
-                        formaPagamentoNormal.setValue(item.id, item.nome);
-                    }
-                }
-            })
-            .catch(() => {
-                console.error('Erro ao carregar forma de pagamento antiga');
-            });
+        // Se houver valor antigo, selecionar (o CSelect fará o AJAX automaticamente)
+        if (formaPagamentoNormal) {
+            formaPagamentoNormal.setValue('{{ $oldFormaPagamentoId }}');
+        }
     @endif
-
     // Callback para quando uma forma de pagamento for criada
     if (typeof window.onFormaPagamentoCreated === 'undefined') {
         window.onFormaPagamentoCreated = function(formaPagamento) {
@@ -2236,21 +2109,9 @@ document.addEventListener('DOMContentLoaded', function() {
         onSelect: (value, label) => {
             console.log('Conta bancária selecionada:', { value, label });
             // Sincronizar com o campo do modo parcelamento se existir
+            // O CSelect fará o AJAX automaticamente se necessário
             if (typeof contaEmpresaParcelamento !== 'undefined' && contaEmpresaParcelamento && value) {
-                // Buscar o item e definir o valor no CSelect
-                fetch('{{ route("api.conta-empresa.search") }}?search=')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.items && data.items.length > 0) {
-                            const item = data.items.find(i => i.id == value);
-                            if (item) {
-                                contaEmpresaParcelamento.setValue(item.id, item.nome);
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        console.error('Erro ao sincronizar conta bancária para parcelamento');
-                    });
+                contaEmpresaParcelamento.setValue(value);
             }
         }
     });
@@ -2262,34 +2123,11 @@ document.addEventListener('DOMContentLoaded', function() {
     window.cSelects['contaEmpresaNormal'] = contaEmpresaNormal;
 
     @if($oldContaEmpresaId)
-        // Se houver valor antigo, buscar e selecionar
-        fetch('{{ route("api.conta-empresa.search") }}?search=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    const item = data.items.find(i => i.id == '{{ $oldContaEmpresaId }}');
-                    if (item && contaEmpresaNormal) {
-                        contaEmpresaNormal.setValue(item.id, item.nome);
-                    }
-                }
-            })
-            .catch(() => {
-                console.error('Erro ao carregar conta bancária antiga');
-            });
+        // Se houver valor antigo, selecionar (o CSelect fará o AJAX automaticamente)
+        if (contaEmpresaNormal) {
+            contaEmpresaNormal.setValue('{{ $oldContaEmpresaId }}');
+        }
     @endif
-
-    // Callback para quando uma conta bancária for criada
-    if (typeof window.onContaEmpresaCreated === 'undefined') {
-        window.onContaEmpresaCreated = function(contaEmpresa) {
-            console.log('Conta bancária criada:', contaEmpresa);
-
-            if (typeof contaEmpresaNormal !== 'undefined' && contaEmpresaNormal) {
-                // Selecionar a nova conta bancária
-                const nome = contaEmpresa.nome || '';
-                contaEmpresaNormal.setValue(contaEmpresa.id, nome);
-            }
-        };
-    }
 
     // CSelect para Conta Bancária (Modo Parcelamento)
     @php
@@ -2326,52 +2164,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.cSelects['contaEmpresaParcelamento'] = contaEmpresaParcelamento;
 
     @if($oldContaEmpresaIdParcelamento)
-        // Se houver valor antigo, buscar e selecionar
-        fetch('{{ route("api.conta-empresa.search") }}?search=')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items && data.items.length > 0) {
-                    const item = data.items.find(i => i.id == '{{ $oldContaEmpresaIdParcelamento }}');
-                    if (item && contaEmpresaParcelamento) {
-                        contaEmpresaParcelamento.setValue(item.id, item.nome);
-                    }
-                }
-            })
-            .catch(() => {
-                console.error('Erro ao carregar conta bancária antiga (parcelamento)');
-            });
+        // Se houver valor antigo, selecionar (o CSelect fará o AJAX automaticamente)
+        if (contaEmpresaParcelamento) {
+            contaEmpresaParcelamento.setValue('{{ $oldContaEmpresaIdParcelamento }}');
+        }
     @endif
 
-    // Atualizar callback para também atualizar o modo parcelamento
-    if (typeof window.onContaEmpresaCreated !== 'undefined') {
-        const originalCallback = window.onContaEmpresaCreated;
-        window.onContaEmpresaCreated = function(contaEmpresa) {
-            // Chamar callback original
-            originalCallback(contaEmpresa);
-
-            // Atualizar também o modo parcelamento se existir
-            if (typeof contaEmpresaParcelamento !== 'undefined' && contaEmpresaParcelamento) {
-                const nome = contaEmpresa.nome || '';
-                contaEmpresaParcelamento.setValue(contaEmpresa.id, nome);
-            }
-        };
-    }
-
-    // Sincronizar valores quando um plano de conta é selecionado no modo normal
-    setTimeout(() => {
-        const planoContaHidden = document.getElementById('plano_conta_id_hidden');
-        if (planoContaHidden) {
-            planoContaHidden.addEventListener('change', function() {
-                // Sincronizar com o campo do modo parcelamento se existir
-                // O CSelect fará o AJAX automaticamente se necessário
-                if (typeof planoContaParcelamento !== 'undefined' && planoContaParcelamento && this.value) {
-                    planoContaParcelamento.setValue(this.value);
-                }
-            }.bind(planoContaHidden));
-        }
-    }, 500);
-
-    // Atualizar validação para usar os hidden inputs
     const form = document.getElementById('movimentacaoForm');
     if (form) {
         form.addEventListener('submit', function(e) {
