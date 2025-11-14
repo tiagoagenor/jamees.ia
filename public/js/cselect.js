@@ -7,6 +7,92 @@
     'use strict';
 
     /**
+     * Função para obter ou gerar token JWT
+     */
+    function getOrGenerateJwtToken() {
+        const STORAGE_KEY = 'cselect_jwt_token';
+        const EXPIRY_KEY = 'cselect_jwt_expires_at';
+
+        // Verificar se há token válido em cache
+        const cachedToken = localStorage.getItem(STORAGE_KEY);
+        const expiresAt = localStorage.getItem(EXPIRY_KEY);
+
+        if (cachedToken && expiresAt) {
+            const expiryTime = new Date(expiresAt).getTime();
+            const now = Date.now();
+
+            // Se o token ainda não expirou (com margem de 5 minutos), usar o cache
+            if (expiryTime > now + (5 * 60 * 1000)) {
+                return cachedToken;
+            }
+        }
+
+        // Se não houver token válido, tentar gerar um novo (síncrono não é possível, então retornar null)
+        // O token será gerado na primeira requisição que falhar por falta de autenticação
+        return null;
+    }
+
+    /**
+     * Função para gerar novo token JWT via API
+     */
+    async function generateJwtToken() {
+        try {
+            const response = await fetch('/api/generate-token', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin' // Incluir cookies de sessão
+            });
+
+            if (!response.ok) {
+                console.error('Erro ao gerar token JWT:', response.status);
+                return null;
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.token) {
+                // Armazenar token e data de expiração
+                localStorage.setItem('cselect_jwt_token', data.token);
+                localStorage.setItem('cselect_jwt_expires_at', data.expires_at);
+                return data.token;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Erro ao gerar token JWT:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Função global para obter ou gerar token JWT (disponível para uso externo)
+     */
+    window.getJwtToken = async function() {
+        const STORAGE_KEY = 'cselect_jwt_token';
+        const EXPIRY_KEY = 'cselect_jwt_expires_at';
+
+        // Verificar se há token válido em cache
+        const cachedToken = localStorage.getItem(STORAGE_KEY);
+        const expiresAt = localStorage.getItem(EXPIRY_KEY);
+
+        if (cachedToken && expiresAt) {
+            const expiryTime = new Date(expiresAt).getTime();
+            const now = Date.now();
+
+            // Se o token ainda não expirou (com margem de 5 minutos), usar o cache
+            if (expiryTime > now + (5 * 60 * 1000)) {
+                return cachedToken;
+            }
+        }
+
+        // Se não houver token válido, gerar um novo
+        return await generateJwtToken();
+    };
+
+    /**
      * Funções globais para gerenciar modais
      * Essas funções são usadas pelo CSelect quando modais são configurados
      */
@@ -360,6 +446,9 @@
             modal: options.modal || null, // ID ou classe do modal existente (#id ou .class)
             modalHtml: options.modalHtml || null, // HTML do modal para criar dinamicamente
             modalId: options.modalId || null, // ID único para o modal criado dinamicamente
+            value: options.value || null, // ID do item pré-selecionado
+            selectedItemData: options.selectedItemData || null, // Dados completos do item pré-selecionado (para AJAX)
+            hideHiddenInput: options.hideHiddenInput === true, // Padrão: false. Se true, não cria o input hidden
             onSelect: options.onSelect || null,
             onClear: options.onClear || null,
             onClickButton: options.onClickButton || null,
@@ -420,18 +509,144 @@
         if (!window.cSelectInstances) {
             window.cSelectInstances = {};
         }
-        window.cSelectInstances[input.id] = {
+        const instance = {
             input: input,
             config: config,
             modal: modalElement,
             clear: () => clearSelectionByInput(input),
-            getValue: () => getHiddenInput(input)?.value || '',
+            getValue: () => {
+                const hiddenInput = getHiddenInput(input);
+                if (hiddenInput) {
+                    return hiddenInput.value || '';
+                }
+                // Se não houver input hidden (hideHiddenInput: true), retornar do config
+                return config.selectedValue || '';
+            },
             setValue: (value, label) => selectItemProgrammatically(input, value, label),
             openModal: () => openCSelectModal(modalElement, log, input.id),
-            closeModal: () => closeCSelectModal(modalElement, log)
+            closeModal: () => closeCSelectModal(modalElement, log),
+            disable: () => {
+                input.disabled = true;
+                // Fechar dropdown se estiver aberto
+                const container = input.closest('.cselect-container');
+                if (container) {
+                    const dropdown = container.querySelector('.cselect-dropdown');
+                    if (dropdown) {
+                        dropdown.classList.add('hidden');
+                    }
+                }
+                log('🚫 CSelect desabilitado');
+            },
+            enable: () => {
+                input.disabled = false;
+                log('✅ CSelect habilitado');
+            }
         };
+        window.cSelectInstances[input.id] = instance;
 
-        return window.cSelectInstances[input.id];
+        // Se houver valor pré-selecionado, selecionar automaticamente
+        if (config.value) {
+            // Aguardar um pouco para garantir que o CSelect esteja totalmente inicializado
+            setTimeout(() => {
+                if (config.http && config.selectedItemData) {
+                    // Modo AJAX: usar dados fornecidos
+                    const item = config.selectedItemData;
+                    const itemValue = config.itemValue || 'id';
+                    const itemTitle = config.itemTitle || 'nome';
+                    const value = item[itemValue] || item.id || config.value;
+                    const label = item[itemTitle] || item.nome || item.label || '';
+
+                    // Adicionar à lista se não existir
+                    if (config.items) {
+                        const itemExists = config.items.some(i => {
+                            const iVal = i[itemValue] || i.id || i.value;
+                            return iVal && (iVal.toString() === value.toString() || iVal === value);
+                        });
+
+                        if (!itemExists) {
+                            const newItem = {};
+                            newItem[itemValue] = value;
+                            if (config.itemTitle) {
+                                newItem[config.itemTitle] = label;
+                            }
+                            if (config.itemSubtitle && item[config.itemSubtitle]) {
+                                newItem[config.itemSubtitle] = item[config.itemSubtitle];
+                            }
+                            config.items.push(newItem);
+                        }
+                    }
+
+                    instance.setValue(value, label);
+                } else if (config.items && config.items.length > 0) {
+                    // Modo fixed: buscar na lista de itens
+                    const itemValue = config.itemValue || 'value';
+                    const itemTitle = config.itemTitle || config.itemLabel || 'label';
+                    const item = config.items.find(i => {
+                        const iVal = i[itemValue] || i.id || i.value;
+                        return iVal && (iVal.toString() === config.value.toString() || iVal === config.value);
+                    });
+
+                    if (item) {
+                        const value = item[itemValue] || item.id || item.value || config.value;
+                        const label = item[itemTitle] || item.nome || item.label || '';
+                        instance.setValue(value, label);
+                    }
+                } else if (config.http) {
+                    // Modo AJAX sem dados: buscar da API
+                    const searchParam = config.http.searchParam || 'search';
+                    const url = new URL(config.http.url);
+                    url.searchParams.set(searchParam, '');
+
+                    fetch(url.toString(), {
+                        method: config.http.method || 'GET',
+                        headers: config.http.headers || {}
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.items && data.items.length > 0) {
+                                const itemValue = config.itemValue || 'id';
+                                const item = data.items.find(i => {
+                                    const iVal = i[itemValue] || i.id;
+                                    return iVal && (iVal.toString() === config.value.toString() || iVal === config.value);
+                                });
+
+                                if (item) {
+                                    // Adicionar à lista se não existir
+                                    if (config.items) {
+                                        const itemExists = config.items.some(i => {
+                                            const iVal = i[itemValue] || i.id;
+                                            return iVal && (iVal.toString() === item.id.toString() || iVal === item.id);
+                                        });
+
+                                        if (!itemExists) {
+                                            const newItem = {};
+                                            newItem[itemValue] = item.id;
+                                            if (config.itemTitle) {
+                                                newItem[config.itemTitle] = item.nome || item[config.itemTitle] || '';
+                                            }
+                                            if (config.itemSubtitle && item[config.itemSubtitle]) {
+                                                newItem[config.itemSubtitle] = item[config.itemSubtitle];
+                                            }
+                                            config.items.push(newItem);
+                                        }
+                                    }
+
+                                    const value = item[itemValue] || item.id;
+                                    const label = item[config.itemTitle] || item.nome || item.label || '';
+                                    instance.setValue(value, label);
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            if (config.debug) {
+                                console.error('Erro ao buscar valor pré-selecionado:', error);
+                            }
+                        });
+                }
+            }, 100);
+        }
+
+        return instance;
     };
 
     /**
@@ -525,10 +740,15 @@
                 `;
                 li.dataset.title = title;
                 li.dataset.subtitle = subtitle;
+            } else if (config.itemTitle) {
+                // Modo simples com itemTitle
+                const title = item[config.itemTitle] || '';
+                li.textContent = title;
+                li.dataset.title = title;
             } else {
                 // Modo simples (apenas label)
-                li.textContent = item[config.itemLabel];
-                li.dataset.label = item[config.itemLabel];
+                li.textContent = item[config.itemLabel] || '';
+                li.dataset.label = item[config.itemLabel] || '';
             }
 
             ul.appendChild(li);
@@ -566,8 +786,12 @@
      * Anexar event listeners
      */
     function attachEventListeners(input, dropdown, container, config, log) {
-        // Abrir dropdown ao focar no input
+        // Abrir dropdown ao focar no input (se não estiver disabled)
         input.addEventListener('focus', () => {
+            if (input.disabled) {
+                log('🚫 Input está disabled, não abrindo dropdown');
+                return;
+            }
             log('📂 Abrindo dropdown...');
             openDropdown(dropdown);
             // Se não for AJAX e não houver texto no input, mostrar todos os items
@@ -576,9 +800,13 @@
             }
         });
 
-        // Abrir dropdown ao clicar no input
+        // Abrir dropdown ao clicar no input (se não estiver disabled)
         input.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (input.disabled) {
+                log('🚫 Input está disabled, não abrindo dropdown');
+                return;
+            }
             log('🖱️ Click no input...');
             openDropdown(dropdown);
             // Se não for AJAX e não houver texto no input, mostrar todos os items
@@ -592,6 +820,9 @@
             let searchTimeout = null;
 
             input.addEventListener('input', (e) => {
+                if (input.disabled) {
+                    return;
+                }
                 const searchTerm = e.target.value.trim();
                 const minLength = config.minSearchLength || 0;
                 const loadOnOpen = config.loadOnOpen !== false;
@@ -912,6 +1143,11 @@
                     `;
                     li.dataset.title = title;
                     li.dataset.subtitle = subtitle;
+                } else if (config.itemTitle) {
+                    // Modo simples com itemTitle
+                    const title = item[config.itemTitle] || '';
+                    li.textContent = title;
+                    li.dataset.title = title;
                 } else {
                     // Modo simples (apenas label)
                     const label = item[config.itemLabel] || '';
@@ -1017,6 +1253,11 @@
                     `;
                     li.dataset.title = title;
                     li.dataset.subtitle = subtitle;
+                } else if (config.itemTitle) {
+                    // Modo simples com itemTitle
+                    const title = item[config.itemTitle] || '';
+                    li.textContent = title;
+                    li.dataset.title = title;
                 } else {
                     // Modo simples (apenas label)
                     const label = item[config.itemLabel] || '';
@@ -1071,7 +1312,7 @@
     /**
      * Realizar busca AJAX
      */
-    function performAjaxSearch(input, dropdown, searchTerm, config, log) {
+    async function performAjaxSearch(input, dropdown, searchTerm, config, log) {
         if (!config.http || !config.http.url) {
             log('❌ Configuração HTTP não encontrada');
             return;
@@ -1115,29 +1356,70 @@
         // Preparar método (GET como padrão se não especificado)
         const method = (config.http.method || 'GET').toUpperCase();
 
-        // Preparar opções do fetch
-        const fetchOptions = {
-            method: method,
-            headers: headers
+        // Verificar se a URL requer JWT (sempre usar para rotas /api/*)
+        const requiresJwt = config.http.useJwt !== false && (
+            config.http.useJwt === true ||
+            config.http.url.includes('/api/')
+        );
+
+        // Função para fazer a requisição com retry em caso de 401
+        const makeRequest = async (retryCount = 0) => {
+            // Preparar headers (pode mudar a cada tentativa)
+            const requestHeaders = { ...headers };
+
+            // Adicionar JWT token se necessário
+            if (requiresJwt) {
+                let jwtToken = getOrGenerateJwtToken();
+
+                // Se não houver token ou for retry, gerar novo token
+                if (!jwtToken || retryCount > 0) {
+                    jwtToken = await generateJwtToken();
+                }
+
+                if (jwtToken) {
+                    requestHeaders['Authorization'] = `Bearer ${jwtToken}`;
+                } else {
+                    log('⚠️ Não foi possível obter token JWT');
+                }
+            }
+
+            // Preparar opções do fetch
+            const fetchOptions = {
+                method: method,
+                headers: requestHeaders
+            };
+
+            // Adicionar body para métodos POST, PUT, PATCH
+            if (['POST', 'PUT', 'PATCH'].includes(method)) {
+                const bodyData = {};
+                bodyData[searchParam] = searchTerm;
+                fetchOptions.body = JSON.stringify(bodyData);
+            }
+
+            log('📡 Requisição AJAX:', { url, method, headers: requestHeaders });
+
+            const response = await fetch(url, fetchOptions);
+
+            // Se receber 401 e usar JWT, tentar gerar novo token e refazer
+            if (response.status === 401 && requiresJwt && retryCount === 0) {
+                log('🔄 Token expirado ou inválido, gerando novo token...');
+                const newToken = await generateJwtToken();
+                if (newToken) {
+                    return makeRequest(1); // Retry com novo token
+                } else {
+                    throw new Error('Não foi possível autenticar. Por favor, recarregue a página.');
+                }
+            }
+
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+
+            return response.json();
         };
 
-        // Adicionar body para métodos POST, PUT, PATCH
-        if (['POST', 'PUT', 'PATCH'].includes(method)) {
-            const bodyData = {};
-            bodyData[searchParam] = searchTerm;
-            fetchOptions.body = JSON.stringify(bodyData);
-        }
-
-        log('📡 Requisição AJAX:', { url, method, headers });
-
         // Fazer requisição
-        fetch(url, fetchOptions)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição: ${response.status}`);
-                }
-                return response.json();
-            })
+        makeRequest()
             .then(data => {
                 log('✅ Dados recebidos:', data);
 
@@ -1208,27 +1490,38 @@
         // Inserir antes do dropdown
         container.insertBefore(selectedDisplay, dropdown);
 
-        // Criar input hidden para enviar no formulário
-        const hiddenName = config.name;
-
-        let hiddenInput = container.querySelector('.cselect-hidden-input');
-        if (!hiddenInput) {
-            hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.className = 'cselect-hidden-input';
-            hiddenInput.name = hiddenName;
-            hiddenInput.id = `${input.id}_hidden`;
-            container.appendChild(hiddenInput);
-            log('✅ Input hidden criado:', hiddenInput.id);
-            log('📌 Name do hidden input:', hiddenName);
+        // Criar input hidden para enviar no formulário (se não estiver oculto)
+        let hiddenInput = null;
+        if (!config.hideHiddenInput) {
+            const hiddenName = config.name;
+            hiddenInput = container.querySelector('.cselect-hidden-input');
+            if (!hiddenInput) {
+                hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.className = 'cselect-hidden-input';
+                hiddenInput.name = hiddenName;
+                hiddenInput.id = `${input.id}_hidden`;
+                container.appendChild(hiddenInput);
+                log('✅ Input hidden criado:', hiddenInput.id);
+                log('📌 Name do hidden input:', hiddenName);
+            }
+            hiddenInput.value = value;
+            log('📝 Valor do input hidden atualizado:', { id: hiddenInput.id, name: hiddenInput.name, value: value });
+        } else {
+            log('🚫 Input hidden não será criado (hideHiddenInput: true)');
+            // Armazenar o valor no config para getValue() funcionar mesmo sem input hidden
+            config.selectedValue = value;
         }
-        hiddenInput.value = value;
-        log('📝 Valor do input hidden atualizado:', { id: hiddenInput.id, name: hiddenInput.name, value: value });
 
         // Callback onSelect
+        // Nota: Sempre chamar onSelect, mesmo em seleções programáticas
+        // A sincronização deve ser controlada por flags de sincronização no próprio callback
         if (config.onSelect && typeof config.onSelect === 'function') {
             config.onSelect(value, label);
         }
+
+        // Resetar flag após processar
+        config._isProgrammaticSelection = false;
 
         // Event listener para remover seleção
         const trashIcon = selectedDisplay.querySelector('.cselect-clear');
@@ -1455,6 +1748,11 @@
         const config = input._cselectConfig || {};
         const log = input._cselectLog || (() => {});
 
+        // Limpar valor selecionado do config se hideHiddenInput for true
+        if (config.hideHiddenInput) {
+            config.selectedValue = '';
+        }
+
         if (selectedDisplay) {
             clearSelection(input, dropdown, container, selectedDisplay, hiddenInput, config, log);
         }
@@ -1468,7 +1766,144 @@
         const config = input._cselectConfig || {};
         const log = input._cselectLog || (() => {});
 
-        selectItem(input, dropdown, container, value, label, config, log);
+        // Marcar como seleção programática para evitar loops no onSelect
+        config._isProgrammaticSelection = true;
+
+        // Verificar se o item existe na lista
+        const itemValue = config.itemValue || 'value';
+        const itemExists = config.items && config.items.some(item => {
+            const itemVal = item[itemValue] || item.id || item.value;
+            return itemVal && (itemVal.toString() === value.toString() || itemVal === value);
+        });
+
+        // Se não tiver label fornecido OU se não existir na lista, e tiver AJAX configurado, buscar da API
+        // Isso garante que sempre busque os dados atualizados da API quando não houver label
+        // Se tiver label fornecido E o item existir na lista, usar diretamente sem buscar da API
+        const hasLabel = label !== undefined && label !== null && String(label).trim() !== '';
+        const shouldFetchFromApi = config.http && config.http.url && (!hasLabel || !itemExists);
+
+        if (shouldFetchFromApi) {
+            log('🔍 Item não encontrado na lista, buscando via AJAX...');
+
+            const searchParam = config.http.searchParam || 'search';
+            const url = new URL(config.http.url);
+            url.searchParams.set(searchParam, '');
+
+            // Verificar se a URL requer JWT
+            const requiresJwt = config.http.useJwt !== false && (
+                config.http.useJwt === true ||
+                config.http.url.includes('/api/')
+            );
+
+            // Função para fazer a requisição
+            const makeAjaxRequest = (requestHeaders) => {
+                fetch(url.toString(), {
+                    method: config.http.method || 'GET',
+                    headers: requestHeaders
+                })
+                    .then(response => {
+                        // Se receber 401 e usar JWT, tentar gerar novo token
+                        if (response.status === 401 && requiresJwt) {
+                            log('🔄 Token expirado, gerando novo token...');
+                            return generateJwtToken().then(token => {
+                                if (token) {
+                                    requestHeaders['Authorization'] = `Bearer ${token}`;
+                                    return fetch(url.toString(), {
+                                        method: config.http.method || 'GET',
+                                        headers: requestHeaders
+                                    });
+                                }
+                                return response;
+                            });
+                        }
+                        return response;
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Erro na requisição: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        let items = [];
+                        if (Array.isArray(data)) {
+                            items = data;
+                        } else if (data.items && Array.isArray(data.items)) {
+                            items = data.items;
+                        } else if (data.data && Array.isArray(data.data)) {
+                            items = data.data;
+                        }
+
+                        // Procurar o item pelo valor
+                        const foundItem = items.find(item => {
+                            const itemVal = item[itemValue] || item.id || item.value;
+                            return itemVal && (itemVal.toString() === value.toString() || itemVal === value);
+                        });
+
+                        if (foundItem) {
+                            // Adicionar à lista se não existir
+                            if (config.items) {
+                                const itemExists = config.items.some(i => {
+                                    const iVal = i[itemValue] || i.id || i.value;
+                                    return iVal && (iVal.toString() === foundItem.id.toString() || iVal === foundItem.id);
+                                });
+
+                                if (!itemExists) {
+                                    const newItem = {};
+                                    newItem[itemValue] = foundItem.id || foundItem[itemValue] || value;
+                                    if (config.itemTitle) {
+                                        newItem[config.itemTitle] = foundItem[config.itemTitle] || foundItem.nome || foundItem.label || label || '';
+                                    }
+                                    if (config.itemSubtitle && foundItem[config.itemSubtitle]) {
+                                        newItem[config.itemSubtitle] = foundItem[config.itemSubtitle];
+                                    }
+                                    config.items.push(newItem);
+                                }
+                            }
+
+                            // Selecionar o item encontrado
+                            const finalValue = foundItem[itemValue] || foundItem.id || value;
+                            const finalLabel = foundItem[config.itemTitle] || foundItem.nome || foundItem.label || label || '';
+                            selectItem(input, dropdown, container, finalValue, finalLabel, config, log);
+                            log('✅ Item encontrado e selecionado via AJAX');
+                        } else {
+                            // Se não encontrou, usar o valor e label fornecidos mesmo assim
+                            log('⚠️ Item não encontrado na API, selecionando com valor fornecido');
+                            selectItem(input, dropdown, container, value, label, config, log);
+                        }
+                    })
+                    .catch(error => {
+                        log('❌ Erro ao buscar item via AJAX:', error);
+                        // Em caso de erro, tentar selecionar mesmo assim com o valor fornecido
+                        selectItem(input, dropdown, container, value, label, config, log);
+                    });
+            };
+
+            // Preparar headers
+            const headers = { ...(config.http.headers || {}) };
+
+            // Adicionar JWT token se necessário
+            if (requiresJwt) {
+                const jwtToken = getOrGenerateJwtToken();
+                if (jwtToken) {
+                    headers['Authorization'] = `Bearer ${jwtToken}`;
+                    makeAjaxRequest(headers);
+                } else {
+                    log('⚠️ Não foi possível obter token JWT, tentando gerar...');
+                    generateJwtToken().then(token => {
+                        if (token) {
+                            headers['Authorization'] = `Bearer ${token}`;
+                        }
+                        makeAjaxRequest(headers);
+                    }).catch(() => makeAjaxRequest(headers));
+                }
+            } else {
+                makeAjaxRequest(headers);
+            }
+        } else {
+            // Se o item existe ou não tem AJAX, selecionar diretamente
+            selectItem(input, dropdown, container, value, label, config, log);
+        }
     }
 
     /**

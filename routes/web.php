@@ -330,13 +330,118 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
         return response()->json(['items' => $items]);
     })->name('api.clientes.search');
 
+    // Rota para gerar JWT token para API
+    Route::get('/api/generate-token', function(\Illuminate\Http\Request $request) {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuário não autenticado'
+            ], 401);
+        }
+
+        try {
+            $user = Auth::user();
+            $empresaAtual = $user->empresaAtual();
+
+            if (!$empresaAtual) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa não encontrada'
+                ], 404);
+            }
+
+            // Criar payload do JWT
+            $payload = [
+                'user_id' => $user->id,
+                'empresa_id' => $empresaAtual->id,
+                'purpose' => 'api_access',
+                'exp' => now()->addHours(24)->timestamp, // Expira em 24 horas
+                'iat' => now()->timestamp,
+                'jti' => \Illuminate\Support\Str::uuid()->toString()
+            ];
+
+            // Gerar JWT usando a chave secreta da aplicação
+            $jwt = \Firebase\JWT\JWT::encode($payload, config('app.key'), 'HS256');
+
+            return response()->json([
+                'success' => true,
+                'token' => $jwt,
+                'expires_at' => now()->addHours(24)->toISOString()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao gerar token: ' . $e->getMessage()
+            ], 500);
+        }
+    })->name('api.generate-token')->middleware('auth');
+
     // Rota AJAX para buscar itens do select personalizado (Plano de Contas)
     Route::get('/api/custom-select/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
 
-        // Obter empresa atual do usuário autenticado
-        $user = Auth::user();
-        $empresaAtual = $user ? $user->empresaAtual() : null;
+        // Verificar autenticação via JWT (obrigatório)
+        $user = null;
+        $empresaAtual = null;
+
+        // Obter token do header Authorization
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token JWT não fornecido'
+            ], 401);
+        }
+
+        $token = substr($authHeader, 7);
+
+        try {
+            $decoded = \Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(config('app.key'), 'HS256'));
+
+            // Verificar se o token é para acesso à API
+            if (!isset($decoded->purpose) || $decoded->purpose !== 'api_access') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token inválido: propósito incorreto'
+                ], 401);
+            }
+
+            // Verificar expiração
+            if (isset($decoded->exp) && $decoded->exp < now()->timestamp) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token expirado'
+                ], 401);
+            }
+
+            $user = \App\Models\Usuario::find($decoded->user_id);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 401);
+            }
+
+            $empresaAtual = \App\Models\Empresa::find($decoded->empresa_id);
+            if (!$empresaAtual) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa não encontrada'
+                ], 401);
+            }
+
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expirado'
+            ], 401);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido: ' . $e->getMessage()
+            ], 401);
+        }
 
         if (!$empresaAtual) {
             return response()->json([
@@ -402,8 +507,68 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rota AJAX para buscar centros de custo
     Route::get('/api/centro-custo/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
-        $user = Auth::user();
-        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        // Verificar autenticação via JWT (obrigatório)
+        $user = null;
+        $empresaAtual = null;
+
+        // Obter token do header Authorization
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token JWT não fornecido'
+            ], 401);
+        }
+
+        $token = substr($authHeader, 7);
+
+        try {
+            $decoded = \Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(config('app.key'), 'HS256'));
+
+            // Verificar se o token é para acesso à API
+            if (!isset($decoded->purpose) || $decoded->purpose !== 'api_access') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token inválido: propósito incorreto'
+                ], 401);
+            }
+
+            // Verificar expiração
+            if (isset($decoded->exp) && $decoded->exp < now()->timestamp) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token expirado'
+                ], 401);
+            }
+
+            $user = \App\Models\Usuario::find($decoded->user_id);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 401);
+            }
+
+            $empresaAtual = \App\Models\Empresa::find($decoded->empresa_id);
+            if (!$empresaAtual) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa não encontrada'
+                ], 401);
+            }
+
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expirado'
+            ], 401);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido: ' . $e->getMessage()
+            ], 401);
+        }
 
         if (!$empresaAtual) {
             return response()->json(['items' => []]);
@@ -435,8 +600,68 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rota AJAX para buscar formas de pagamento
     Route::get('/api/forma-pagamento/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
-        $user = Auth::user();
-        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        // Verificar autenticação via JWT (obrigatório)
+        $user = null;
+        $empresaAtual = null;
+
+        // Obter token do header Authorization
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token JWT não fornecido'
+            ], 401);
+        }
+
+        $token = substr($authHeader, 7);
+
+        try {
+            $decoded = \Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(config('app.key'), 'HS256'));
+
+            // Verificar se o token é para acesso à API
+            if (!isset($decoded->purpose) || $decoded->purpose !== 'api_access') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token inválido: propósito incorreto'
+                ], 401);
+            }
+
+            // Verificar expiração
+            if (isset($decoded->exp) && $decoded->exp < now()->timestamp) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token expirado'
+                ], 401);
+            }
+
+            $user = \App\Models\Usuario::find($decoded->user_id);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 401);
+            }
+
+            $empresaAtual = \App\Models\Empresa::find($decoded->empresa_id);
+            if (!$empresaAtual) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa não encontrada'
+                ], 401);
+            }
+
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expirado'
+            ], 401);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido: ' . $e->getMessage()
+            ], 401);
+        }
 
         if (!$empresaAtual) {
             return response()->json(['items' => []]);
@@ -468,8 +693,68 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rota AJAX para buscar contas bancárias
     Route::get('/api/conta-empresa/search', function(\Illuminate\Http\Request $request) {
         $search = $request->get('search', '');
-        $user = Auth::user();
-        $empresaAtual = $user ? $user->empresaAtual() : null;
+
+        // Verificar autenticação via JWT (obrigatório)
+        $user = null;
+        $empresaAtual = null;
+
+        // Obter token do header Authorization
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || strpos($authHeader, 'Bearer ') !== 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token JWT não fornecido'
+            ], 401);
+        }
+
+        $token = substr($authHeader, 7);
+
+        try {
+            $decoded = \Firebase\JWT\JWT::decode($token, new \Firebase\JWT\Key(config('app.key'), 'HS256'));
+
+            // Verificar se o token é para acesso à API
+            if (!isset($decoded->purpose) || $decoded->purpose !== 'api_access') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token inválido: propósito incorreto'
+                ], 401);
+            }
+
+            // Verificar expiração
+            if (isset($decoded->exp) && $decoded->exp < now()->timestamp) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token expirado'
+                ], 401);
+            }
+
+            $user = \App\Models\Usuario::find($decoded->user_id);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não encontrado'
+                ], 401);
+            }
+
+            $empresaAtual = \App\Models\Empresa::find($decoded->empresa_id);
+            if (!$empresaAtual) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Empresa não encontrada'
+                ], 401);
+            }
+
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expirado'
+            ], 401);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido: ' . $e->getMessage()
+            ], 401);
+        }
 
         if (!$empresaAtual) {
             return response()->json(['items' => []]);

@@ -44,12 +44,12 @@
                 <label for="modal_conta_empresa_id" class="block text-sm font-medium text-gray-700 mb-2">
                     Conta Bancária
                 </label>
-                <select name="conta_empresa_id"
+                {{-- <select name="conta_empresa_id"
                         id="modal_conta_empresa_id"
                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Selecione uma conta (opcional)</option>
                     <!-- Opções serão carregadas via AJAX -->
-                </select>
+                </select> --}}
                 <p id="modal_conta_empresa_id_error" class="mt-1 text-sm text-red-600 hidden"></p>
             </div>
 
@@ -256,14 +256,32 @@ document.addEventListener('DOMContentLoaded', function() {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
 
-        fetch('{{ route("forma-pagamento.store") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
+        // Função para fazer a requisição com JWT
+        const makeRequest = async () => {
+            // Obter token JWT
+            let jwtToken = null;
+            if (typeof window.getJwtToken === 'function') {
+                jwtToken = await window.getJwtToken();
+            }
+
+            const headers = {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json'
+            };
+
+            // Adicionar JWT token se disponível
+            if (jwtToken) {
+                headers['Authorization'] = `Bearer ${jwtToken}`;
             }
-        })
+
+            return fetch('{{ route("forma-pagamento.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: headers
+            });
+        };
+
+        makeRequest()
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {
@@ -276,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Fechar modal
                 closeModal('{{ $modalId }}');
-                
+
                 // Mostrar mensagem de sucesso
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
@@ -288,23 +306,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
 
-                // Selecionar automaticamente no custom-select que abriu o modal
+                // Selecionar automaticamente no select que abriu o modal
                 const modal = document.getElementById('{{ $modalId }}');
                 const selectId = modal ? modal.dataset.selectId : null;
-                
-                if (selectId && typeof window.selectItemProgrammatically === 'function') {
-                    // Pequeno delay para garantir que o DOM esteja atualizado
-                    setTimeout(() => {
-                        // Buscar a forma de pagamento criada
+
+                if (selectId) {
+                    // Tentar usar CSelect primeiro
+                    if (window.cSelectInstances && window.cSelectInstances[selectId]) {
+                        const cSelectInstance = window.cSelectInstances[selectId];
                         const formaPagamento = data.forma_pagamento;
                         if (formaPagamento) {
-                            window.selectItemProgrammatically(selectId, {
-                                id: formaPagamento.id,
-                                nome: formaPagamento.nome,
-                                modalidade: formaPagamento.modalidade
-                            });
+                            const nome = formaPagamento.nome || '';
+                            cSelectInstance.setValue(formaPagamento.id, nome);
                         }
-                    }, 100);
+                    }
+                    // Fallback para custom-select antigo
+                    else if (typeof window.selectItemProgrammatically === 'function') {
+                        setTimeout(() => {
+                            const formaPagamento = data.forma_pagamento;
+                            if (formaPagamento) {
+                                window.selectItemProgrammatically(selectId, {
+                                    id: formaPagamento.id,
+                                    nome: formaPagamento.nome,
+                                    modalidade: formaPagamento.modalidade
+                                });
+                            }
+                        }, 100);
+                    }
                 }
 
                 // Se houver callback, executar (para atualizar o select)
@@ -320,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Erro:', error);
-            
+
             // Se for erro de validação
             if (error.response) {
                 error.response.json().then(data => {

@@ -127,7 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     option.value = banco.id;
                     option.textContent = banco.nome_normalizado + ' (' + banco.numero_banco + ')';
                     bancoSelect.appendChild(option);
-                    console.log(`  ${index + 1}. ${banco.nome_normalizado} (${banco.numero_banco})`);
                 });
                 console.log('✅ Total de opções adicionadas ao select:', bancoSelect.options.length - 1);
             }
@@ -156,14 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
         saveButton.disabled = true;
         saveButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
 
-        fetch('{{ route("conta-empresa.store") }}', {
-            method: 'POST',
-            body: formData,
-            headers: {
+        // Função para fazer a requisição com JWT
+        const makeRequest = async () => {
+            // Obter token JWT
+            let jwtToken = null;
+            if (typeof window.getJwtToken === 'function') {
+                jwtToken = await window.getJwtToken();
+            }
+
+            const headers = {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json'
+            };
+
+            // Adicionar JWT token se disponível
+            if (jwtToken) {
+                headers['Authorization'] = `Bearer ${jwtToken}`;
             }
-        })
+
+            return fetch('{{ route("conta-empresa.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: headers
+            });
+        };
+
+        makeRequest()
         .then(response => {
             if (!response.ok) {
                 return response.json().then(data => {
@@ -188,24 +205,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
 
-                // Selecionar automaticamente no custom-select que abriu o modal
+                // Selecionar automaticamente no select que abriu o modal
                 const modal = document.getElementById('{{ $modalId }}');
                 const selectId = modal ? modal.dataset.selectId : null;
 
-                if (selectId && typeof window.selectItemProgrammatically === 'function') {
-                    // Pequeno delay para garantir que o DOM esteja atualizado
-                    setTimeout(() => {
-                        // Buscar a conta bancária criada
+                if (selectId) {
+                    // Tentar usar CSelect primeiro
+                    if (window.cSelectInstances && window.cSelectInstances[selectId]) {
+                        const cSelectInstance = window.cSelectInstances[selectId];
                         const contaEmpresa = data.conta_empresa;
                         if (contaEmpresa) {
-                            window.selectItemProgrammatically(selectId, {
-                                id: contaEmpresa.id,
-                                nome: contaEmpresa.nome,
-                                banco: contaEmpresa.banco,
-                                tipo: contaEmpresa.tipo
-                            });
+                            const nome = contaEmpresa.nome || '';
+                            cSelectInstance.setValue(contaEmpresa.id, nome);
                         }
-                    }, 100);
+                    }
+                    // Fallback para custom-select antigo
+                    else if (typeof window.selectItemProgrammatically === 'function') {
+                        setTimeout(() => {
+                            const contaEmpresa = data.conta_empresa;
+                            if (contaEmpresa) {
+                                window.selectItemProgrammatically(selectId, {
+                                    id: contaEmpresa.id,
+                                    nome: contaEmpresa.nome,
+                                    banco: contaEmpresa.banco,
+                                    tipo: contaEmpresa.tipo
+                                });
+                            }
+                        }, 100);
+                    }
                 }
 
                 // Se houver callback, executar (para atualizar o select)

@@ -107,23 +107,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
 
-                // Selecionar automaticamente no custom-select que abriu o modal
+                // Selecionar automaticamente no select que abriu o modal
                 const modal = document.getElementById('{{ $modalId }}');
                 const selectId = modal ? modal.dataset.selectId : null;
                 
-                if (selectId && typeof window.selectItemProgrammatically === 'function') {
-                    // Pequeno delay para garantir que o DOM esteja atualizado
-                    setTimeout(() => {
-                        // Buscar o centro de custo criado
+                if (selectId) {
+                    // Tentar usar CSelect primeiro
+                    if (window.cSelectInstances && window.cSelectInstances[selectId]) {
+                        const cSelectInstance = window.cSelectInstances[selectId];
                         const centroCusto = data.centro_custo;
                         if (centroCusto) {
-                            window.selectItemProgrammatically(selectId, {
-                                id: centroCusto.id,
-                                nome: centroCusto.nome,
-                                status: centroCusto.status
-                            });
+                            const nome = centroCusto.nome || '';
+                            cSelectInstance.setValue(centroCusto.id, nome);
                         }
-                    }, 100);
+                    }
+                    // Fallback para custom-select antigo
+                    else if (typeof window.selectItemProgrammatically === 'function') {
+                        setTimeout(() => {
+                            const centroCusto = data.centro_custo;
+                            if (centroCusto) {
+                                window.selectItemProgrammatically(selectId, {
+                                    id: centroCusto.id,
+                                    nome: centroCusto.nome,
+                                    status: centroCusto.status
+                                });
+                            }
+                        }, 100);
+                    }
                 }
 
                 // Se houver callback, executar (para atualizar o select)

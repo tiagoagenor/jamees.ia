@@ -76,7 +76,7 @@
                     <label for="conta_empresa_id" class="block text-sm font-medium text-gray-700 mb-2">
                         Conta Bancária
                     </label>
-                    <select name="conta_empresa_id"
+                    {{-- <select name="conta_empresa_id"
                             id="conta_empresa_id"
                             class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('conta_empresa_id') border-red-500 @enderror">
                         <option value="">Selecione uma conta (opcional)</option>
@@ -88,7 +88,7 @@
                                 @endif
                             </option>
                         @endforeach
-                    </select>
+                    </select> --}}
                     @error('conta_empresa_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

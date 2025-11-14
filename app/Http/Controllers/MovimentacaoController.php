@@ -323,11 +323,11 @@ class MovimentacaoController extends Controller
         if ($isParcelamento) {
             // Validação para modo parcelamento
             // No modo parcelamento, cada parcela tem sua própria forma de pagamento e data
-            // Os campos obrigatórios são: descricao, plano_conta_id, conta_empresa_id e as parcelas
+            // Os campos obrigatórios são: descricao, plano_conta_id_parcelamento, conta_empresa_id_parcelamento e as parcelas
             $request->validate([
-                'plano_conta_id' => 'required|exists:plano_conta,id',
-                'centro_custo_id' => 'nullable|exists:centro_custo,id',
-                'conta_empresa_id' => 'nullable|exists:conta_empresa,id',
+                'plano_conta_id_parcelamento' => 'required|exists:plano_conta,id',
+                'centro_custo_id_parcelamento' => 'nullable|exists:centro_custo,id',
+                'conta_empresa_id_parcelamento' => 'nullable|exists:conta_empresa,id',
                 'entidade_tipo' => 'nullable|integer|in:' . implode(',', array_map(fn($case) => $case->value, EntidadeTipoEnum::cases())),
                 'entidade_id' => 'nullable|string',
                 'descricao' => 'required|string|max:255',
@@ -342,9 +342,10 @@ class MovimentacaoController extends Controller
                 'parcelas.*.pago' => 'nullable',
                 'parcelas.*.observacao' => 'nullable|string',
             ], [
-                'plano_conta_id.required' => 'O campo Plano de Contas é obrigatório.',
-                'plano_conta_id.exists' => 'O Plano de Contas selecionado é inválido.',
-                'conta_empresa_id.exists' => 'A Conta Bancária selecionada é inválida.',
+                'plano_conta_id_parcelamento.required' => 'O campo Plano de Contas é obrigatório.',
+                'plano_conta_id_parcelamento.exists' => 'O Plano de Contas selecionado é inválido.',
+                'centro_custo_id_parcelamento.exists' => 'O Centro de Custo selecionado é inválido.',
+                'conta_empresa_id_parcelamento.exists' => 'A Conta Bancária selecionada é inválida.',
                 'descricao.required' => 'O campo Descrição é obrigatório.',
                 'parcelas.required' => 'É necessário gerar pelo menos uma parcela.',
                 'parcelas.min' => 'É necessário gerar pelo menos uma parcela.',
@@ -392,6 +393,20 @@ class MovimentacaoController extends Controller
 
         try {
             DB::beginTransaction();
+
+            // Converter nomes do modo parcelamento para nomes normais
+            if ($isParcelamento) {
+                // Converter os campos do modo parcelamento para os nomes normais
+                if ($request->has('plano_conta_id_parcelamento')) {
+                    $request->merge(['plano_conta_id' => $request->plano_conta_id_parcelamento]);
+                }
+                if ($request->has('centro_custo_id_parcelamento')) {
+                    $request->merge(['centro_custo_id' => $request->centro_custo_id_parcelamento]);
+                }
+                if ($request->has('conta_empresa_id_parcelamento')) {
+                    $request->merge(['conta_empresa_id' => $request->conta_empresa_id_parcelamento]);
+                }
+            }
 
             if ($isParcelamento) {
                 // Gerar código único para todas as parcelas

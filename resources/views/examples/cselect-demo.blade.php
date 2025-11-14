@@ -136,6 +136,15 @@
                         autocomplete="off"
                     >
                 </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="produto_selected_value_2" class="text-sm font-medium text-gray-800">
+                        Nenhum produto selecionado
+                    </p>
+                </div>
             </div>
 
             <!-- Lado Direito: Código -->
@@ -186,6 +195,15 @@
                         placeholder="Digite para buscar cliente..."
                         autocomplete="off"
                     >
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_3" class="text-sm font-medium text-gray-800">
+                        Nenhum cliente selecionado
+                    </p>
                 </div>
             </div>
 
@@ -364,6 +382,15 @@
             <div id="cselect_example_6"></div>
         </div>
 
+        <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+            </p>
+            <p id="example_6_selected_value" class="text-sm font-medium text-gray-800">
+                Nenhum valor selecionado
+            </p>
+        </div>
+
         <div class="mt-4 p-4 bg-gray-50 rounded">
             <p class="text-sm font-semibold text-gray-700 mb-2">Código:</p>
             <pre class="text-sm text-gray-800"><code>&lt;div id="cselect_example_6"&gt;&lt;/div&gt;
@@ -371,6 +398,579 @@
 &lt;script&gt;
 // Inicializar CSelect com valor pré-selecionado aqui
 &lt;/script&gt;</code></pre>
+        </div>
+    </div>
+
+    <!-- Exemplo 8: AJAX com Valor Pré-selecionado -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-pink-500 text-white rounded-lg p-2">
+                    <i class="fas fa-check-circle text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 8: CSelect com AJAX e Valor Pré-selecionado</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (AJAX com valor pré-selecionado) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_8"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_8" class="text-sm font-medium text-gray-800">
+                        Carregando valor pré-selecionado...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example8</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">minSearchLength</span>: <span class="text-orange-400">0</span>,
+    <span class="text-green-400">value</span>: <span class="text-yellow-300">'0b8f5ac1-2ee0-447a-8669-9bbd5d6b5ba7'</span>, <span class="text-gray-500">// ID do item pré-selecionado</span>
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, value, label);
+    }
+});
+
+<span class="text-gray-500">// O CSelect automaticamente busca e seleciona o item com o ID especificado em 'value'</span>
+<span class="text-gray-500">// Para modo AJAX, ele busca da API. Para modo fixed, busca na lista de items.</span></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 9: CSelect sem Input Hidden -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-500 text-white rounded-lg p-2">
+                    <i class="fas fa-eye-slash text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 9: CSelect sem Input Hidden</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (sem input hidden) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_9"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor gerenciado via JavaScript:</label>
+                    <input
+                        type="text"
+                        id="cliente_value_manual"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                        placeholder="Valor será atualizado aqui..."
+                        readonly
+                    >
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_9" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-xs font-semibold text-yellow-800 mb-2">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-1"></i>Importante
+                    </p>
+                    <p class="text-xs text-yellow-700">
+                        Este exemplo não cria o input hidden. O valor é gerenciado manualmente via JavaScript usando o callback <code>onSelect</code>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example9</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_9'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">hideHiddenInput</span>: <span class="text-orange-400">true</span>, <span class="text-gray-500">// Não cria input hidden</span>
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        <span class="text-gray-500">// Gerenciar valor manualmente</span>
+        <span class="text-purple-400">const</span> <span class="text-blue-400">manualInput</span> = document.<span class="text-purple-400">getElementById</span>(<span class="text-yellow-300">'cliente_value_manual'</span>);
+        <span class="text-purple-400">if</span> (manualInput) {
+            manualInput.value = value;
+        }
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, value, label);
+    }
+});</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 10: CSelect com Campo Disabled -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-gray-500 text-white rounded-lg p-2">
+                    <i class="fas fa-lock text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 10: CSelect com Campo Disabled</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (use os botões para desabilitar/habilitar) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_10"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (campo habilitado para comparação) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_10_enabled"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado (disabled)
+                    </p>
+                    <p id="cliente_selected_value_10" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-green-500 mr-1"></i>Valor selecionado (enabled)
+                    </p>
+                    <p id="cliente_selected_value_10_enabled" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 flex gap-2">
+                    <button
+                        type="button"
+                        onclick="example10.disable()"
+                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-sm"
+                    >
+                        Desabilitar Campo
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example10.enable()"
+                        class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors text-sm"
+                    >
+                        Habilitar Campo
+                    </button>
+                </div>
+
+                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p class="text-xs font-semibold text-yellow-800 mb-2">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-1"></i>Importante
+                    </p>
+                    <p class="text-xs text-yellow-700">
+                        Campos disabled não permitem interação. Use quando o campo deve ser apenas visual ou quando o valor já está definido e não pode ser alterado. Use os botões acima para testar os métodos <code>disable()</code> e <code>enable()</code>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-gray-500">// HTML: Adicionar atributo disabled no input</span>
+<span class="text-purple-400">&lt;input</span>
+    <span class="text-green-400">type</span>=<span class="text-yellow-300">"text"</span>
+    <span class="text-green-400">id</span>=<span class="text-yellow-300">"cliente_example_10"</span>
+    <span class="text-green-400">disabled</span>
+    <span class="text-green-400">class</span>=<span class="text-yellow-300">"..."</span>
+<span class="text-purple-400">&gt;</span>
+
+<span class="text-gray-500">// JavaScript: CSelect funciona normalmente com campos disabled</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">example10</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_10'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">value</span>: <span class="text-yellow-300">'c1702650-d9fb-48e9-b67b-112fe8ce9ab8'</span>, <span class="text-gray-500">// Valor pré-selecionado</span>
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>,
+        <span class="text-green-400">searchParam</span>: <span class="text-yellow-300">'search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Cliente selecionado:'</span>, value, label);
+    }
+});
+
+<span class="text-gray-500">// Para habilitar/desabilitar programaticamente:</span>
+<span class="text-gray-500">// Desabilitar</span>
+example10.<span class="text-purple-400">disable</span>();
+<span class="text-gray-500">// Habilitar</span>
+example10.<span class="text-purple-400">enable</span>();</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 11: CSelect com setValue() -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-cyan-50 to-teal-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-cyan-500 text-white rounded-lg p-2">
+                    <i class="fas fa-code text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 11: CSelect com setValue()</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (use setValue para selecionar) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_11"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 flex gap-2">
+                    <button
+                        type="button"
+                        onclick="example11.setValue('c1702650-d9fb-48e9-b67b-112fe8ce9ab8')"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                    >
+                        Usar setValue() (buscar via AJAX)
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example11.clear()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar
+                    </button>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                    </p>
+                    <p id="cliente_selected_value_11" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example11</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_11'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">itemSubtitle</span>: <span class="text-yellow-300">'email'</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>,
+        <span class="text-green-400">method</span>: <span class="text-yellow-300">'GET'</span>
+    }
+});
+
+<span class="text-gray-500">// Selecionar valor programaticamente</span>
+<span class="text-gray-500">// Se o item não estiver na lista, busca automaticamente via AJAX</span>
+example11.<span class="text-purple-400">setValue</span>(<span class="text-yellow-300">'c1702650-d9fb-48e9-b67b-112fe8ce9ab8'</span>);
+<span class="text-gray-500">// O label será obtido automaticamente da API</span>
+
+<span class="text-gray-500">// Limpar seleção</span>
+example11.<span class="text-purple-400">clear</span>();</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 12: CSelect com hideHiddenInput -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 text-white rounded-lg p-2">
+                    <i class="fas fa-eye-slash text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 12: CSelect com hideHiddenInput</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (com hideHiddenInput: false) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_12_false"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (com hideHiddenInput: true) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_12_true"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-info-circle text-blue-600 mr-1"></i>Diferença
+                    </p>
+                    <p class="text-xs text-blue-700 mb-2">
+                        <strong>hideHiddenInput: false</strong> (padrão): Cria o input hidden para enviar no formulário.
+                    </p>
+                    <p class="text-xs text-blue-700">
+                        <strong>hideHiddenInput: true</strong>: Não cria o input hidden. Use quando quiser gerenciar o valor manualmente.
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-code text-green-500 mr-1"></i>Verificar no DevTools
+                    </p>
+                    <p class="text-xs text-gray-700">
+                        Abra o DevTools (F12) e inspecione os elementos. O primeiro campo terá um input hidden, o segundo não.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-gray-500">// Exemplo com hideHiddenInput: false (padrão)</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">example12False</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_12_false'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">hideHiddenInput</span>: <span class="text-orange-400">false</span>, <span class="text-gray-500">// Cria input hidden</span>
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>
+    }
+});
+
+<span class="text-gray-500">// Exemplo com hideHiddenInput: true</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">example12True</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_12_true'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">hideHiddenInput</span>: <span class="text-orange-400">true</span>, <span class="text-gray-500">// NÃO cria input hidden</span>
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>
+    },
+    <span class="text-green-400">onSelect</span>: <span class="text-pink-400">(value, label) =&gt;</span> {
+        <span class="text-gray-500">// Gerenciar valor manualmente</span>
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Valor selecionado:'</span>, value);
+    }
+});</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exemplo 13: CSelect com getValue() -->
+    <div class="bg-white rounded-xl shadow-lg mb-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b border-gray-200 rounded-t-xl overflow-hidden">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500 text-white rounded-lg p-2">
+                    <i class="fas fa-search text-sm"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Exemplo 13: CSelect com getValue()</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            <!-- Lado Esquerdo: Demonstração -->
+            <div class="p-6 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-eye text-blue-500"></i>
+                    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Demonstração</h3>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cliente (selecione um valor) *</label>
+                    <input
+                        type="text"
+                        id="cliente_example_13"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite para buscar cliente..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="mb-4 flex gap-2">
+                    <button
+                        type="button"
+                        onclick="getValueExample()"
+                        class="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors text-sm"
+                    >
+                        Obter Valor (getValue)
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example13.setValue('c1702650-d9fb-48e9-b67b-112fe8ce9ab8')"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
+                    >
+                        Definir Valor
+                    </button>
+                    <button
+                        type="button"
+                        onclick="example13.clear()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
+                    >
+                        Limpar
+                    </button>
+                </div>
+
+                <div class="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                        <i class="fas fa-info-circle text-emerald-500 mr-1"></i>Valor atual
+                    </p>
+                    <p id="cliente_value_display_13" class="text-sm font-medium text-gray-800">
+                        Nenhum valor selecionado
+                    </p>
+                </div>
+
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-xs font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-lightbulb text-blue-600 mr-1"></i>Dica
+                    </p>
+                    <p class="text-xs text-blue-700">
+                        Use o botão "Obter Valor" para recuperar o valor selecionado atual usando o método <code>getValue()</code>. O valor será exibido acima e no console.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Lado Direito: Código -->
+            <div class="bg-gray-900 p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-code text-green-400"></i>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Código</h3>
+                </div>
+                <pre class="text-sm text-gray-100 overflow-x-auto"><code><span class="text-purple-400">const</span> <span class="text-blue-400">example13</span> = <span class="text-purple-400">cSelect</span>(<span class="text-yellow-300">'#cliente_example_13'</span>, {
+    <span class="text-green-400">name</span>: <span class="text-yellow-300">'cliente_id'</span>,
+    <span class="text-green-400">itemValue</span>: <span class="text-yellow-300">'id'</span>,
+    <span class="text-green-400">itemTitle</span>: <span class="text-yellow-300">'nome'</span>,
+    <span class="text-green-400">http</span>: {
+        <span class="text-green-400">url</span>: <span class="text-yellow-300">'http://localhost:8000/api/clientes/search'</span>
+    }
+});
+
+<span class="text-gray-500">// Obter o valor selecionado</span>
+<span class="text-purple-400">const</span> <span class="text-blue-400">valor</span> = example13.<span class="text-purple-400">getValue</span>();
+console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Valor selecionado:'</span>, valor);
+
+<span class="text-gray-500">// Exemplo de uso em uma função</span>
+<span class="text-purple-400">function</span> <span class="text-blue-400">getValueExample</span>() {
+    <span class="text-purple-400">const</span> <span class="text-blue-400">valor</span> = example13.<span class="text-purple-400">getValue</span>();
+    <span class="text-purple-400">if</span> (valor) {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Valor encontrado:'</span>, valor);
+        document.<span class="text-purple-400">getElementById</span>(<span class="text-yellow-300">'cliente_value_display_13'</span>)
+            .textContent = <span class="text-yellow-300">`Valor: ${valor}`</span>;
+    } <span class="text-purple-400">else</span> {
+        console.<span class="text-purple-400">log</span>(<span class="text-yellow-300">'Nenhum valor selecionado'</span>);
+        document.<span class="text-purple-400">getElementById</span>(<span class="text-yellow-300">'cliente_value_display_13'</span>)
+            .textContent = <span class="text-yellow-300">'Nenhum valor selecionado'</span>;
+    }
+}</code></pre>
+            </div>
         </div>
     </div>
 
@@ -391,6 +991,15 @@
 
             <div>
                 <div id="cselect_example_7"></div>
+            </div>
+
+            <div class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <p class="text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
+                    <i class="fas fa-info-circle text-blue-500 mr-1"></i>Valor selecionado
+                </p>
+                <p id="example_7_selected_value" class="text-sm font-medium text-gray-800">
+                    Nenhum valor selecionado
+                </p>
             </div>
 
             <div>
@@ -495,6 +1104,7 @@
         ],
         onSelect: (value, label) => {
             console.log('Produto selecionado:', { value, label });
+            document.getElementById('produto_selected_value_2').textContent = `${label} (ID: ${value})`;
         }
     });
 
@@ -512,6 +1122,7 @@
         },
         onSelect: (value, label) => {
             console.log('Cliente selecionado via AJAX:', { value, label });
+            document.getElementById('cliente_selected_value_3').textContent = `${label} (ID: ${value})`;
         }
     });
 
@@ -631,6 +1242,194 @@
 
     // Exemplo 6: Com Valor Pré-selecionado
     console.log('Inicializar Exemplo 6...');
+
+    // Exemplo 8: AJAX com Valor Pré-selecionado
+    const example8 = cSelect('#cliente_example_8', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        value: 'c1702650-d9fb-48e9-b67b-112fe8ce9ab8', // ID do item pré-selecionado
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            console.log('Cliente selecionado (pré-selecionado):', { value, label });
+            document.getElementById('cliente_selected_value_8').textContent = `${label} (ID: ${value})`;
+        }
+    });
+
+    // Exemplo 9: CSelect sem Input Hidden
+    const example9 = cSelect('#cliente_example_9', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        hideHiddenInput: true, // Não cria o input hidden
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            // Gerenciar valor manualmente (sem input hidden)
+            const manualInput = document.getElementById('cliente_value_manual');
+            if (manualInput) {
+                manualInput.value = value;
+            }
+
+            // Atualizar display
+            document.getElementById('cliente_selected_value_9').textContent = `${label} (ID: ${value})`;
+
+            console.log('Cliente selecionado (sem input hidden):', { value, label });
+            console.log('Input hidden não foi criado. Valor gerenciado via JavaScript.');
+        },
+        onClear: () => {
+            // Limpar valor manual quando a seleção for removida
+            const manualInput = document.getElementById('cliente_value_manual');
+            if (manualInput) {
+                manualInput.value = '';
+            }
+            document.getElementById('cliente_selected_value_9').textContent = 'Nenhum valor selecionado';
+        }
+    });
+
+    // Exemplo 10: CSelect com Campo Disabled
+    const example10 = cSelect('#cliente_example_10', {
+        name: 'cliente_id_disabled',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_selected_value_10').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+
+    // Tornar example10 disponível globalmente para os botões
+    window.example10 = example10;
+
+    // Exemplo 11: CSelect com setValue()
+    const example11 = cSelect('#cliente_example_11', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_selected_value_11').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+    window.example11 = example11;
+
+    // Exemplo 13: CSelect com getValue()
+    const example13 = cSelect('#cliente_example_13', {
+        name: 'cliente_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_value_display_13').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado:', { value, label });
+        }
+    });
+    window.example13 = example13;
+
+    // Função para demonstrar getValue()
+    window.getValueExample = function() {
+        const valor = example13.getValue();
+        if (valor) {
+            console.log('✅ Valor encontrado:', valor);
+            document.getElementById('cliente_value_display_13').textContent = `Valor: ${valor}`;
+        } else {
+            console.log('⚠️ Nenhum valor selecionado');
+            document.getElementById('cliente_value_display_13').textContent = 'Nenhum valor selecionado';
+        }
+    };
+
+    // Exemplo 12: CSelect com hideHiddenInput
+    const example12False = cSelect('#cliente_example_12_false', {
+        name: 'cliente_id_false',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        hideHiddenInput: false, // Cria input hidden (padrão)
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            console.log('Cliente selecionado (com input hidden):', { value, label });
+        }
+    });
+
+    const example12True = cSelect('#cliente_example_12_true', {
+        name: 'cliente_id_true',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        hideHiddenInput: true, // NÃO cria input hidden
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            console.log('Cliente selecionado (sem input hidden):', { value, label });
+            console.log('Valor deve ser gerenciado manualmente via JavaScript');
+        }
+    });
+
+    // Exemplo 10 (enabled): Para comparação
+    const example10Enabled = cSelect('#cliente_example_10_enabled', {
+        name: 'cliente_id_enabled',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'email',
+        minSearchLength: 0,
+        http: {
+            url: 'http://localhost:8000/api/clientes/search',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        onSelect: (value, label) => {
+            document.getElementById('cliente_selected_value_10_enabled').textContent = `${label} (ID: ${value})`;
+            console.log('Cliente selecionado (enabled):', { value, label });
+        }
+    });
 
     // Exemplo 7: Formulário Completo
     const form = document.getElementById('cselect_form');
@@ -862,6 +1661,45 @@
                             <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-700">Callback executado quando a seleção é removida (click na lixeira)</td>
+                    </tr>
+
+                    <!-- value -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">value</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">string</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">ID do item que será pré-selecionado ao inicializar. Para modo AJAX, o CSelect busca automaticamente da API. Para modo fixed, busca na lista de <code>items</code></td>
+                    </tr>
+
+                    <!-- selectedItemData -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">selectedItemData</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">object</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>null</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Dados completos do item pré-selecionado (útil para modo AJAX quando você já tem os dados do item). Use junto com <code>value</code> para evitar uma requisição adicional à API</td>
+                    </tr>
+
+                    <!-- hideHiddenInput -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <code class="text-sm font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">hideHiddenInput</code>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">boolean</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><code>false</code></td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-800">Opcional</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">Se <code>true</code>, não cria o input hidden que normalmente é usado para enviar o valor no formulário. Útil quando você quer gerenciar o valor de outra forma (ex: via JavaScript ou outro campo)</td>
                     </tr>
 
                     <!-- addButton -->

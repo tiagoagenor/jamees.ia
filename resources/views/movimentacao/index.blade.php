@@ -677,18 +677,6 @@
                     </div>
                 </div>
 
-                <!-- Segunda linha: Conta bancária -->
-                <div class="mb-6">
-                    <label for="conta_empresa_id" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Conta bancária <span class="text-red-500">*</span>
-                    </label>
-                    <select id="conta_empresa_id" name="conta_empresa_id"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            required>
-                        <option value="">Selecione uma conta bancária</option>
-                        <!-- Será preenchido via JavaScript -->
-                    </select>
-                </div>
 
                 <!-- Terceira linha: Valores em grid 2x2 -->
                 <div class="mb-6">
@@ -896,8 +884,8 @@ function abrirModalConfirmacao(id, descricao, valor, situacao, formaPagamentoId 
     // Preencher formas de pagamento
     carregarFormasPagamento(formaPagamentoId);
 
-    // Preencher contas bancárias
-    carregarContasBancarias(contaEmpresaId);
+    // Preencher contas bancárias (removido - select foi removido)
+    // carregarContasBancarias(contaEmpresaId);
 
     // Mostrar modal
     modal.classList.remove('hidden');
@@ -931,27 +919,27 @@ function carregarFormasPagamento(formaPagamentoIdSelecionada = null) {
     });
 }
 
-// Função para carregar contas bancárias
-function carregarContasBancarias(contaEmpresaIdSelecionada = null) {
-    const select = document.getElementById('conta_empresa_id');
-    select.innerHTML = '<option value="">Selecione uma conta bancária</option>';
-
-    // Dados das contas bancárias vindos do backend
-    const contasBancarias = @json($contasBancarias);
-
-    contasBancarias.forEach(conta => {
-        const option = document.createElement('option');
-        option.value = conta.id;
-        option.textContent = conta.nome;
-
-        // Selecionar a conta bancária atual se fornecida
-        if (contaEmpresaIdSelecionada && conta.id === contaEmpresaIdSelecionada) {
-            option.selected = true;
-        }
-
-        select.appendChild(option);
-    });
-}
+// Função para carregar contas bancárias (removida - select foi removido)
+// function carregarContasBancarias(contaEmpresaIdSelecionada = null) {
+//     const select = document.getElementById('conta_empresa_id');
+//     select.innerHTML = '<option value="">Selecione uma conta bancária</option>';
+//
+//     // Dados das contas bancárias vindos do backend
+//     const contasBancarias = @json($contasBancarias);
+//
+//     contasBancarias.forEach(conta => {
+//         const option = document.createElement('option');
+//         option.value = conta.id;
+//         option.textContent = conta.nome;
+//
+//         // Selecionar a conta bancária atual se fornecida
+//         if (contaEmpresaIdSelecionada && conta.id === contaEmpresaIdSelecionada) {
+//             option.selected = true;
+//         }
+//
+//         select.appendChild(option);
+//     });
+// }
 
 // Função para calcular total automaticamente
 function calcularTotal() {

@@ -230,21 +230,28 @@ function savePlanoConta() {
                 });
             }
 
-            // Selecionar automaticamente no custom-select que abriu o modal
+            // Selecionar automaticamente no select que abriu o modal
             const modal = document.getElementById('{{ $modalId }}');
             const selectId = modal ? modal.dataset.selectId : null;
             
-            if (selectId && typeof window.selectItemProgrammatically === 'function') {
-                // Pequeno delay para garantir que o DOM esteja atualizado
-                setTimeout(() => {
-                    // Selecionar o plano de conta criado no select
-                    window.selectItemProgrammatically(selectId, {
-                        id: data.plano_conta.id,
-                        nome: data.plano_conta.nome,
-                        codigo: data.plano_conta.codigo,
-                        categoria: data.plano_conta.categoria || ''
-                    });
-                }, 100);
+            if (selectId) {
+                // Tentar usar CSelect primeiro
+                if (window.cSelectInstances && window.cSelectInstances[selectId]) {
+                    const cSelectInstance = window.cSelectInstances[selectId];
+                    const nome = data.plano_conta.nome || '';
+                    cSelectInstance.setValue(data.plano_conta.id, nome);
+                }
+                // Fallback para custom-select antigo
+                else if (typeof window.selectItemProgrammatically === 'function') {
+                    setTimeout(() => {
+                        window.selectItemProgrammatically(selectId, {
+                            id: data.plano_conta.id,
+                            nome: data.plano_conta.nome,
+                            codigo: data.plano_conta.codigo,
+                            categoria: data.plano_conta.categoria || ''
+                        });
+                    }, 100);
+                }
             }
 
             // Se houver callback, executar (para atualizar o select)
