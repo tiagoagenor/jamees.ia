@@ -131,7 +131,9 @@
                                     <option value="2" {{ $filtroEntidadeTipo == '2' ? 'selected' : '' }}>Fornecedor</option>
                                     <option value="3" {{ $filtroEntidadeTipo == '3' ? 'selected' : '' }}>Funcionário</option>
                                     <option value="4" {{ $filtroEntidadeTipo == '4' ? 'selected' : '' }}>Transportadora</option>
-                                    <option value="{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}" {{ $filtroEntidadeTipo == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value ? 'selected' : '' }}>Loteamento</option>
+                                    @if(\App\Helpers\AplicativoHelper::temAplicativo('loteamento'))
+                                        <option value="{{ \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value }}" {{ $filtroEntidadeTipo == \App\Enums\EntidadeTipoEnum::LOTEAMENTO->value ? 'selected' : '' }}>Loteamento</option>
+                                    @endif
                                 </select>
                             </div>
 

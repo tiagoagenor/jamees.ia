@@ -178,8 +178,8 @@
                     @endphp
                     <a href="{{ route('aplicativos.pagamento', ['aplicativo' => $aplicativo, 'periodo' => $periodoContratacao]) }}" 
                        class="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-bold text-lg text-center transition-colors duration-200 flex items-center justify-center mb-4 shadow-lg">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        Contratar Agora
+                        <i class="fas {{ $isTeste ? 'fa-play-circle' : 'fa-shopping-cart' }} mr-2"></i>
+                        {{ $isTeste ? 'Ativar Agora' : 'Contratar Agora' }}
                     </a>
                 @else
                     <a href="{{ route('planos.index') }}" 

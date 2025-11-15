@@ -211,6 +211,12 @@
                                     Geral
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('aplicativos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('aplicativos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-mobile-alt mr-3 {{ request()->routeIs('aplicativos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
+                                    Aplicativo
+                                </a>
+                            </li>
                             @if(\App\Helpers\PermissionHelper::can('audit', 'listar'))
                             <li>
                                 <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('audit.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
