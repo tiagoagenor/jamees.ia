@@ -18,6 +18,7 @@ class AplicativoSeeder extends Seeder
                 'nome' => 'Loteamento',
                 'descricao' => 'Sistema completo para gestão de loteamentos, vendas e reservas de lotes',
                 'codigo' => 'loteamento',
+                'categoria' => 'Gestão',
                 'preco_mensal' => 50.00,
                 'preco_trimestral' => 135.00, // 10% desconto
                 'preco_semestral' => 270.00, // 10% desconto

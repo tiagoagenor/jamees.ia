@@ -22,7 +22,7 @@ class PlanoController extends Controller
     /**
      * Display a listing of available plans
      */
-    public function index()
+    public function index(Request $request)
     {
         $planos = Plano::visiveis()->ordenados()->get();
         $empresaPrincipal = $this->getEmpresaPrincipal();
@@ -96,6 +96,20 @@ class PlanoController extends Controller
         ]);
 
         $periodo = PlanoPeriodoEnum::from($request->periodo);
+
+        // Validar período do aplicativo baseado no plano atual
+        $empresaPrincipal = $this->getEmpresaPrincipal();
+        if ($empresaPrincipal) {
+            $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
+            if ($planoAtual && !$planoAtual->isTeste() && $planoAtual->periodo) {
+                // Se não for teste, o período do aplicativo deve ser o mesmo do plano
+                if ($periodo->value !== $planoAtual->periodo->value) {
+                    return redirect()->back()
+                        ->with('error', "Você só pode contratar aplicativos no período {$planoAtual->periodo->getLabel()} (mesmo período do seu plano atual).");
+                }
+            }
+        }
+
         $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
         $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
         $empresasExtras = (int) ($request->empresas_extras ?? 0);
@@ -201,6 +215,17 @@ class PlanoController extends Controller
         }
 
         $periodo = PlanoPeriodoEnum::from($request->periodo);
+
+        // Validar período do aplicativo baseado no plano atual
+        $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
+        if ($planoAtual && !$planoAtual->isTeste() && $planoAtual->periodo) {
+            // Se não for teste, o período do aplicativo deve ser o mesmo do plano
+            if ($periodo->value !== $planoAtual->periodo->value) {
+                return redirect()->back()
+                    ->with('error', "Você só pode contratar aplicativos no período {$planoAtual->periodo->getLabel()} (mesmo período do seu plano atual).");
+            }
+        }
+
         $validacao = $this->planoService->podeAtivarPlano($empresaPrincipal, $plano);
 
         if (!$validacao['pode']) {
@@ -237,15 +262,25 @@ class PlanoController extends Controller
         if ($planoAtual && $planoAtual->isTeste()) {
             $novoPlano = $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
 
+            // Salvar aplicativos selecionados
+            if (!empty($aplicativosIds)) {
+                $empresaPrincipal->aplicativos()->sync($aplicativosIds);
+            } else {
+                // Se não selecionou nenhum aplicativo, remover todos
+                $empresaPrincipal->aplicativos()->detach();
+            }
+
             // Recarregar a empresa e o plano para garantir que está disponível
             $empresaPrincipal->refresh();
             $novoPlano->refresh();
 
-            // Atualizar sessão com novo plano
-            $this->atualizarSessaoPlano($empresaPrincipal);
-
             // Limpar cache de relacionamentos
             $empresaPrincipal->unsetRelation('planos');
+            $empresaPrincipal->unsetRelation('aplicativos');
+
+            // Atualizar sessão com novo plano e aplicativos
+            $this->atualizarSessaoPlano($empresaPrincipal);
+            $this->atualizarSessaoAplicativos($empresaPrincipal);
 
             // Redirecionar para página de sucesso
             return redirect()->route('planos.sucesso', $plano)
@@ -261,15 +296,25 @@ class PlanoController extends Controller
         // Ativar novo plano
         $novoPlano = $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
 
+        // Salvar aplicativos selecionados
+        if (!empty($aplicativosIds)) {
+            $empresaPrincipal->aplicativos()->sync($aplicativosIds);
+        } else {
+            // Se não selecionou nenhum aplicativo, remover todos
+            $empresaPrincipal->aplicativos()->detach();
+        }
+
         // Recarregar a empresa e o plano para garantir que está disponível
         $empresaPrincipal->refresh();
         $novoPlano->refresh();
 
         // Limpar cache de relacionamentos
         $empresaPrincipal->unsetRelation('planos');
+        $empresaPrincipal->unsetRelation('aplicativos');
 
-        // Atualizar sessão com novo plano
+        // Atualizar sessão com novo plano e aplicativos
         $this->atualizarSessaoPlano($empresaPrincipal);
+        $this->atualizarSessaoAplicativos($empresaPrincipal);
 
         // Redirecionar para página de sucesso
         return redirect()->route('planos.sucesso', $plano)
@@ -425,5 +470,14 @@ class PlanoController extends Controller
             // Se não tem plano, remover da sessão
             session()->forget('plano_atual');
         }
+    }
+
+    private function atualizarSessaoAplicativos(Empresa $empresa): void
+    {
+        // Limpar cache de relacionamentos para garantir dados atualizados
+        $empresa->unsetRelation('aplicativos');
+        $aplicativos = $empresa->aplicativos()->get();
+        session(['aplicativos_empresa' => $aplicativos->pluck('codigo')->toArray()]);
+        session()->save(); // Forçar salvamento da sessão
     }
 }

@@ -16,7 +16,10 @@ class Aplicativo extends Model
     protected $fillable = [
         'nome',
         'descricao',
+        'detalhes',
         'codigo',
+        'categoria',
+        'imagem',
         'preco_mensal',
         'preco_trimestral',
         'preco_semestral',

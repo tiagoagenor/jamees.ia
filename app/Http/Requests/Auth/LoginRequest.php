@@ -73,6 +73,13 @@ class LoginRequest extends FormRequest
 
             Auth::login($user, $this->boolean('remember'));
 
+            // Salvar aplicativos da empresa principal na sessão
+            $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+            if ($empresaPrincipal) {
+                $aplicativos = $empresaPrincipal->aplicativos()->get();
+                session(['aplicativos_empresa' => $aplicativos->pluck('codigo')->toArray()]);
+            }
+
             // Debug: Verificar se o login funcionou
             \Log::info('Login successful', [
                 'user_id' => Auth::id(),

@@ -85,6 +85,13 @@ class MultiTenantMiddleware
                 ]);
             }
 
+            // Salvar aplicativos da empresa principal na sessão
+            $empresaPrincipal = $user->empresas()->wherePivot('principal', 1)->first();
+            if ($empresaPrincipal) {
+                $aplicativos = $empresaPrincipal->aplicativos()->get();
+                session(['aplicativos_empresa' => $aplicativos->pluck('codigo')->toArray()]);
+            }
+
             // Registrar último acesso
             if (session('empresa_atual_id') && session('whitelabel_atual_id')) {
                 UltimaAcesso::updateOrCreate(

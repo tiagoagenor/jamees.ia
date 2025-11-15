@@ -85,6 +85,7 @@
                     </li>
 
                     <!-- Loteamento -->
+                    @if(\App\Helpers\AplicativoHelper::temAplicativo('loteamento'))
                     <li>
                         <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('loteamento')">
                             <div class="flex items-center">
@@ -120,6 +121,7 @@
                             </li>
                         </ul>
                     </li>
+                    @endif
 
                     <!-- Financeiro -->
                     <li>

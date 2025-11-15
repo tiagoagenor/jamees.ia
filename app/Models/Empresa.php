@@ -118,6 +118,12 @@ class Empresa extends Model
         return $this->hasMany(EmpresaPlano::class, 'empresa_id');
     }
 
+    public function aplicativos(): BelongsToMany
+    {
+        return $this->belongsToMany(Aplicativo::class, 'empresa_aplicativo', 'empresa_id', 'aplicativo_id')
+                    ->withTimestamps();
+    }
+
     public function planoAtual(): BelongsTo
     {
         return $this->belongsTo(EmpresaPlano::class, 'id', 'empresa_id')

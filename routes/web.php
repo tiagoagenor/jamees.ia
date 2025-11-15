@@ -85,6 +85,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/planos/cancelar', [App\Http\Controllers\PlanoController::class, 'cancelar'])->name('planos.cancelar');
     Route::get('/planos/historico', [App\Http\Controllers\PlanoController::class, 'historico'])->name('planos.historico');
     Route::get('/api/plano-info', [App\Http\Controllers\PlanoController::class, 'info'])->name('planos.info');
+
+    // Rotas de aplicativos
+    Route::get('/aplicativos', [App\Http\Controllers\AplicativoController::class, 'index'])->name('aplicativos.index');
+    Route::get('/aplicativos/{aplicativo}', [App\Http\Controllers\AplicativoController::class, 'show'])->name('aplicativos.show');
+    Route::get('/aplicativos/{aplicativo}/pagamento', [App\Http\Controllers\AplicativoController::class, 'pagamento'])->name('aplicativos.pagamento');
+    Route::post('/aplicativos/{aplicativo}/processar-pagamento', [App\Http\Controllers\AplicativoController::class, 'processarPagamento'])->name('aplicativos.processar-pagamento');
+    Route::delete('/aplicativos/{aplicativo}/cancelar', [App\Http\Controllers\AplicativoController::class, 'cancelar'])->name('aplicativos.cancelar');
 });
 
 // Rotas protegidas por plano ativo
