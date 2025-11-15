@@ -26,10 +26,10 @@
                             <i class="fas fa-mobile-alt text-8xl opacity-50"></i>
                         </div>
                     @endif
-                    @if($aplicativo->ativo)
+                    @if($jaContratado)
                         <span class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                             <i class="fas fa-check-circle mr-1"></i>
-                            Ativo
+                            Contratado
                         </span>
                     @endif
                 </div>

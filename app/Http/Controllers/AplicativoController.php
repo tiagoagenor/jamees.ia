@@ -118,7 +118,9 @@ class AplicativoController extends Controller
             $planoAtual = $empresaPrincipal->getPlanoAtual();
             
             // Verificar se o aplicativo já está contratado
-            $jaContratado = $empresaPrincipal->aplicativos()->where('aplicativo_id', $aplicativo->id)->exists();
+            // Limpar cache de relacionamentos para garantir dados atualizados
+            $empresaPrincipal->unsetRelation('aplicativos');
+            $jaContratado = $empresaPrincipal->aplicativos()->where('aplicativos.id', $aplicativo->id)->exists();
             
             if ($planoAtual) {
                 $isTeste = $planoAtual->isTeste();
