@@ -83,19 +83,13 @@
                             <label for="plano_conta_id" class="block text-sm font-medium text-gray-700 mb-2">
                                                 Plano de Contas <span class="text-red-500">*</span>
                             </label>
-                            <select name="plano_conta_id"
-                                    id="plano_conta_id"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('plano_conta_id') border-red-500 @enderror">
-                                <option value="">Selecione o plano de conta</option>
-                                @foreach($planoContas as $planoConta)
-                                    @php
-                                        $planoContaIdValue = old('plano_conta_id', $movimentacao->plano_conta_id);
-                                    @endphp
-                                    <option value="{{ $planoConta->id }}" {{ $planoContaIdValue && $planoContaIdValue == $planoConta->id ? 'selected' : '' }}>
-                                        {{ $planoConta->nome }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input
+                                type="text"
+                                id="plano_conta_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('plano_conta_id') border-red-500 @enderror"
+                                placeholder="Digite para buscar plano de conta..."
+                                autocomplete="off"
+                            >
                             @error('plano_conta_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -104,19 +98,13 @@
                             <label for="centro_custo_id" class="block text-sm font-medium text-gray-700 mb-2">
                                 Centro de Custo
                             </label>
-                            <select name="centro_custo_id"
-                                    id="centro_custo_id"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('centro_custo_id') border-red-500 @enderror">
-                                <option value="">Selecione o centro de custo</option>
-                                @foreach($centroCustos as $centroCusto)
-                                    @php
-                                        $centroCustoIdValue = old('centro_custo_id', $movimentacao->centro_custo_id);
-                                    @endphp
-                                    <option value="{{ $centroCusto->id }}" {{ $centroCustoIdValue && $centroCustoIdValue == $centroCusto->id ? 'selected' : '' }}>
-                                        {{ $centroCusto->nome }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input
+                                type="text"
+                                id="centro_custo_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('centro_custo_id') border-red-500 @enderror"
+                                placeholder="Digite para buscar centro de custo..."
+                                autocomplete="off"
+                            >
                             @error('centro_custo_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -129,19 +117,13 @@
                             <label for="forma_pagamento_id" class="block text-sm font-medium text-gray-700 mb-2">
                                 Forma de Pagamento <span class="text-red-500">*</span>
                             </label>
-                            <select name="forma_pagamento_id"
-                                    id="forma_pagamento_id"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('forma_pagamento_id') border-red-500 @enderror">
-                                <option value="">Selecione a forma de pagamento</option>
-                                @foreach($formasPagamento as $formaPagamento)
-                                    @php
-                                        $formaPagamentoIdValue = old('forma_pagamento_id', $movimentacao->forma_pagamento_id);
-                                    @endphp
-                                    <option value="{{ $formaPagamento->id }}" {{ $formaPagamentoIdValue && $formaPagamentoIdValue == $formaPagamento->id ? 'selected' : '' }}>
-                                        {{ $formaPagamento->nome }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input
+                                type="text"
+                                id="forma_pagamento_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('forma_pagamento_id') border-red-500 @enderror"
+                                placeholder="Digite para buscar forma de pagamento..."
+                                autocomplete="off"
+                            >
                             @error('forma_pagamento_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -150,19 +132,13 @@
                             <label for="conta_empresa_id" class="block text-sm font-medium text-gray-700 mb-2">
                                                 Conta Bancária <span class="text-red-500">*</span>
                             </label>
-                            <select name="conta_empresa_id"
-                                    id="conta_empresa_id"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('conta_empresa_id') border-red-500 @enderror">
-                                                <option value="">Selecione a conta bancária</option>
-                                @foreach($contasEmpresa as $contaEmpresa)
-                                    @php
-                                        $contaEmpresaIdValue = old('conta_empresa_id', $movimentacao->conta_empresa_id);
-                                    @endphp
-                                    <option value="{{ $contaEmpresa->id }}" {{ $contaEmpresaIdValue && $contaEmpresaIdValue == $contaEmpresa->id ? 'selected' : '' }}>
-                                        {{ $contaEmpresa->nome }} - {{ $contaEmpresa->banco->nome_normalizado ?? 'Banco não encontrado' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <input
+                                type="text"
+                                id="conta_empresa_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('conta_empresa_id') border-red-500 @enderror"
+                                placeholder="Digite para buscar conta bancária..."
+                                autocomplete="off"
+                            >
                             @error('conta_empresa_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -472,16 +448,13 @@
                                     <label for="plano_conta_id_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                         Plano de Contas <span class="text-red-500">*</span>
                                     </label>
-                                    <select name="plano_conta_id"
-                                            id="plano_conta_id_parcelamento"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('plano_conta_id') border-red-500 @enderror">
-                                        <option value="">Selecione o plano de conta</option>
-                                        @foreach($planoContas as $planoConta)
-                                            <option value="{{ $planoConta->id }}" {{ old('plano_conta_id') == $planoConta->id ? 'selected' : '' }}>
-                                                {{ $planoConta->nome }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <input
+                                        type="text"
+                                        id="plano_conta_id_parcelamento"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('plano_conta_id') border-red-500 @enderror"
+                                        placeholder="Digite para buscar plano de conta..."
+                                        autocomplete="off"
+                                    >
                                     @error('plano_conta_id')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -490,16 +463,13 @@
                                     <label for="centro_custo_id_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                         Centro de Custo
                                     </label>
-                                    <select name="centro_custo_id"
-                                            id="centro_custo_id_parcelamento"
-                                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('centro_custo_id') border-red-500 @enderror">
-                                        <option value="">Selecione o centro de custo</option>
-                                        @foreach($centroCustos as $centroCusto)
-                                            <option value="{{ $centroCusto->id }}" {{ old('centro_custo_id') == $centroCusto->id ? 'selected' : '' }}>
-                                                {{ $centroCusto->nome }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                    <input
+                                        type="text"
+                                        id="centro_custo_id_parcelamento"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('centro_custo_id') border-red-500 @enderror"
+                                        placeholder="Digite para buscar centro de custo..."
+                                        autocomplete="off"
+                                    >
                                     @error('centro_custo_id')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -511,16 +481,13 @@
                                 <label for="conta_empresa_id_parcelamento" class="block text-sm font-medium text-gray-700 mb-2">
                                     Conta Bancária <span class="text-red-500">*</span>
                                 </label>
-                                <select name="conta_empresa_id"
-                                        id="conta_empresa_id_parcelamento"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('conta_empresa_id') border-red-500 @enderror">
-                                    <option value="">Selecione a conta bancária</option>
-                                    @foreach($contasEmpresa as $contaEmpresa)
-                                        <option value="{{ $contaEmpresa->id }}" {{ old('conta_empresa_id') == $contaEmpresa->id ? 'selected' : '' }}>
-                                            {{ $contaEmpresa->nome }} - {{ $contaEmpresa->banco->nome_normalizado ?? 'Banco não encontrado' }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <input
+                                    type="text"
+                                    id="conta_empresa_id_parcelamento"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('conta_empresa_id') border-red-500 @enderror"
+                                    placeholder="Digite para buscar conta bancária..."
+                                    autocomplete="off"
+                                >
                                 @error('conta_empresa_id')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -860,7 +827,18 @@
     </div>
 </div>
 
+<!-- CSS do CSelect -->
+<link rel="stylesheet" href="{{ asset('css/cselect.css') }}">
+
+<!-- Script do Custom Select -->
+<script src="{{ asset('js/custom-select.js') }}"></script>
+<script src="{{ asset('js/cselect.js') }}"></script>
+
+<!-- Inicializar Custom Selects -->
 <script>
+// Criado fora do $(document).ready() para garantir que esteja disponível imediatamente
+window.cSelects = {};
+
 $(document).ready(function() {
     // Dados das entidades
     const entidades = {
@@ -1052,11 +1030,403 @@ $(document).ready(function() {
         calcularTotal();
     }
 
+    // CSelect para Plano de Contas (Modo Normal)
+    @php
+        $planoContaIdValue = old('plano_conta_id', $movimentacao->plano_conta_id);
+    @endphp
+
+    const planoContaNormal = cSelect('#plano_conta_id', {
+        name: 'plano_conta_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.custom-select.search") }}',
+            method: 'GET',
+            searchParam: 'search',
+            useJwt: true
+        },
+        addButton: {
+            text: 'Adicionar novo plano de conta',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('plano-conta-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Plano de conta selecionado:', { value, label });
+            // Sincronizar com o campo do modo parcelamento (sempre sincronizar)
+            // O CSelect fará o AJAX automaticamente se necessário
+            // Evitar loop infinito verificando se já estamos sincronizando
+            if (typeof planoContaParcelamento !== 'undefined' && planoContaParcelamento && value && !planoContaParcelamento.config._isSyncing) {
+                planoContaParcelamento.config._isSyncing = true;
+                planoContaParcelamento.setValue(value)
+                planoContaParcelamento.config._isSyncing = false;
+            }
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['planoContaNormal'] = planoContaNormal;
+
+    @if($planoContaIdValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (planoContaNormal) {
+            planoContaNormal.setValue('{{ $planoContaIdValue }}');
+        }
+    @endif
+
+    // Callback para quando um plano de conta for criado
+    if (typeof window.onPlanoContaCreated === 'undefined') {
+        window.onPlanoContaCreated = function(planoConta) {
+            console.log('Plano de conta criado:', planoConta);
+
+            if (typeof planoContaNormal !== 'undefined' && planoContaNormal) {
+                // Selecionar o novo plano de conta
+                const nome = planoConta.nome || '';
+                planoContaNormal.setValue(planoConta.id, nome);
+            }
+        };
+    }
+
+    // CSelect para Plano de Contas (Modo Parcelamento)
+    @php
+        $planoContaIdParcelamentoValue = old('plano_conta_id', $movimentacao->plano_conta_id);
+    @endphp
+
+    const planoContaParcelamento = cSelect('#plano_conta_id_parcelamento', {
+        name: 'plano_conta_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'categoria',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.custom-select.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar novo plano de conta',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('plano-conta-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Plano de conta selecionado (parcelamento):', { value, label });
+            // Sincronizar com o campo do modo normal (sempre sincronizar)
+            // O CSelect fará o AJAX automaticamente se necessário
+            // Evitar loop infinito verificando se já estamos sincronizando
+            if (typeof planoContaNormal !== 'undefined' && planoContaNormal && value && !planoContaNormal.config._isSyncing) {
+                planoContaNormal.config._isSyncing = true;
+                planoContaNormal.setValue(value);
+                planoContaNormal.config._isSyncing = false;
+            }
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['planoContaParcelamento'] = planoContaParcelamento;
+
+    @if($planoContaIdParcelamentoValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (planoContaParcelamento) {
+            planoContaParcelamento.setValue('{{ $planoContaIdParcelamentoValue }}');
+        }
+    @endif
+
+    // Atualizar callback para também atualizar o modo parcelamento
+    if (typeof window.onPlanoContaCreated !== 'undefined') {
+        const originalCallback = window.onPlanoContaCreated;
+        window.onPlanoContaCreated = function(planoConta) {
+            // Chamar callback original
+            originalCallback(planoConta);
+
+            // Atualizar também o modo parcelamento se existir
+            if (typeof planoContaParcelamento !== 'undefined' && planoContaParcelamento) {
+                const nome = planoConta.nome || '';
+                planoContaParcelamento.setValue(planoConta.id, nome);
+            }
+        };
+    }
+
+    // CSelect para Centro de Custo (Modo Normal)
+    @php
+        $centroCustoIdValue = old('centro_custo_id', $movimentacao->centro_custo_id);
+    @endphp
+
+    const centroCustoNormal = cSelect('#centro_custo_id', {
+        name: 'centro_custo_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.centro-custo.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar novo centro de custo',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('centro-custo-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Centro de custo selecionado:', { value, label });
+            // Sincronizar com o campo do modo parcelamento se existir
+            // O CSelect fará o AJAX automaticamente se necessário
+            if (typeof centroCustoParcelamento !== 'undefined' && centroCustoParcelamento && value) {
+                centroCustoParcelamento.setValue(value);
+            }
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['centroCustoNormal'] = centroCustoNormal;
+
+    @if($centroCustoIdValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (centroCustoNormal) {
+            centroCustoNormal.setValue('{{ $centroCustoIdValue }}');
+        }
+    @endif
+    if (typeof window.onCentroCustoCreated === 'undefined') {
+        window.onCentroCustoCreated = function(centroCusto) {
+            console.log('Centro de custo criado:', centroCusto);
+
+            if (typeof centroCustoNormal !== 'undefined' && centroCustoNormal) {
+                // Selecionar o novo centro de custo
+                const nome = centroCusto.nome || '';
+                centroCustoNormal.setValue(centroCusto.id, nome);
+            }
+            // Atualizar também o modo parcelamento se existir
+            if (typeof centroCustoParcelamento !== 'undefined' && centroCustoParcelamento) {
+                const nome = centroCusto.nome || '';
+                centroCustoParcelamento.setValue(centroCusto.id, nome);
+            }
+        };
+    }
+
+    // CSelect para Centro de Custo (Modo Parcelamento)
+    @php
+        $centroCustoIdParcelamentoValue = old('centro_custo_id', $movimentacao->centro_custo_id);
+    @endphp
+
+    const centroCustoParcelamento = cSelect('#centro_custo_id_parcelamento', {
+        name: 'centro_custo_id_parcelamento',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.centro-custo.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar novo centro de custo',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('centro-custo-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Centro de custo selecionado (parcelamento):', { value, label });
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['centroCustoParcelamento'] = centroCustoParcelamento;
+
+    // CSelect para Forma de Pagamento (Modo Normal)
+    @php
+        $formaPagamentoIdValue = old('forma_pagamento_id', $movimentacao->forma_pagamento_id);
+    @endphp
+
+    const formaPagamentoNormal = cSelect('#forma_pagamento_id', {
+        name: 'forma_pagamento_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        itemSubtitle: 'modalidade',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.forma-pagamento.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar nova forma de pagamento',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('forma-pagamento-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Forma de pagamento selecionada:', { value, label });
+        }
+    });
+
+    @if($formaPagamentoIdValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (formaPagamentoNormal) {
+            formaPagamentoNormal.setValue('{{ $formaPagamentoIdValue }}');
+        }
+    @endif
+    // Callback para quando uma forma de pagamento for criada
+    if (typeof window.onFormaPagamentoCreated === 'undefined') {
+        window.onFormaPagamentoCreated = function(formaPagamento) {
+            console.log('Forma de pagamento criada:', formaPagamento);
+
+            if (typeof formaPagamentoNormal !== 'undefined' && formaPagamentoNormal) {
+                // Selecionar a nova forma de pagamento
+                const nome = formaPagamento.nome || '';
+                formaPagamentoNormal.setValue(formaPagamento.id, nome);
+            }
+        };
+    }
+
+    // CSelect para Conta Bancária (Modo Normal)
+    @php
+        $contaEmpresaIdValue = old('conta_empresa_id', $movimentacao->conta_empresa_id);
+    @endphp
+
+    const contaEmpresaNormal = cSelect('#conta_empresa_id', {
+        name: 'conta_empresa_id',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.conta-empresa.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar nova conta bancária',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('conta-empresa-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Conta bancária selecionada:', { value, label });
+            // Sincronizar com o campo do modo parcelamento se existir
+            // O CSelect fará o AJAX automaticamente se necessário
+            if (typeof contaEmpresaParcelamento !== 'undefined' && contaEmpresaParcelamento && value) {
+                contaEmpresaParcelamento.setValue(value);
+            }
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['contaEmpresaNormal'] = contaEmpresaNormal;
+
+    @if($contaEmpresaIdValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (contaEmpresaNormal) {
+            contaEmpresaNormal.setValue('{{ $contaEmpresaIdValue }}');
+        }
+    @endif
+
+    // CSelect para Conta Bancária (Modo Parcelamento)
+    @php
+        $contaEmpresaIdParcelamentoValue = old('conta_empresa_id', $movimentacao->conta_empresa_id);
+    @endphp
+
+    const contaEmpresaParcelamento = cSelect('#conta_empresa_id_parcelamento', {
+        name: 'conta_empresa_id_parcelamento',
+        debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.conta-empresa.search") }}',
+            method: 'GET',
+            searchParam: 'search'
+        },
+        addButton: {
+            text: 'Adicionar nova conta bancária',
+            class: ''
+        },
+        onClickButton: (selectId) => {
+            window.openModal('conta-empresa-modal', selectId);
+        },
+        onSelect: (value, label) => {
+            console.log('Conta bancária selecionada (parcelamento):', { value, label });
+        }
+    });
+
+    // Salvar no objeto global
+    if (!window.cSelects) {
+        window.cSelects = {};
+    }
+    window.cSelects['contaEmpresaParcelamento'] = contaEmpresaParcelamento;
+
+    @if($contaEmpresaIdParcelamentoValue)
+        // Se houver valor da movimentação, selecionar (o CSelect fará o AJAX automaticamente)
+        if (contaEmpresaParcelamento) {
+            contaEmpresaParcelamento.setValue('{{ $contaEmpresaIdParcelamentoValue }}');
+        }
+    @endif
+
     // Flag para controlar se é o carregamento inicial
     let isInitialLoad = true;
     
     function alternarModo(isAtivo) {
         if (isAtivo) {
+            // ATIVAR MODO PARCELAMENTO
+            // Sincronizar cSelects ANTES de sincronizar outros campos
+            if (window.cSelects && window.cSelects['planoContaNormal'] && window.cSelects['planoContaParcelamento']) {
+                const planoContaNormalValue = window.cSelects['planoContaNormal'].getValue();
+                if (planoContaNormalValue && planoContaNormalValue !== '') {
+                    window.cSelects['planoContaNormal'].hideHiddenInput(true)
+                    window.cSelects['planoContaParcelamento'].hideHiddenInput(false);
+                    window.cSelects['planoContaParcelamento'].setValue(planoContaNormalValue);
+                }
+                console.log("Plano de Conta sincronizado!");
+            }
+
+            if (window.cSelects && window.cSelects['centroCustoNormal'] && window.cSelects['centroCustoParcelamento']) {
+                const centroCustoNormalValue = window.cSelects['centroCustoNormal'].getValue();
+                if (centroCustoNormalValue && centroCustoNormalValue !== '') {
+                    window.cSelects['centroCustoNormal'].hideHiddenInput(true)
+                    window.cSelects['centroCustoParcelamento'].hideHiddenInput(false);
+                    window.cSelects['centroCustoParcelamento'].setValue(centroCustoNormalValue);
+                }
+                console.log("Centro de Custo sincronizado!");
+            }
+
+            if (window.cSelects && window.cSelects['contaEmpresaNormal'] && window.cSelects['contaEmpresaParcelamento']) {
+                const contaEmpresaNormalValue = window.cSelects['contaEmpresaNormal'].getValue();
+                if (contaEmpresaNormalValue && contaEmpresaNormalValue !== '') {
+                    window.cSelects['contaEmpresaNormal'].hideHiddenInput(true)
+                    window.cSelects['contaEmpresaParcelamento'].hideHiddenInput(false);
+                    window.cSelects['contaEmpresaParcelamento'].setValue(contaEmpresaNormalValue);
+                }
+                console.log("Conta Empresa sincronizada!");
+            }
+
             // Sincronizar valores dos campos ANTES de desabilitar os campos do modo normal
             // Isso garante que os valores sejam copiados corretamente
             // Mas só sincronizar se não for o carregamento inicial ou se os campos tiverem valores
@@ -1117,6 +1487,38 @@ $(document).ready(function() {
                 anexarListenerGerarParcelas();
             }, 100);
         } else {
+            // VOLTAR PARA MODO NORMAL
+            // Sincronizar cSelects ANTES de sincronizar outros campos
+            if (window.cSelects && window.cSelects['planoContaNormal'] && window.cSelects['planoContaParcelamento']) {
+                const planoContaNormalValue = window.cSelects['planoContaParcelamento'].getValue();
+                if (planoContaNormalValue && planoContaNormalValue !== '') {
+                    window.cSelects['planoContaNormal'].hideHiddenInput(false)
+                    window.cSelects['planoContaParcelamento'].hideHiddenInput(true);
+                    window.cSelects['planoContaNormal'].setValue(planoContaNormalValue);
+                }
+                console.log("Plano de Conta sincronizado!");
+            }
+
+            if (window.cSelects && window.cSelects['centroCustoNormal'] && window.cSelects['centroCustoParcelamento']) {
+                const centroCustoNormalValue = window.cSelects['centroCustoParcelamento'].getValue();
+                if (centroCustoNormalValue && centroCustoNormalValue !== '') {
+                    window.cSelects['centroCustoNormal'].hideHiddenInput(false)
+                    window.cSelects['centroCustoParcelamento'].hideHiddenInput(true);
+                    window.cSelects['centroCustoNormal'].setValue(centroCustoNormalValue);
+                }
+                console.log("Centro de Custo sincronizado!");
+            }
+
+            if (window.cSelects && window.cSelects['contaEmpresaNormal'] && window.cSelects['contaEmpresaParcelamento']) {
+                const contaEmpresaNormalValue = window.cSelects['contaEmpresaParcelamento'].getValue();
+                if (contaEmpresaNormalValue && contaEmpresaNormalValue !== '') {
+                    window.cSelects['contaEmpresaNormal'].hideHiddenInput(false)
+                    window.cSelects['contaEmpresaParcelamento'].hideHiddenInput(true);
+                    window.cSelects['contaEmpresaNormal'].setValue(contaEmpresaNormalValue);
+                }
+                console.log("Conta Empresa sincronizada!");
+            }
+
             // Sincronizar valores dos campos ANTES de desabilitar os campos do modo parcelamento
             // Isso garante que os valores sejam copiados corretamente
             // Mas só sincronizar se os campos do modo parcelamento tiverem valores (não sobrescrever valores do banco)
@@ -1128,8 +1530,9 @@ $(document).ready(function() {
                 sincronizarCamposParaNormal();
             }
 
-            $modoNormal.removeClass('hidden');
+            // Mostrar modo normal e esconder modo parcelamento
             $modoParcelamento.addClass('hidden');
+            $modoNormal.removeClass('hidden');
 
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
@@ -1203,9 +1606,27 @@ $(document).ready(function() {
 
     function sincronizarCamposParaParcelamento() {
         const descricao = $('#descricao').val();
-        const planoContaId = $('#plano_conta_id').val();
-        const centroCustoId = $('#centro_custo_id').val();
-        const contaEmpresaId = $('#conta_empresa_id').val();
+        // Usar cSelect para plano de conta se disponível
+        let planoContaId = null;
+        if (window.cSelects && window.cSelects['planoContaNormal']) {
+            planoContaId = window.cSelects['planoContaNormal'].getValue();
+        } else {
+            planoContaId = $('#plano_conta_id').val();
+        }
+        // Usar cSelect para centro de custo se disponível
+        let centroCustoId = null;
+        if (window.cSelects && window.cSelects['centroCustoNormal']) {
+            centroCustoId = window.cSelects['centroCustoNormal'].getValue();
+        } else {
+            centroCustoId = $('#centro_custo_id').val();
+        }
+        // Usar cSelect para conta empresa se disponível
+        let contaEmpresaId = null;
+        if (window.cSelects && window.cSelects['contaEmpresaNormal']) {
+            contaEmpresaId = window.cSelects['contaEmpresaNormal'].getValue();
+        } else {
+            contaEmpresaId = $('#conta_empresa_id').val();
+        }
         const valor = $('#valor').val();
         const juros = $('#juros').val();
         const multa = $('#multa').val();
@@ -1215,9 +1636,24 @@ $(document).ready(function() {
         const multaForma = $('#multa_forma').val();
 
         $('#descricao_parcelamento').val(descricao);
-        $('#plano_conta_id_parcelamento').val(planoContaId);
-        $('#centro_custo_id_parcelamento').val(centroCustoId);
-        $('#conta_empresa_id_parcelamento').val(contaEmpresaId);
+        // Usar cSelect para plano de conta se disponível
+        if (window.cSelects && window.cSelects['planoContaParcelamento'] && planoContaId) {
+            window.cSelects['planoContaParcelamento'].setValue(planoContaId);
+        } else {
+            $('#plano_conta_id_parcelamento').val(planoContaId);
+        }
+        // Usar cSelect para centro de custo se disponível
+        if (window.cSelects && window.cSelects['centroCustoParcelamento'] && centroCustoId) {
+            window.cSelects['centroCustoParcelamento'].setValue(centroCustoId);
+        } else {
+            $('#centro_custo_id_parcelamento').val(centroCustoId);
+        }
+        // Usar cSelect para conta empresa se disponível
+        if (window.cSelects && window.cSelects['contaEmpresaParcelamento'] && contaEmpresaId) {
+            window.cSelects['contaEmpresaParcelamento'].setValue(contaEmpresaId);
+        } else {
+            $('#conta_empresa_id_parcelamento').val(contaEmpresaId);
+        }
         $('#valor_parcelamento').val(valor);
         $('#juros_parcelamento').val(juros);
         $('#multa_parcelamento').val(multa);
@@ -1229,9 +1665,27 @@ $(document).ready(function() {
 
     function sincronizarCamposParaNormal() {
         const descricao = $('#descricao_parcelamento').val();
-        const planoContaId = $('#plano_conta_id_parcelamento').val();
-        const centroCustoId = $('#centro_custo_id_parcelamento').val();
-        const contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
+        // Usar cSelect para plano de conta se disponível
+        let planoContaId = null;
+        if (window.cSelects && window.cSelects['planoContaParcelamento']) {
+            planoContaId = window.cSelects['planoContaParcelamento'].getValue();
+        } else {
+            planoContaId = $('#plano_conta_id_parcelamento').val();
+        }
+        // Usar cSelect para centro de custo se disponível
+        let centroCustoId = null;
+        if (window.cSelects && window.cSelects['centroCustoParcelamento']) {
+            centroCustoId = window.cSelects['centroCustoParcelamento'].getValue();
+        } else {
+            centroCustoId = $('#centro_custo_id_parcelamento').val();
+        }
+        // Usar cSelect para conta empresa se disponível
+        let contaEmpresaId = null;
+        if (window.cSelects && window.cSelects['contaEmpresaParcelamento']) {
+            contaEmpresaId = window.cSelects['contaEmpresaParcelamento'].getValue();
+        } else {
+            contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
+        }
         const valor = $('#valor_parcelamento').val();
         const juros = $('#juros_parcelamento').val();
         const multa = $('#multa_parcelamento').val();
@@ -1241,9 +1695,24 @@ $(document).ready(function() {
         const multaForma = $('#multa_forma_parcelamento').val();
 
         $('#descricao').val(descricao);
-        $('#plano_conta_id').val(planoContaId);
-        $('#centro_custo_id').val(centroCustoId);
-        $('#conta_empresa_id').val(contaEmpresaId);
+        // Usar cSelect para plano de conta se disponível
+        if (window.cSelects && window.cSelects['planoContaNormal'] && planoContaId) {
+            window.cSelects['planoContaNormal'].setValue(planoContaId);
+        } else {
+            $('#plano_conta_id').val(planoContaId);
+        }
+        // Usar cSelect para centro de custo se disponível
+        if (window.cSelects && window.cSelects['centroCustoNormal'] && centroCustoId) {
+            window.cSelects['centroCustoNormal'].setValue(centroCustoId);
+        } else {
+            $('#centro_custo_id').val(centroCustoId);
+        }
+        // Usar cSelect para conta empresa se disponível
+        if (window.cSelects && window.cSelects['contaEmpresaNormal'] && contaEmpresaId) {
+            window.cSelects['contaEmpresaNormal'].setValue(contaEmpresaId);
+        } else {
+            $('#conta_empresa_id').val(contaEmpresaId);
+        }
         $('#valor').val(valor);
         $('#juros').val(juros);
         $('#multa').val(multa);
@@ -1704,22 +2173,24 @@ $(document).ready(function() {
         if (isParcelamento) {
             // Garantir que os campos do modo parcelamento tenham name e estejam habilitados
             $('#descricao_parcelamento').prop('disabled', false).attr('name', 'descricao');
-            $('#plano_conta_id_parcelamento').prop('disabled', false).attr('name', 'plano_conta_id');
-            $('#centro_custo_id_parcelamento').prop('disabled', false).attr('name', 'centro_custo_id');
-            $('#conta_empresa_id_parcelamento').prop('disabled', false).attr('name', 'conta_empresa_id');
+            // plano_conta_id_parcelamento agora é CSelect, o hidden input já tem o name correto
+            // centro_custo_id_parcelamento agora é CSelect, o hidden input já tem o name correto
+            // conta_empresa_id_parcelamento agora é CSelect, o hidden input já tem o name correto
 
             // Garantir que os campos do modo normal NÃO tenham name
             $('#descricao').removeAttr('name');
             $('#plano_conta_id').removeAttr('name');
             $('#centro_custo_id').removeAttr('name');
-            $('#conta_empresa_id').removeAttr('name');
+            // conta_empresa_id agora é custom-select, não precisa remover name aqui
             $('#vencimento').removeAttr('name');
-            $('#forma_pagamento_id').removeAttr('name');
+            // forma_pagamento_id agora é custom-select, não precisa remover name aqui
 
             // Validação para modo parcelamento
             const descricao = $('#descricao_parcelamento').val();
-            const planoContaId = $('#plano_conta_id_parcelamento').val();
-            const contaEmpresaId = $('#conta_empresa_id_parcelamento').val();
+            // Usar o hidden input do custom-select
+            const planoContaId = $('#plano_conta_id_parcelamento_hidden').val() || $('#plano_conta_id_parcelamento').val();
+            const centroCustoId = $('#centro_custo_id_parcelamento_hidden').val() || $('#centro_custo_id_parcelamento').val();
+            const contaEmpresaId = $('#conta_empresa_id_parcelamento_hidden').val() || $('#conta_empresa_id_parcelamento').val();
             const $parcelasTbody = $('#parcelas_tbody');
 
             // Campos compartilhados obrigatórios (usados em todas as parcelas)
@@ -1779,22 +2250,24 @@ $(document).ready(function() {
             $('#descricao').prop('disabled', false).attr('name', 'descricao');
             $('#plano_conta_id').prop('disabled', false).attr('name', 'plano_conta_id');
             $('#centro_custo_id').prop('disabled', false).attr('name', 'centro_custo_id');
-            $('#conta_empresa_id').prop('disabled', false).attr('name', 'conta_empresa_id');
+            // conta_empresa_id agora é custom-select, será tratado no submit
             $('#vencimento').prop('disabled', false).attr('name', 'vencimento');
-            $('#forma_pagamento_id').prop('disabled', false).attr('name', 'forma_pagamento_id');
+            // forma_pagamento_id agora é custom-select, será tratado no submit
 
             // Garantir que os campos do modo parcelamento NÃO tenham name
             $('#descricao_parcelamento').removeAttr('name');
             $('#plano_conta_id_parcelamento').removeAttr('name');
-            $('#centro_custo_id_parcelamento').removeAttr('name');
-            $('#conta_empresa_id_parcelamento').removeAttr('name');
+            // centro_custo_id_parcelamento agora é CSelect, não precisa remover name aqui
+            // conta_empresa_id_parcelamento agora é CSelect, não precisa remover name aqui
 
             // Validação para modo normal
             const descricao = $('#descricao').val();
             const vencimento = $('#vencimento').val();
-            const planoContaId = $('#plano_conta_id').val();
-            const formaPagamentoId = $('#forma_pagamento_id').val();
-            const contaEmpresaId = $('#conta_empresa_id').val();
+            // Usar o hidden input do custom-select
+            const planoContaId = $('#plano_conta_id_hidden').val() || $('#plano_conta_id').val();
+            const centroCustoId = $('#centro_custo_id_hidden').val() || $('#centro_custo_id').val();
+            const formaPagamentoId = $('#forma_pagamento_id_hidden').val() || $('#forma_pagamento_id').val();
+            const contaEmpresaId = $('#conta_empresa_id_hidden').val() || $('#conta_empresa_id').val();
             const valor = parseFloat($('#valor').val()) || 0;
 
             if (!descricao || descricao.trim() === '') {

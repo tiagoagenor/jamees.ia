@@ -1111,6 +1111,7 @@ $(document).ready(function() {
             }, 100);
 
         } else {
+            // VOLTAR PARA MODO NORMAL
             if (window.cSelects && window.cSelects['planoContaNormal'] && window.cSelects['planoContaParcelamento']) {
                 const planoContaNormalValue = window.cSelects['planoContaParcelamento'].getValue();
                 if (planoContaNormalValue && planoContaNormalValue !== '') {
@@ -1119,6 +1120,7 @@ $(document).ready(function() {
                     window.cSelects['planoContaNormal'].setValue(planoContaNormalValue);
                 }
                 console.log("Existe!");
+            }
 
             if (window.cSelects && window.cSelects['centroCustoNormal'] && window.cSelects['centroCustoParcelamento']) {
                 const centroCustoNormalValue = window.cSelects['centroCustoParcelamento'].getValue();
@@ -1129,8 +1131,11 @@ $(document).ready(function() {
                 }
                 console.log("Centro de Custo existe!");
             }
-                console.log("Centro de Custo existe!");
-            }
+
+            // Mostrar modo normal e esconder modo parcelamento
+            $modoParcelamento.addClass('hidden');
+            $modoNormal.removeClass('hidden');
+
             // Sincronizar todos os toggles
             sincronizandoToggle = true;
             $('.toggle-parcelamento').prop('checked', false);
@@ -2015,6 +2020,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const centroCustoParcelamento = cSelect('#centro_custo_id_parcelamento', {
         name: 'centro_custo_id_parcelamento',
         debug: false,
+        itemValue: 'id',
+        itemTitle: 'nome',
+        minSearchLength: 2,
+        http: {
+            url: '{{ route("api.centro-custo.search") }}',
+            method: 'GET',
             searchParam: 'search'
         },
         addButton: {
