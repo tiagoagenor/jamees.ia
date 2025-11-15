@@ -4,10 +4,125 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
+    <!-- Mensagens de Erro/Sucesso -->
+    @if(session('error'))
+        <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>
+                <p class="font-medium">{{ session('error') }}</p>
+            </div>
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="mb-6 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <p class="font-medium">{{ session('success') }}</p>
+            </div>
+        </div>
+    @endif
+
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Meu Plano</h1>
-        <p class="mt-2 text-gray-600">Gerencie seu plano e acompanhe o uso do sistema</p>
+        <h1 class="text-3xl font-bold text-gray-900">Planos</h1>
+        <p class="mt-2 text-gray-600">Escolha o plano ideal para sua empresa</p>
+    </div>
+
+    <!-- Planos Disponíveis -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Planos Disponíveis</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @foreach($planos as $plano)
+                <div class="bg-white rounded-lg shadow-md p-6 border-2
+                    @if($planoAtual && $planoAtual->plano_id === $plano->id) border-blue-500
+                    @else border-gray-200
+                    @endif">
+
+                    @if($planoAtual && $planoAtual->plano_id === $plano->id)
+                        <div class="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full inline-block mb-4">
+                            Plano Atual
+                        </div>
+                    @endif
+
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $plano->nome }}</h3>
+                    <p class="text-gray-600 text-sm mb-4">{{ $plano->descricao }}</p>
+
+                    <!-- Preços -->
+                    <div class="mb-4">
+                        <div class="text-2xl font-bold text-gray-900">
+                            R$ {{ number_format($plano->preco_mensal, 2, ',', '.') }}
+                            <span class="text-sm font-normal text-gray-500">/mês</span>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            Anual: R$ {{ number_format($plano->preco_anual, 2, ',', '.') }}
+                            <span class="text-green-600">(20% desconto)</span>
+                        </div>
+                    </div>
+
+                    <!-- Limites -->
+                    <div class="mb-4 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Usuários:</span>
+                            <span>{{ $plano->limite_usuarios ?? 'Ilimitado' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Empresas:</span>
+                            <span>{{ $plano->limite_empresas ?? 'Ilimitado' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Funcionalidades -->
+                    @if($plano->funcionalidades)
+                        <div class="mb-4">
+                            <h4 class="text-sm font-medium text-gray-900 mb-2">Funcionalidades:</h4>
+                            <ul class="text-xs text-gray-600 space-y-1">
+                                @foreach(array_slice($plano->funcionalidades, 0, 3) as $funcionalidade)
+                                    <li class="flex items-center">
+                                        <svg class="h-3 w-3 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $funcionalidade }}
+                                    </li>
+                                @endforeach
+                                @if(count($plano->funcionalidades) > 3)
+                                    <li class="text-gray-500">+{{ count($plano->funcionalidades) - 3 }} mais...</li>
+                                @endif
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Botão de ação -->
+                    <div class="mt-4">
+                        @if($planoAtual && $planoAtual->plano_id === $plano->id)
+                            <button disabled
+                                    class="w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm font-medium cursor-not-allowed">
+                                Plano Atual
+                            </button>
+                        @else
+                            <a href="{{ route('planos.show', $plano) }}"
+                               class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center block">
+                                @if($planoAtual && $planoAtual->status->value === 'teste')
+                                    Ativar Plano
+                                @else
+                                    Escolher Plano
+                                @endif
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- Meu Plano -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Meu Plano</h2>
     </div>
 
     <!-- Plano Atual -->
@@ -104,115 +219,5 @@
             </div>
         </div>
     @endif
-
-    <!-- Planos Disponíveis -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Planos Disponíveis</h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach($planos as $plano)
-                <div class="bg-white rounded-lg shadow-md p-6 border-2
-                    @if($planoAtual && $planoAtual->plano_id === $plano->id) border-blue-500
-                    @else border-gray-200
-                    @endif">
-
-                    @if($planoAtual && $planoAtual->plano_id === $plano->id)
-                        <div class="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-full inline-block mb-4">
-                            Plano Atual
-                        </div>
-                    @endif
-
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ $plano->nome }}</h3>
-                    <p class="text-gray-600 text-sm mb-4">{{ $plano->descricao }}</p>
-
-                    <!-- Preços -->
-                    <div class="mb-4">
-                        <div class="text-2xl font-bold text-gray-900">
-                            R$ {{ number_format($plano->preco_mensal, 2, ',', '.') }}
-                            <span class="text-sm font-normal text-gray-500">/mês</span>
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            Anual: R$ {{ number_format($plano->preco_anual, 2, ',', '.') }}
-                            <span class="text-green-600">(20% desconto)</span>
-                        </div>
-                    </div>
-
-                    <!-- Limites -->
-                    <div class="mb-4 text-sm text-gray-600">
-                        <div class="flex justify-between">
-                            <span>Usuários:</span>
-                            <span>{{ $plano->limite_usuarios ?? 'Ilimitado' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Empresas:</span>
-                            <span>{{ $plano->limite_empresas ?? 'Ilimitado' }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Funcionalidades -->
-                    @if($plano->funcionalidades)
-                        <div class="mb-4">
-                            <h4 class="text-sm font-medium text-gray-900 mb-2">Funcionalidades:</h4>
-                            <ul class="text-xs text-gray-600 space-y-1">
-                                @foreach(array_slice($plano->funcionalidades, 0, 3) as $funcionalidade)
-                                    <li class="flex items-center">
-                                        <svg class="h-3 w-3 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        {{ $funcionalidade }}
-                                    </li>
-                                @endforeach
-                                @if(count($plano->funcionalidades) > 3)
-                                    <li class="text-gray-500">+{{ count($plano->funcionalidades) - 3 }} mais...</li>
-                                @endif
-                            </ul>
-                        </div>
-                    @endif
-
-                    <!-- Botão de ação -->
-                    <div class="mt-4">
-                        @if($planoAtual && $planoAtual->plano_id === $plano->id)
-                            <button disabled
-                                    class="w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm font-medium cursor-not-allowed">
-                                Plano Atual
-                            </button>
-                        @else
-                            <a href="{{ route('planos.show', $plano) }}"
-                               class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center block">
-                                @if($planoAtual && $planoAtual->status->value === 'teste')
-                                    Ativar Plano
-                                @else
-                                    Escolher Plano
-                                @endif
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-
-    <!-- Informações Adicionais -->
-    <div class="bg-gray-50 rounded-lg p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Informações Importantes</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
-            <div>
-                <h4 class="font-medium text-gray-900 mb-2">Período de Teste</h4>
-                <p>Novos clientes recebem 15 dias gratuitos para testar o sistema com o Plano Base.</p>
-            </div>
-            <div>
-                <h4 class="font-medium text-gray-900 mb-2">Descontos</h4>
-                <p>Planos anuais têm 20% de desconto, semestrais 10% e trimestrais 5%.</p>
-            </div>
-            <div>
-                <h4 class="font-medium text-gray-900 mb-2">Alteração de Plano</h4>
-                <p>Você pode alterar seu plano a qualquer momento sem custos adicionais.</p>
-            </div>
-            <div>
-                <h4 class="font-medium text-gray-900 mb-2">Suporte</h4>
-                <p>Entre em contato conosco para dúvidas sobre planos ou funcionalidades.</p>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection

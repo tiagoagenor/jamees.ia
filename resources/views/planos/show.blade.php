@@ -4,6 +4,56 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
+    <!-- Wizard Steps -->
+    <div class="mb-8">
+        <div class="flex items-center justify-center">
+            <div class="flex items-center w-full max-w-3xl">
+                <!-- Step 1 -->
+                <div class="flex items-center flex-1">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
+                            1
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-blue-600">Selecionar Período</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-blue-600 mx-2"></div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="flex items-center flex-1">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
+                            2
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Configurar</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="flex items-center flex-1">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
+                            3
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Aplicativos</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="flex items-center">
+                    <div class="flex flex-col items-center">
+                        <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
+                            4
+                        </div>
+                        <span class="mt-2 text-sm font-medium text-gray-500">Pagamento</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="mb-8">
         <div class="flex items-center mb-4">
@@ -111,7 +161,7 @@
                         </a>
                     </div>
                 @else
-                    <form method="POST" action="{{ route('planos.ativar', $plano) }}">
+                    <form method="POST" action="{{ route('planos.configurar', $plano) }}">
                         @csrf
 
                         <!-- Seleção de Período -->
@@ -125,7 +175,7 @@
                                                name="periodo"
                                                value="{{ $periodo->value }}"
                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                               @if($periodo->value === 'anual') checked @endif>
+                                               @if($periodo->value === 'anual' || (request('periodo') && request('periodo') === $periodo->value)) checked @endif>
                                         <div class="ml-3 flex-1">
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-900">{{ $periodo->getLabel() }}</span>
@@ -166,14 +216,10 @@
                             </div>
                         </div>
 
-                        <!-- Botão de Ativação -->
+                        <!-- Botão de Configuração -->
                         <button type="submit"
                                 class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium mb-4">
-                            @if($planoAtual && $planoAtual->status->value === 'teste')
-                                Ativar Plano (Sem Custo)
-                            @else
-                                Ativar Plano (Sem Custo)
-                            @endif
+                            Continuar para Configuração
                         </button>
 
                         <p class="text-xs text-gray-500 text-center">
@@ -241,7 +287,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Inicializar com o valor padrão (anual)
+    // Inicializar com o valor padrão ou período da URL
+    const periodoUrl = new URLSearchParams(window.location.search).get('periodo');
+    if (periodoUrl && periodos[periodoUrl]) {
+        const radio = document.querySelector(`input[name="periodo"][value="${periodoUrl}"]`);
+        if (radio) {
+            radio.checked = true;
+        }
+    }
     console.log('Inicializando com período padrão...');
     updatePrice();
 });

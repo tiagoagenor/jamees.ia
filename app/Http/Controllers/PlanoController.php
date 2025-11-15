@@ -44,18 +44,159 @@ class PlanoController extends Controller
     }
 
     /**
+     * Show configuration page after selecting period
+     */
+    public function configurar(Request $request, Plano $plano)
+    {
+        // Validar apenas se for POST
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+            ]);
+        } else {
+            // Para GET, validar se período foi passado
+            $request->validate([
+                'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+            ], [
+                'periodo.required' => 'Período é obrigatório. Por favor, selecione um período primeiro.'
+            ]);
+        }
+
+        $periodo = PlanoPeriodoEnum::from($request->periodo);
+        $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
+        $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
+        $empresasExtras = (int) ($request->empresas_extras ?? 0);
+
+        // Preços adicionais (pode ser configurável no futuro)
+        $precoUsuarioAdicional = 10.00; // R$ 10,00 por usuário adicional
+        $precoEmpresaAdicional = 50.00; // R$ 50,00 por empresa adicional
+
+        return view('planos.configurar', compact(
+            'plano',
+            'periodo',
+            'precoBase',
+            'precoUsuarioAdicional',
+            'precoEmpresaAdicional',
+            'usuariosExtras',
+            'empresasExtras'
+        ));
+    }
+
+    /**
+     * Show applications selection page
+     */
+    public function aplicativos(Request $request, Plano $plano)
+    {
+        $request->validate([
+            'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+            'usuarios_extras' => 'nullable|integer|min:0',
+            'empresas_extras' => 'nullable|integer|min:0',
+            'aplicativos' => 'nullable|array',
+            'aplicativos.*' => 'exists:aplicativos,id',
+        ]);
+
+        $periodo = PlanoPeriodoEnum::from($request->periodo);
+        $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
+        $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
+        $empresasExtras = (int) ($request->empresas_extras ?? 0);
+
+        // Preços adicionais
+        $precoUsuarioAdicional = 10.00;
+        $precoEmpresaAdicional = 50.00;
+
+        $valorUsuariosExtras = $usuariosExtras * $precoUsuarioAdicional;
+        $valorEmpresasExtras = $empresasExtras * $precoEmpresaAdicional;
+        $valorTotal = $precoBase + $valorUsuariosExtras + $valorEmpresasExtras;
+
+        // Buscar aplicativos disponíveis
+        $aplicativos = \App\Models\Aplicativo::ativos()->orderBy('nome')->get();
+        $aplicativosSelecionados = $request->aplicativos ?? [];
+
+        return view('planos.aplicativos', compact(
+            'plano',
+            'periodo',
+            'precoBase',
+            'usuariosExtras',
+            'empresasExtras',
+            'valorUsuariosExtras',
+            'valorEmpresasExtras',
+            'valorTotal',
+            'aplicativos',
+            'aplicativosSelecionados'
+        ));
+    }
+
+    /**
+     * Show payment page
+     */
+    public function pagamento(Request $request, Plano $plano)
+    {
+        // Validar período sempre
+        $request->validate([
+            'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+        ]);
+
+        // Validar outros campos (tanto para GET quanto POST)
+        $request->validate([
+            'usuarios_extras' => 'nullable|integer|min:0',
+            'empresas_extras' => 'nullable|integer|min:0',
+            'aplicativos' => 'nullable|array',
+            'aplicativos.*' => 'exists:aplicativos,id',
+        ]);
+
+        $periodo = PlanoPeriodoEnum::from($request->periodo);
+        $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
+        $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
+        $empresasExtras = (int) ($request->empresas_extras ?? 0);
+        $aplicativosIds = $request->aplicativos ?? [];
+
+        // Preços adicionais
+        $precoUsuarioAdicional = 10.00;
+        $precoEmpresaAdicional = 50.00;
+
+        $valorUsuariosExtras = $usuariosExtras * $precoUsuarioAdicional;
+        $valorEmpresasExtras = $empresasExtras * $precoEmpresaAdicional;
+
+        // Calcular valor dos aplicativos selecionados
+        $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+        $valorAplicativos = 0;
+        foreach ($aplicativos as $aplicativo) {
+            $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+        }
+
+        $valorTotal = $precoBase + $valorUsuariosExtras + $valorEmpresasExtras + $valorAplicativos;
+
+        return view('planos.pagamento', compact(
+            'plano',
+            'periodo',
+            'precoBase',
+            'usuariosExtras',
+            'empresasExtras',
+            'valorUsuariosExtras',
+            'valorEmpresasExtras',
+            'valorAplicativos',
+            'aplicativos',
+            'valorTotal'
+        ));
+    }
+
+    /**
      * Activate a plan for the company
      */
     public function ativar(Request $request, Plano $plano)
     {
         $request->validate([
             'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+            'usuarios_extras' => 'nullable|integer|min:0',
+            'empresas_extras' => 'nullable|integer|min:0',
+            'aplicativos' => 'nullable|array',
+            'aplicativos.*' => 'exists:aplicativos,id',
         ]);
 
         $empresaPrincipal = $this->getEmpresaPrincipal();
 
         if (!$empresaPrincipal) {
-            return redirect()->back()
+            return redirect()->route('planos.index')
                 ->with('error', 'Empresa principal não encontrada.');
         }
 
@@ -63,30 +204,120 @@ class PlanoController extends Controller
         $validacao = $this->planoService->podeAtivarPlano($empresaPrincipal, $plano);
 
         if (!$validacao['pode']) {
-            return redirect()->back()
+            // Redirecionar para a lista de planos com mensagem de erro
+            // Evita loop de redirecionamento que ocorre com redirect()->back()
+            return redirect()->route('planos.index')
                 ->with('error', $validacao['mensagem']);
         }
+
+        // Preparar dados para a view de sucesso
+        $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
+        $empresasExtras = (int) ($request->empresas_extras ?? 0);
+        $aplicativosIds = $request->aplicativos ?? [];
+
+        // Preços adicionais
+        $precoUsuarioAdicional = 10.00;
+        $precoEmpresaAdicional = 50.00;
+
+        $valorUsuariosExtras = $usuariosExtras * $precoUsuarioAdicional;
+        $valorEmpresasExtras = $empresasExtras * $precoEmpresaAdicional;
+
+        // Calcular valor dos aplicativos selecionados
+        $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+        $valorAplicativos = 0;
+        foreach ($aplicativos as $aplicativo) {
+            $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+        }
+
+        $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
+        $valorTotal = $precoBase + $valorUsuariosExtras + $valorEmpresasExtras + $valorAplicativos;
 
         // Se é período de teste, ativar plano pago
         $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
         if ($planoAtual && $planoAtual->isTeste()) {
-            $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
+            $novoPlano = $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
+
+            // Recarregar a empresa e o plano para garantir que está disponível
+            $empresaPrincipal->refresh();
+            $novoPlano->refresh();
 
             // Atualizar sessão com novo plano
             $this->atualizarSessaoPlano($empresaPrincipal);
 
-            return redirect()->route('planos.index')
-                ->with('success', "Plano {$plano->nome} ativado com sucesso! Seu período de teste foi convertido para o plano escolhido.");
+            // Limpar cache de relacionamentos
+            $empresaPrincipal->unsetRelation('planos');
+
+            // Redirecionar para página de sucesso
+            return redirect()->route('planos.sucesso', $plano)
+                ->with([
+                    'periodo' => $periodo,
+                    'usuariosExtras' => $usuariosExtras,
+                    'empresasExtras' => $empresasExtras,
+                    'aplicativos' => $aplicativos,
+                    'valorTotal' => $valorTotal,
+                ]);
         }
 
         // Ativar novo plano
-        $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
+        $novoPlano = $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
+
+        // Recarregar a empresa e o plano para garantir que está disponível
+        $empresaPrincipal->refresh();
+        $novoPlano->refresh();
+
+        // Limpar cache de relacionamentos
+        $empresaPrincipal->unsetRelation('planos');
 
         // Atualizar sessão com novo plano
         $this->atualizarSessaoPlano($empresaPrincipal);
 
-        return redirect()->route('planos.index')
-            ->with('success', "Plano {$plano->nome} ativado com sucesso!");
+        // Redirecionar para página de sucesso
+        return redirect()->route('planos.sucesso', $plano)
+            ->with([
+                'periodo' => $periodo,
+                'usuariosExtras' => $usuariosExtras,
+                'empresasExtras' => $empresasExtras,
+                'aplicativos' => $aplicativos,
+                'valorTotal' => $valorTotal,
+            ]);
+    }
+
+    /**
+     * Show success page after plan activation
+     */
+    public function sucesso(Plano $plano)
+    {
+        // Recuperar dados da sessão (flash data)
+        $periodoData = session('periodo');
+        $usuariosExtras = session('usuariosExtras', 0);
+        $empresasExtras = session('empresasExtras', 0);
+        $aplicativos = session('aplicativos', collect());
+        $valorTotal = session('valorTotal', 0);
+
+        // Converter período se for string ou enum
+        if ($periodoData instanceof PlanoPeriodoEnum) {
+            $periodo = $periodoData;
+        } elseif (is_string($periodoData)) {
+            $periodo = PlanoPeriodoEnum::from($periodoData);
+        } elseif (request()->has('periodo')) {
+            $periodo = PlanoPeriodoEnum::from(request('periodo'));
+        } else {
+            $periodo = PlanoPeriodoEnum::MENSAL;
+        }
+
+        // Garantir que aplicativos é uma Collection
+        if (!($aplicativos instanceof \Illuminate\Support\Collection)) {
+            $aplicativos = collect($aplicativos);
+        }
+
+        return view('planos.sucesso', compact(
+            'plano',
+            'periodo',
+            'usuariosExtras',
+            'empresasExtras',
+            'aplicativos',
+            'valorTotal'
+        ));
     }
 
     /**
