@@ -328,10 +328,15 @@
                         <button onclick="toggleSidebarCompact()" class="hidden md:inline-flex mr-3 text-gray-500 hover:text-gray-700 focus:outline-none" title="Alternar menu compacto">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
                     </div>
 
                     <div class="flex items-center space-x-4">
+                        <!-- Aplicativos -->
+                        <a href="{{ route('aplicativos.index') }}" class="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-200">
+                            <i class="fas fa-mobile-alt mr-2"></i>
+                            Aplicativos
+                        </a>
+
                         <!-- Notifications -->
                         <button class="text-gray-500 hover:text-gray-700 focus:outline-none">
                             <i class="fas fa-bell text-xl"></i>

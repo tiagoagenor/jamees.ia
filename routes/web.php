@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 // Landing page
-Route::get('/', [LandingController::class, 'index'])->name('landing');
+// Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 // Demo page
 Route::get('/demo', function () {
