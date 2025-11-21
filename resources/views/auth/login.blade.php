@@ -9,14 +9,14 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen flex">
+<body class="min-h-screen flex flex-col lg:flex-row">
     <!-- Left Column - Login Form -->
-    <div class="w-1/2 bg-white flex flex-col justify-center">
-        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-8">
+    <div class="w-full lg:w-1/2 bg-white flex flex-col justify-center py-8 lg:py-0">
+        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 sm:px-8">
         <!-- Main Title -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Entrar</h1>
-            <p class="text-gray-500 text-lg">Digite seu email e senha para entrar!</p>
+        <div class="mb-6 lg:mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Entrar</h1>
+            <p class="text-gray-500 text-base sm:text-lg">Digite seu email e senha para entrar!</p>
         </div>
 
         <!-- Error Messages -->
@@ -92,7 +92,7 @@
             </div>
 
             <!-- Remember Me & Forgot Password -->
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
                 <div class="flex items-center">
                     <input id="remember" name="remember" type="checkbox"
                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
@@ -129,7 +129,7 @@
     </div>
 
     <!-- Right Column - Branding -->
-    <div class="w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+    <div class="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
         <!-- Animated Background Pattern -->
         <div class="absolute inset-0 opacity-20">
             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>

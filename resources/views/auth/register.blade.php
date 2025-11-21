@@ -9,14 +9,14 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="min-h-screen flex">
+<body class="min-h-screen flex flex-col lg:flex-row">
     <!-- Left Column - Registration Form -->
-    <div class="w-1/2 bg-white flex flex-col justify-center">
-        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-8">
+    <div class="w-full lg:w-1/2 bg-white flex flex-col justify-center py-8 lg:py-0">
+        <div class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 sm:px-8">
             <!-- Main Title -->
-            <div class="mb-8">
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">Criar Conta</h1>
-                <p class="text-gray-500 text-lg">Preencha os dados abaixo para criar sua conta!</p>
+            <div class="mb-6 lg:mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Criar Conta</h1>
+                <p class="text-gray-500 text-base sm:text-lg">Preencha os dados abaixo para criar sua conta!</p>
             </div>
 
             <!-- Error Messages -->
@@ -169,7 +169,7 @@
     </div>
 
     <!-- Right Column - Branding -->
-    <div class="w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
+    <div class="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 relative overflow-hidden">
         <!-- Animated Background Pattern -->
         <div class="absolute inset-0 opacity-20">
             <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>
