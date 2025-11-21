@@ -13,9 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Remover a foreign key pelo nome exato da constraint
-        Schema::table('movimentacao', function (Blueprint $table) {
-            $table->dropForeign('movimentacao_entidade_id_foreign');
-        });
+        // Schema::table('movimentacao', function (Blueprint $table) {
+        //     $table->dropForeign('movimentacao_entidade_id_foreign');
+        // });
     }
 
     /**
