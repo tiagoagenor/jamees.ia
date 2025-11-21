@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('movimentacao', function (Blueprint $table) {
-            // Remover a foreign key constraint de entidade_id
-            $table->dropForeign(['entidade_id']);
-        });
+        // Schema::table('movimentacao', function (Blueprint $table) {
+        //     // Remover a foreign key constraint de entidade_id
+        //     $table->dropForeign(['entidade_id']);
+        // });
     }
 
     /**
