@@ -152,7 +152,7 @@
         </div>
 
         <!-- Logo and Content -->
-        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-8">
+        <div class="relative z-10 flex flex-col items-center justify-center w-full h-full text-center px-8">
             <!-- Logo -->
             <div class="mb-12">
                 <div class="flex items-center justify-center mb-6">
