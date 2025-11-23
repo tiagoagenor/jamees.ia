@@ -363,12 +363,12 @@
                     <iframe
                         width="100%"
                         height="100%"
-                        src="https://www.youtube.com/embed/{{ $videoId }}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin={{ urlencode(request()->getSchemeAndHttpHost()) }}"
+                        src="https://www.youtube.com/embed/{{ $videoId }}"
+                        title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                        loading="lazy"
-                        title="{{ $configuracoes['titulo_video_institucional'] ?? 'Vídeo Institucional' }}">
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
                     </iframe>
                 </div>
             </div>
