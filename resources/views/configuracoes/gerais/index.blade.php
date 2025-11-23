@@ -126,8 +126,14 @@
                                     Logo da Empresa
                                 </label>
                                 @if(isset($configuracoes['dashboard']['logo_empresa']) && $configuracoes['dashboard']['logo_empresa'])
-                                    <div class="mb-3">
-                                        <img src="{{ asset('storage/' . $configuracoes['dashboard']['logo_empresa']) }}" alt="Logo atual" class="max-w-xs h-20 object-contain border border-gray-300 rounded p-2">
+                                    <div class="mb-3 relative inline-block">
+                                        <img src="{{ asset('storage/' . $configuracoes['dashboard']['logo_empresa']) }}" alt="Logo atual" class="max-w-xs h-20 object-contain border border-gray-300 rounded p-2" id="logo-preview">
+                                        <button type="button"
+                                                onclick="deletarLogo()"
+                                                class="mt-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200">
+                                            <i class="fas fa-trash mr-2"></i>
+                                            Deletar Logo
+                                        </button>
                                     </div>
                                 @endif
                                 <input type="file"
@@ -371,6 +377,49 @@
                 }
             });
         }
+
+        // Função para deletar logo
+        window.deletarLogo = async function() {
+            if (!confirm('Tem certeza que deseja deletar a logo da empresa?')) {
+                return;
+            }
+
+            // Esconder mensagens anteriores
+            document.getElementById('success-message-dashboard').classList.add('hidden');
+            document.getElementById('error-message-dashboard').classList.add('hidden');
+
+            try {
+                const response = await fetch('{{ route("configuracoes.gerais.deletar-logo") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Sucesso
+                    document.getElementById('success-text-dashboard').textContent = data.message || 'Logo deletada com sucesso!';
+                    document.getElementById('success-message-dashboard').classList.remove('hidden');
+
+                    // Recarregar página após 1 segundo para atualizar a interface
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Erro
+                    document.getElementById('error-text-dashboard').textContent = data.message || 'Erro ao deletar logo. Tente novamente.';
+                    document.getElementById('error-message-dashboard').classList.remove('hidden');
+                }
+            } catch (error) {
+                // Erro de rede
+                document.getElementById('error-text-dashboard').textContent = 'Erro ao deletar logo. Verifique sua conexão e tente novamente.';
+                document.getElementById('error-message-dashboard').classList.remove('hidden');
+            }
+        };
     });
 </script>
 

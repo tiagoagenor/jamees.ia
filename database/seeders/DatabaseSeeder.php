@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             GrupoSeeder::class,
             UsuarioGrupoSeeder::class,
             LoteStatusSeeder::class,
+            IdeiaDesenvolvimentoSeeder::class,
         ]);
     }
 }

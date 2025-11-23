@@ -103,6 +103,14 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/atualizacoes', [App\Http\Controllers\AtualizacaoSistemaController::class, 'index'])->name('atualizacoes.index');
     Route::get('/atualizacoes/{atualizacao}', [App\Http\Controllers\AtualizacaoSistemaController::class, 'show'])->name('atualizacoes.show');
 
+    // Portal de Ideias
+    Route::get('/ideias', [App\Http\Controllers\IdeiaController::class, 'index'])->name('ideias.index');
+    Route::get('/ideias/create', [App\Http\Controllers\IdeiaController::class, 'create'])->name('ideias.create');
+    Route::post('/ideias', [App\Http\Controllers\IdeiaController::class, 'store'])->name('ideias.store');
+    Route::get('/ideias/{ideia}', [App\Http\Controllers\IdeiaController::class, 'show'])->name('ideias.show');
+    Route::post('/ideias/{ideia}/comentar', [App\Http\Controllers\IdeiaController::class, 'comentar'])->name('ideias.comentar');
+    Route::post('/ideias/{ideia}/votar', [App\Http\Controllers\IdeiaController::class, 'votar'])->name('ideias.votar');
+
     // Rotas de usuários
     Route::resource('usuarios', App\Http\Controllers\UsuarioController::class)
         ->middleware('permission:usuarios,listar');
@@ -268,6 +276,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Rotas de Configurações Gerais
     Route::get('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'index'])->name('configuracoes.gerais.index');
     Route::post('/configuracoes/gerais', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'update'])->name('configuracoes.gerais.update');
+    Route::post('/configuracoes/gerais/deletar-logo', [App\Http\Controllers\ConfiguracoesGeraisController::class, 'deletarLogo'])->name('configuracoes.gerais.deletar-logo');
 
     // Loteamento - Empreendimentos
     Route::resource('empreendimentos', App\Http\Controllers\EmpreendimentoController::class);

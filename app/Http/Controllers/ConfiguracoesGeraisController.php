@@ -103,4 +103,38 @@ class ConfiguracoesGeraisController extends Controller
             'message' => 'Configurações salvas com sucesso!'
         ]);
     }
+
+    /**
+     * Deleta a logo da empresa
+     */
+    public function deletarLogo(Request $request)
+    {
+        $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
+        
+        if (!$empresaPrincipal) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Empresa principal não encontrada.'
+            ], 404);
+        }
+
+        $grupoDashboard = 'dashboard';
+        $logoAntiga = Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'logo_empresa');
+        
+        if ($logoAntiga) {
+            // Deletar arquivo físico
+            Storage::disk('public')->delete($logoAntiga);
+            
+            // Deletar configuração do banco
+            Configuracao::where('empresa_id', $empresaPrincipal->id)
+                ->where('grupo', $grupoDashboard)
+                ->where('chave', 'logo_empresa')
+                ->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo deletada com sucesso!'
+        ]);
+    }
 }

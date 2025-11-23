@@ -45,11 +45,26 @@
     }
 
     .company-logo {
-        max-width: 220px;
-        max-height: 110px;
+        width: 220px;
+        height: 110px;
         object-fit: contain;
         margin: 0 auto 1.5rem auto;
         display: block;
+    }
+
+    .company-logo img {
+        width: 220px;
+        height: 110px;
+        object-fit: contain;
+    }
+
+    .company-logo:not(img) {
+        width: fit-content;
+        min-width: 120px;
+        max-width: 100%;
+        padding: 1rem 2rem;
+        word-wrap: break-word;
+        text-align: center;
     }
 
     .welcome-section h5 {
@@ -231,11 +246,23 @@
         background: #94a3b8;
     }
 
+    .development-item-link {
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    .development-item-link:hover .development-item {
+        background: #f3f4f6;
+        cursor: pointer;
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    }
+
     .development-item {
         padding: 1rem;
         background: #f9fafb;
         border-radius: 0.5rem;
-        margin-bottom: 0.75rem;
+        transition: all 0.2s ease;
     }
 
     .development-item h4 {
@@ -314,7 +341,7 @@
                     <img src="{{ asset('storage/' . $configuracoes['logo_empresa']) }}" alt="Logo" class="company-logo">
                 @else
                     <div class="company-logo" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; font-weight: 700; font-size: 2rem; font-family: 'Roboto', sans-serif; font-style: italic;">
-                        JAMEES
+                        {{ $currentCompany ? ($currentCompany->nome_fantasia ?? $currentCompany->razao_social ?? $currentCompany->nome_referencia ?? 'JAMEES') : 'JAMEES' }}
                     </div>
                 @endif
                 
@@ -390,81 +417,26 @@
         <div class="dashboard-card">
             <h3 class="section-title">Desenvolvimento</h3>
             <div id="developmentList" class="development-list" style="flex: 1;">
-                <div class="development-item">
-                    <h4>Integração com APIs de Pagamento</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 75%"></div>
+                @forelse($ideiasDesenvolvimento as $ideia)
+                    <a href="{{ route('ideias.show', $ideia) }}" class="development-item-link">
+                        <div class="development-item">
+                            <h4>{{ $ideia->titulo }}</h4>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ $ideia->porcentagem ?? 0 }}%"></div>
+                            </div>
+                            <div class="progress-text">{{ $ideia->porcentagem ?? 0 }}% concluído</div>
+                        </div>
+                    </a>
+                @empty
+                    <div class="development-item">
+                        <h4>Nenhuma ideia em desenvolvimento no momento</h4>
                     </div>
-                    <div class="progress-text">75% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>App Mobile</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 45%"></div>
-                    </div>
-                    <div class="progress-text">45% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Dashboard Analytics Avançado</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 30%"></div>
-                    </div>
-                    <div class="progress-text">30% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Sistema de Backup Automático</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 60%"></div>
-                    </div>
-                    <div class="progress-text">60% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Integração com WhatsApp Business</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 40%"></div>
-                    </div>
-                    <div class="progress-text">40% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>API RESTful Completa</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 55%"></div>
-                    </div>
-                    <div class="progress-text">55% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Modulo de E-commerce</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 25%"></div>
-                    </div>
-                    <div class="progress-text">25% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Sistema de Assinaturas Recorrentes</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 70%"></div>
-                    </div>
-                    <div class="progress-text">70% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Integração com Google Analytics</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 50%"></div>
-                    </div>
-                    <div class="progress-text">50% concluído</div>
-                </div>
-                <div class="development-item">
-                    <h4>Chat em Tempo Real</h4>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 35%"></div>
-                    </div>
-                    <div class="progress-text">35% concluído</div>
-                </div>
+                @endforelse
             </div>
-            <button class="btn-portal-ideias" onclick="window.location.href='#portal-ideias'">
+            <a href="{{ route('ideias.index') }}" class="btn-portal-ideias" style="text-decoration: none;">
                 <i class="fas fa-lightbulb"></i>
                 Portal de Ideias
-            </button>
+            </a>
         </div>
     </div>
 

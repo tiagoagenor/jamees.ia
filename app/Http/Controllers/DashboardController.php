@@ -10,6 +10,8 @@ use App\Models\Whitelabel;
 use App\Models\UltimaAcesso;
 use App\Models\Configuracao;
 use App\Models\AtualizacaoSistema;
+use App\Models\Ideia;
+use App\Enums\IdeiaStatusEnum;
 
 class DashboardController extends Controller
 {
@@ -66,6 +68,12 @@ class DashboardController extends Controller
         // Buscar últimas 10 atualizações do sistema
         $atualizacoes = AtualizacaoSistema::orderBy('created_at', 'desc')->limit(10)->get();
 
-        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes', 'atualizacoes'));
+        // Buscar ideias em desenvolvimento (máximo 10)
+        $ideiasDesenvolvimento = Ideia::where('status', IdeiaStatusEnum::EM_DESENVOLVIMENTO->value)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes', 'atualizacoes', 'ideiasDesenvolvimento'));
     }
 }
