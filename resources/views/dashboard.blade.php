@@ -23,6 +23,33 @@
         border-radius: 0.75rem;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+    }
+
+    .dashboard-card.welcome-card {
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .dashboard-card.welcome-card::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .dashboard-card.welcome-card::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .dashboard-card.welcome-card::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .dashboard-card.welcome-card::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
     }
 
     .welcome-section {
@@ -67,8 +94,8 @@
 
     .video-container {
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 aspect ratio */
-        height: 0;
+        min-height: 200px;
+        flex: 1;
         overflow: hidden;
         border-radius: 0.5rem;
     }
@@ -79,6 +106,7 @@
         left: 0;
         width: 100%;
         height: 100%;
+        border-radius: 0.5rem;
     }
 
     .updates-list {
@@ -288,7 +316,7 @@
     <!-- Coluna 1 -->
     <div class="dashboard-column">
         <!-- Parte 1: Logo e Boas-vindas -->
-        <div class="dashboard-card">
+        <div class="dashboard-card welcome-card">
             <div class="welcome-section">
                 <img src="https://images.seeklogo.com/logo-png/60/1/adidas-logo-png_seeklogo-609880.png" alt="Logo" class="company-logo">
                 
@@ -305,7 +333,7 @@
         <!-- Parte 2: Vídeo do YouTube -->
         <div class="dashboard-card">
             <h3 class="video-section-title">Vídeo Institucional</h3>
-            <div class="video-container">
+            <div class="video-container" style="flex: 1;">
                 <iframe 
                     src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
                     frameborder="0" 
@@ -321,7 +349,7 @@
         <!-- Parte 1: Atualizações -->
         <div class="dashboard-card">
             <h3 class="section-title">Atualizações</h3>
-            <ul class="updates-list" id="updatesList">
+            <ul class="updates-list" id="updatesList" style="flex: 1;">
                 <li class="update-item">
                     <div class="update-icon novos-recursos">
                         <i class="fas fa-star"></i>
@@ -432,7 +460,7 @@
         <!-- Parte 2: Desenvolvimento -->
         <div class="dashboard-card">
             <h3 class="section-title">Desenvolvimento</h3>
-            <div id="developmentList" class="development-list">
+            <div id="developmentList" class="development-list" style="flex: 1;">
                 <div class="development-item">
                     <h4>Integração com APIs de Pagamento</h4>
                     <div class="progress-bar">
