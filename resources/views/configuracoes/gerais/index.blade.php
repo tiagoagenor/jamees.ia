@@ -172,16 +172,58 @@
 
                             <!-- Vídeo Institucional -->
                             <div>
-                                <label for="video_institucional" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Vídeo Institucional (URL do YouTube)
-                                </label>
-                                <input type="text"
-                                       id="video_institucional"
-                                       name="video_institucional"
-                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                                       placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ ou dQw4w9WgXcQ"
-                                       value="{{ old('video_institucional', $configuracoes['dashboard']['video_institucional'] ?? '') }}">
-                                <p class="mt-1 text-xs text-gray-500">Cole a URL completa do YouTube ou apenas o ID do vídeo. Este vídeo aparecerá no dashboard.</p>
+                                <div class="flex items-start gap-6">
+                                    <div class="flex-1">
+                                        <label for="titulo_video_institucional" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Título do Vídeo Institucional
+                                        </label>
+                                        <input type="text"
+                                               id="titulo_video_institucional"
+                                               name="titulo_video_institucional"
+                                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200 mb-4"
+                                               placeholder="Ex: Vídeo Institucional"
+                                               value="{{ old('titulo_video_institucional', $configuracoes['dashboard']['titulo_video_institucional'] ?? 'Vídeo Institucional') }}">
+                                        
+                                        <label for="video_institucional" class="block text-sm font-medium text-gray-700 mb-2">
+                                            URL do YouTube
+                                        </label>
+                                        <input type="text"
+                                               id="video_institucional"
+                                               name="video_institucional"
+                                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                               placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ ou dQw4w9WgXcQ"
+                                               value="{{ old('video_institucional', $configuracoes['dashboard']['video_institucional'] ?? '') }}">
+                                        <p class="mt-1 text-xs text-gray-500">Cole a URL completa do YouTube ou apenas o ID do vídeo. Este vídeo aparecerá no dashboard.</p>
+                                    </div>
+                                    
+                                    <!-- Mostrar Vídeo Padrão -->
+                                    <div class="relative flex-shrink-0">
+                                        <label for="mostrar_video_default" class="block text-sm font-medium text-gray-700 mb-2">
+                                            <span class="flex items-center">
+                                                Mostrar vídeo padrão
+                                                <button data-tooltip-target="tooltip-video-default"
+                                                        data-tooltip-placement="top"
+                                                        type="button"
+                                                        class="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
+                                            </span>
+                                        </label>
+                                        <!-- Tooltip -->
+                                        <div id="tooltip-video-default"
+                                             role="tooltip"
+                                             class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                            Quando ativado, um vídeo padrão será exibido caso não haja vídeo institucional configurado.
+                                            <div class="tooltip-arrow" data-popper-arrow></div>
+                                        </div>
+                                        <select id="mostrar_video_default"
+                                                name="mostrar_video_default"
+                                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+                                            <option value="1" {{ old('mostrar_video_default', $configuracoes['dashboard']['mostrar_video_default'] ?? '1') == '1' ? 'selected' : '' }}>Sim</option>
+                                            <option value="0" {{ old('mostrar_video_default', $configuracoes['dashboard']['mostrar_video_default'] ?? '1') == '0' ? 'selected' : '' }}>Não</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

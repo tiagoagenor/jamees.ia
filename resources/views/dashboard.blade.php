@@ -356,18 +356,26 @@
         </div>
 
         <!-- Parte 2: Vídeo do YouTube -->
-        @if(isset($configuracoes['video_institucional']) && $configuracoes['video_institucional'])
-            @php
-                $videoUrl = $configuracoes['video_institucional'];
+        @php
+            $videoUrl = $configuracoes['video_institucional'] ?? null;
+            $mostrarVideoDefault = $configuracoes['mostrar_video_default'] ?? '1';
+            $videoId = null;
+            
+            if ($videoUrl) {
                 // Se for URL completa, extrair o ID, senão usar o valor direto
                 if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
                     $videoId = $matches[1];
                 } else {
                     $videoId = $videoUrl;
                 }
-            @endphp
+            } elseif ($mostrarVideoDefault == '1') {
+                // Se não houver vídeo configurado e mostrar_video_default estiver ativado
+                $videoId = 'AeBOzler4nE'; // Vídeo padrão
+            }
+        @endphp
+        @if($videoId)
             <div class="dashboard-card">
-                <h3 class="video-section-title">Vídeo Institucional</h3>
+                <h3 class="video-section-title">{{ $configuracoes['titulo_video_institucional'] ?? 'Vídeo Institucional' }}</h3>
                 <div class="video-container" style="flex: 1;">
                     <iframe 
                         src="https://www.youtube.com/embed/{{ $videoId }}" 

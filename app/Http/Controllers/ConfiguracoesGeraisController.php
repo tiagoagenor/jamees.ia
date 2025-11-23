@@ -25,7 +25,9 @@ class ConfiguracoesGeraisController extends Controller
                 'texto_boas_vindas' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'texto_boas_vindas'),
                 'frase_empresa' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'frase_empresa'),
                 'video_institucional' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'video_institucional'),
+                'titulo_video_institucional' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'titulo_video_institucional', 'Vídeo Institucional'),
                 'logo_empresa' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'logo_empresa'),
+                'mostrar_video_default' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'mostrar_video_default', '1'),
             ];
             
             // Configurações Gerais
@@ -48,7 +50,9 @@ class ConfiguracoesGeraisController extends Controller
             'texto_boas_vindas' => 'nullable|string|max:500',
             'frase_empresa' => 'nullable|string|max:500',
             'video_institucional' => 'nullable|string|max:500',
+            'titulo_video_institucional' => 'nullable|string|max:255',
             'logo_empresa' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'mostrar_video_default' => 'nullable|in:0,1',
         ]);
 
         $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
@@ -82,6 +86,15 @@ class ConfiguracoesGeraisController extends Controller
         if ($request->has('video_institucional')) {
             Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'video_institucional', $request->input('video_institucional'));
         }
+
+        // Salvar titulo_video_institucional
+        if ($request->has('titulo_video_institucional')) {
+            Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'titulo_video_institucional', $request->input('titulo_video_institucional'));
+        }
+
+        // Salvar mostrar_video_default
+        $mostrarVideoDefault = $request->input('mostrar_video_default', '1');
+        Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'mostrar_video_default', $mostrarVideoDefault);
 
         // Upload da logo
         if ($request->hasFile('logo_empresa')) {

@@ -61,7 +61,9 @@ class DashboardController extends Controller
                 'texto_boas_vindas' => Configuracao::buscar($currentCompany->id, $grupo, 'texto_boas_vindas'),
                 'frase_empresa' => Configuracao::buscar($currentCompany->id, $grupo, 'frase_empresa'),
                 'video_institucional' => Configuracao::buscar($currentCompany->id, $grupo, 'video_institucional'),
+                'titulo_video_institucional' => Configuracao::buscar($currentCompany->id, $grupo, 'titulo_video_institucional', 'Vídeo Institucional'),
                 'logo_empresa' => Configuracao::buscar($currentCompany->id, $grupo, 'logo_empresa'),
+                'mostrar_video_default' => Configuracao::buscar($currentCompany->id, $grupo, 'mostrar_video_default', '1'),
             ];
         }
 
