@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ConfiguracaoEmpresa;
+use App\Models\Configuracao;
 use App\Helpers\PermissionHelper;
 
 class ConfiguracoesGeraisController extends Controller
@@ -16,13 +16,26 @@ class ConfiguracoesGeraisController extends Controller
     public function index()
     {
         $empresaPrincipal = PermissionHelper::getEmpresaPrincipal();
-        $configuracao = null;
+        $configuracoes = [];
         
         if ($empresaPrincipal) {
-            $configuracao = ConfiguracaoEmpresa::where('empresa_id', $empresaPrincipal->id)->first();
+            // Configurações do Dashboard
+            $grupoDashboard = 'dashboard';
+            $configuracoes['dashboard'] = [
+                'texto_boas_vindas' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'texto_boas_vindas'),
+                'frase_empresa' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'frase_empresa'),
+                'video_institucional' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'video_institucional'),
+                'logo_empresa' => Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'logo_empresa'),
+            ];
+            
+            // Configurações Gerais
+            $grupoGeral = 'geral';
+            $configuracoes['geral'] = [
+                'limite_registros' => Configuracao::buscar($empresaPrincipal->id, $grupoGeral, 'limite_registros', 20),
+            ];
         }
         
-        return view('configuracoes.gerais.index', compact('configuracao'));
+        return view('configuracoes.gerais.index', compact('configuracoes', 'empresaPrincipal'));
     }
 
     /**
@@ -31,6 +44,7 @@ class ConfiguracoesGeraisController extends Controller
     public function update(Request $request)
     {
         $request->validate([
+            'limite_registros' => 'nullable|integer|min:10|max:200',
             'texto_boas_vindas' => 'nullable|string|max:500',
             'frase_empresa' => 'nullable|string|max:500',
             'video_institucional' => 'nullable|string|max:500',
@@ -46,36 +60,43 @@ class ConfiguracoesGeraisController extends Controller
             ], 404);
         }
 
-        // Buscar configuração existente
-        $configuracao = ConfiguracaoEmpresa::where('empresa_id', $empresaPrincipal->id)->first();
+        // Salvar configurações gerais
+        if ($request->has('limite_registros')) {
+            Configuracao::salvar($empresaPrincipal->id, 'geral', 'limite_registros', $request->input('limite_registros'));
+        }
 
-        $data = [
-            'texto_boas_vindas' => $request->input('texto_boas_vindas'),
-            'frase_empresa' => $request->input('frase_empresa'),
-            'video_institucional' => $request->input('video_institucional'),
-        ];
+        // Salvar configurações do dashboard
+        $grupoDashboard = 'dashboard';
+
+        // Salvar texto_boas_vindas
+        if ($request->has('texto_boas_vindas')) {
+            Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'texto_boas_vindas', $request->input('texto_boas_vindas'));
+        }
+
+        // Salvar frase_empresa
+        if ($request->has('frase_empresa')) {
+            Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'frase_empresa', $request->input('frase_empresa'));
+        }
+
+        // Salvar video_institucional
+        if ($request->has('video_institucional')) {
+            Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'video_institucional', $request->input('video_institucional'));
+        }
 
         // Upload da logo
         if ($request->hasFile('logo_empresa')) {
+            // Buscar logo antiga
+            $logoAntiga = Configuracao::buscar($empresaPrincipal->id, $grupoDashboard, 'logo_empresa');
+            
             // Deletar logo antiga se existir
-            if ($configuracao && $configuracao->logo_empresa) {
-                Storage::disk('public')->delete($configuracao->logo_empresa);
+            if ($logoAntiga) {
+                Storage::disk('public')->delete($logoAntiga);
             }
             
             $logo = $request->file('logo_empresa');
             $logoPath = $logo->store('logos', 'public');
-            $data['logo_empresa'] = $logoPath;
-        } else {
-            // Manter logo existente se não houver novo upload
-            if ($configuracao && $configuracao->logo_empresa) {
-                $data['logo_empresa'] = $configuracao->logo_empresa;
-            }
+            Configuracao::salvar($empresaPrincipal->id, $grupoDashboard, 'logo_empresa', $logoPath);
         }
-
-        $configuracao = ConfiguracaoEmpresa::updateOrCreate(
-            ['empresa_id' => $empresaPrincipal->id],
-            $data
-        );
 
         return response()->json([
             'success' => true,

@@ -303,8 +303,8 @@
         <!-- Parte 1: Logo e Boas-vindas -->
         <div class="dashboard-card welcome-card">
             <div class="welcome-section">
-                @if($configuracao && $configuracao->logo_empresa)
-                    <img src="{{ asset('storage/' . $configuracao->logo_empresa) }}" alt="Logo" class="company-logo">
+                @if(isset($configuracoes['logo_empresa']) && $configuracoes['logo_empresa'])
+                    <img src="{{ asset('storage/' . $configuracoes['logo_empresa']) }}" alt="Logo" class="company-logo">
                 @else
                     <div class="company-logo" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; font-weight: 700; font-size: 2rem; font-family: 'Roboto', sans-serif; font-style: italic;">
                         JAMEES
@@ -312,19 +312,19 @@
                 @endif
                 
                 <h5>Olá, empresa!</h5>
-                <p class="welcome-text">{{ $configuracao && $configuracao->texto_boas_vindas ? $configuracao->texto_boas_vindas : 'Tenha um excelente dia!' }}</p>
+                <p class="welcome-text">{{ $configuracoes['texto_boas_vindas'] ?? 'Tenha um excelente dia!' }}</p>
                 
                 <h5 class="company-message-title">Mensagem da Empresa</h5>
                 <div class="company-quote">
-                    "{{ $configuracao && $configuracao->frase_empresa ? $configuracao->frase_empresa : 'Transformando desafios em oportunidades' }}"
+                    "{{ $configuracoes['frase_empresa'] ?? 'Transformando desafios em oportunidades' }}"
                 </div>
             </div>
         </div>
 
         <!-- Parte 2: Vídeo do YouTube -->
-        @if($configuracao && $configuracao->video_institucional)
+        @if(isset($configuracoes['video_institucional']) && $configuracoes['video_institucional'])
             @php
-                $videoUrl = $configuracao->video_institucional;
+                $videoUrl = $configuracoes['video_institucional'];
                 // Se for URL completa, extrair o ID, senão usar o valor direto
                 if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
                     $videoId = $matches[1];

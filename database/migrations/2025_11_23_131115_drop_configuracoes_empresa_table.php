@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('configuracoes_empresa', function (Blueprint $table) {
-            $table->string('logo_empresa')->nullable()->after('video_institucional');
-        });
+        Schema::dropIfExists('configuracoes_empresa');
     }
 
     /**
@@ -21,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('configuracoes_empresa', function (Blueprint $table) {
-            $table->dropColumn('logo_empresa');
-        });
+        // Não recriar a tabela, pois foi removida do sistema
     }
 };

@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UltimaAcesso;
-use App\Models\ConfiguracaoEmpresa;
+use App\Models\Configuracao;
 
 class DashboardController extends Controller
 {
@@ -51,11 +51,17 @@ class DashboardController extends Controller
                 ->first();
         }
 
-        $configuracao = null;
+        $configuracoes = [];
         if ($currentCompany) {
-            $configuracao = ConfiguracaoEmpresa::where('empresa_id', $currentCompany->id)->first();
+            $grupo = 'dashboard';
+            $configuracoes = [
+                'texto_boas_vindas' => Configuracao::buscar($currentCompany->id, $grupo, 'texto_boas_vindas'),
+                'frase_empresa' => Configuracao::buscar($currentCompany->id, $grupo, 'frase_empresa'),
+                'video_institucional' => Configuracao::buscar($currentCompany->id, $grupo, 'video_institucional'),
+                'logo_empresa' => Configuracao::buscar($currentCompany->id, $grupo, 'logo_empresa'),
+            ];
         }
 
-        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracao'));
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes'));
     }
 }

@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('configuracoes_empresa', function (Blueprint $table) {
+        Schema::create('configuracoes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('empresa_id');
-            $table->text('texto_boas_vindas')->nullable();
-            $table->text('frase_empresa')->nullable();
+            $table->string('grupo')->nullable();
+            $table->string('chave');
+            $table->text('valor')->nullable();
+            $table->tinyInteger('serialized')->default(0);
             $table->timestamps();
 
-            $table->foreign('empresa_id')->references('id')->on('empresa')->onDelete('cascade');
-            $table->unique('empresa_id');
+            $table->index(['empresa_id', 'grupo', 'chave']);
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('configuracoes_empresa');
+        Schema::dropIfExists('configuracoes');
     }
 };

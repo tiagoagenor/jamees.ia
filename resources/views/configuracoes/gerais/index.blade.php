@@ -75,7 +75,7 @@
                                         name="limite_registros"
                                         class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200">
                                     @for($i = 20; $i <= 100; $i += 10)
-                                        <option value="{{ $i }}" {{ old('limite_registros', 20) == $i ? 'selected' : '' }}>
+                                        <option value="{{ $i }}" {{ old('limite_registros', isset($configuracoes['geral']['limite_registros']) ? $configuracoes['geral']['limite_registros'] : 20) == $i ? 'selected' : '' }}>
                                             {{ $i }} registros
                                         </option>
                                     @endfor
@@ -125,9 +125,9 @@
                                 <label for="logo_empresa" class="block text-sm font-medium text-gray-700 mb-2">
                                     Logo da Empresa
                                 </label>
-                                @if($configuracao && $configuracao->logo_empresa)
+                                @if(isset($configuracoes['dashboard']['logo_empresa']) && $configuracoes['dashboard']['logo_empresa'])
                                     <div class="mb-3">
-                                        <img src="{{ asset('storage/' . $configuracao->logo_empresa) }}" alt="Logo atual" class="max-w-xs h-20 object-contain border border-gray-300 rounded p-2">
+                                        <img src="{{ asset('storage/' . $configuracoes['dashboard']['logo_empresa']) }}" alt="Logo atual" class="max-w-xs h-20 object-contain border border-gray-300 rounded p-2">
                                     </div>
                                 @endif
                                 <input type="file"
@@ -147,7 +147,7 @@
                                           name="texto_boas_vindas"
                                           rows="3"
                                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                                          placeholder="Ex: Tenha um excelente dia!">{{ old('texto_boas_vindas', $configuracao->texto_boas_vindas ?? '') }}</textarea>
+                                          placeholder="Ex: Tenha um excelente dia!">{{ old('texto_boas_vindas', $configuracoes['dashboard']['texto_boas_vindas'] ?? '') }}</textarea>
                                 <p class="mt-1 text-xs text-gray-500">Este texto aparecerá abaixo de "Olá, empresa!" no dashboard</p>
                             </div>
 
@@ -160,7 +160,7 @@
                                           name="frase_empresa"
                                           rows="3"
                                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                                          placeholder="Ex: Transformando desafios em oportunidades">{{ old('frase_empresa', $configuracao->frase_empresa ?? '') }}</textarea>
+                                          placeholder="Ex: Transformando desafios em oportunidades">{{ old('frase_empresa', $configuracoes['dashboard']['frase_empresa'] ?? '') }}</textarea>
                                 <p class="mt-1 text-xs text-gray-500">Esta frase aparecerá na seção "Mensagem da Empresa" no dashboard</p>
                             </div>
 
@@ -174,7 +174,7 @@
                                        name="video_institucional"
                                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                                        placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ ou dQw4w9WgXcQ"
-                                       value="{{ old('video_institucional', $configuracao->video_institucional ?? '') }}">
+                                       value="{{ old('video_institucional', $configuracoes['dashboard']['video_institucional'] ?? '') }}">
                                 <p class="mt-1 text-xs text-gray-500">Cole a URL completa do YouTube ou apenas o ID do vídeo. Este vídeo aparecerá no dashboard.</p>
                             </div>
                         </div>
