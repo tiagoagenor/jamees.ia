@@ -302,7 +302,7 @@
         padding-bottom: 0.5rem;
         border-bottom: 2px solid #e5e7eb;
     }
-    
+
     .video-section-title {
         font-size: 1.125rem;
         font-weight: 700;
@@ -323,7 +323,7 @@
         .welcome-section h5 {
             font-size: 0.875rem;
         }
-        
+
         .section-title,
         .video-section-title {
             font-size: 1rem;
@@ -344,10 +344,10 @@
                         {{ $currentCompany ? ($currentCompany->nome_fantasia ?? $currentCompany->razao_social ?? $currentCompany->nome_referencia ?? 'JAMEES') : 'JAMEES' }}
                     </div>
                 @endif
-                
+
                 <h5>Olá, empresa!</h5>
                 <p class="welcome-text">{{ $configuracoes['texto_boas_vindas'] ?? 'Tenha um excelente dia!' }}</p>
-                
+
                 <h5 class="company-message-title">Mensagem da Empresa</h5>
                 <div class="company-quote">
                     "{{ $configuracoes['frase_empresa'] ?? 'Transformando desafios em oportunidades' }}"
@@ -356,32 +356,19 @@
         </div>
 
         <!-- Parte 2: Vídeo do YouTube -->
-        @php
-            $videoUrl = $configuracoes['video_institucional'] ?? null;
-            $mostrarVideoDefault = $configuracoes['mostrar_video_default'] ?? '1';
-            $videoId = null;
-            
-            if ($videoUrl) {
-                // Se for URL completa, extrair o ID, senão usar o valor direto
-                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
-                    $videoId = $matches[1];
-                } else {
-                    $videoId = $videoUrl;
-                }
-            } elseif ($mostrarVideoDefault == '1') {
-                // Se não houver vídeo configurado e mostrar_video_default estiver ativado
-                $videoId = 'AeBOzler4nE'; // Vídeo padrão
-            }
-        @endphp
-        @if($videoId)
+        @if(isset($videoId) && $videoId)
             <div class="dashboard-card">
                 <h3 class="video-section-title">{{ $configuracoes['titulo_video_institucional'] ?? 'Vídeo Institucional' }}</h3>
                 <div class="video-container" style="flex: 1;">
-                    <iframe 
-                        src="https://www.youtube.com/embed/{{ $videoId }}" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/{{ $videoId }}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin={{ urlencode(request()->getSchemeAndHttpHost()) }}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy"
+                        title="{{ $configuracoes['titulo_video_institucional'] ?? 'Vídeo Institucional' }}">
                     </iframe>
                 </div>
             </div>

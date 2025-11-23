@@ -76,6 +76,51 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes', 'atualizacoes', 'ideiasDesenvolvimento'));
+        // Processar e validar ID do vídeo
+        $videoId = null;
+        $videoUrl = $configuracoes['video_institucional'] ?? null;
+        $mostrarVideoDefault = $configuracoes['mostrar_video_default'] ?? '1';
+
+        if ($videoUrl) {
+            $videoId = $this->extrairVideoId($videoUrl);
+        } elseif ($mostrarVideoDefault == '1') {
+            $videoId = 'AeBOzler4nE'; // Vídeo padrão
+        }
+
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes', 'atualizacoes', 'ideiasDesenvolvimento', 'videoId'));
+    }
+
+    /**
+     * Extrai o ID do vídeo do YouTube de diferentes formatos de URL
+     */
+    private function extrairVideoId($videoUrl)
+    {
+        if (empty($videoUrl)) {
+            return null;
+        }
+
+        // Limpar espaços e caracteres especiais
+        $videoUrl = trim($videoUrl);
+
+        // Padrões de URL do YouTube
+        $patterns = [
+            '/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/',
+            '/youtu\.be\/([a-zA-Z0-9_-]{11})/',
+            '/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/',
+            '/youtube\.com\/v\/([a-zA-Z0-9_-]{11})/',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $videoUrl, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        // Se não encontrou padrão de URL, verificar se é apenas o ID (11 caracteres)
+        if (preg_match('/^[a-zA-Z0-9_-]{11}$/', $videoUrl)) {
+            return $videoUrl;
+        }
+
+        return null;
     }
 }
