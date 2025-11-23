@@ -5,18 +5,6 @@
 
 @section('content')
 <style>
-    .dashboard-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-    }
-
-    .dashboard-column {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
 
     .dashboard-card {
         background: white;
@@ -298,10 +286,6 @@
     }
 
     @media (max-width: 1024px) {
-        .dashboard-container {
-            grid-template-columns: 1fr;
-        }
-        
         .welcome-section h5 {
             font-size: 0.875rem;
         }
@@ -313,40 +297,57 @@
     }
 </style>
 
-<div class="dashboard-container">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
     <!-- Coluna 1 -->
-    <div class="dashboard-column">
+    <div class="flex flex-col gap-6">
         <!-- Parte 1: Logo e Boas-vindas -->
         <div class="dashboard-card welcome-card">
             <div class="welcome-section">
-                <img src="https://images.seeklogo.com/logo-png/60/1/adidas-logo-png_seeklogo-609880.png" alt="Logo" class="company-logo">
+                @if($configuracao && $configuracao->logo_empresa)
+                    <img src="{{ asset('storage/' . $configuracao->logo_empresa) }}" alt="Logo" class="company-logo">
+                @else
+                    <div class="company-logo" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; font-weight: 700; font-size: 2rem; font-family: 'Roboto', sans-serif; font-style: italic;">
+                        JAMEES
+                    </div>
+                @endif
                 
                 <h5>Olá, empresa!</h5>
-                <p class="welcome-text">Tenha um excelente dia!</p>
+                <p class="welcome-text">{{ $configuracao && $configuracao->texto_boas_vindas ? $configuracao->texto_boas_vindas : 'Tenha um excelente dia!' }}</p>
                 
                 <h5 class="company-message-title">Mensagem da Empresa</h5>
                 <div class="company-quote">
-                    "Transformando desafios em oportunidades"
+                    "{{ $configuracao && $configuracao->frase_empresa ? $configuracao->frase_empresa : 'Transformando desafios em oportunidades' }}"
                 </div>
             </div>
         </div>
 
         <!-- Parte 2: Vídeo do YouTube -->
-        <div class="dashboard-card">
-            <h3 class="video-section-title">Vídeo Institucional</h3>
-            <div class="video-container" style="flex: 1;">
-                <iframe 
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
+        @if($configuracao && $configuracao->video_institucional)
+            @php
+                $videoUrl = $configuracao->video_institucional;
+                // Se for URL completa, extrair o ID, senão usar o valor direto
+                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $videoUrl, $matches)) {
+                    $videoId = $matches[1];
+                } else {
+                    $videoId = $videoUrl;
+                }
+            @endphp
+            <div class="dashboard-card">
+                <h3 class="video-section-title">Vídeo Institucional</h3>
+                <div class="video-container" style="flex: 1;">
+                    <iframe 
+                        src="https://www.youtube.com/embed/{{ $videoId }}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 
     <!-- Coluna 2 -->
-    <div class="dashboard-column">
+    <div class="flex flex-col gap-6">
         <!-- Parte 1: Atualizações -->
         <div class="dashboard-card">
             <h3 class="section-title">Atualizações</h3>

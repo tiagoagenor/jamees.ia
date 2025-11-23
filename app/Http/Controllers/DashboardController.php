@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UltimaAcesso;
+use App\Models\ConfiguracaoEmpresa;
 
 class DashboardController extends Controller
 {
@@ -50,6 +51,11 @@ class DashboardController extends Controller
                 ->first();
         }
 
-        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess'));
+        $configuracao = null;
+        if ($currentCompany) {
+            $configuracao = ConfiguracaoEmpresa::where('empresa_id', $currentCompany->id)->first();
+        }
+
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracao'));
     }
 }

@@ -21,6 +21,11 @@
                                 class="tab-button active border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 whitespace-nowrap">
                             Dados Gerais
                         </button>
+                        <button onclick="switchTab('dashboard')"
+                                id="tab-dashboard"
+                                class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 whitespace-nowrap">
+                            Dashboard
+                        </button>
                     </nav>
                 </div>
 
@@ -45,7 +50,7 @@
                     <form id="configuracoes-form" class="space-y-6">
                         @csrf
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
                             <!-- Limite de Registros por Página -->
                             <div class="relative">
                                 <label for="limite_registros" class="block text-sm font-medium text-gray-700 mb-2">
@@ -75,6 +80,102 @@
                                         </option>
                                     @endfor
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                            <button type="button"
+                                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200">
+                                <i class="fas fa-save mr-2"></i>
+                                Salvar Configurações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Dashboard -->
+                <div id="tab-content-dashboard" class="tab-content">
+                    <!-- Mensagem de Sucesso -->
+                    <div id="success-message-dashboard" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded hidden">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span id="success-text-dashboard"></span>
+                        </div>
+                    </div>
+
+                    <!-- Mensagem de Erro -->
+                    <div id="error-message-dashboard" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span id="error-text-dashboard"></span>
+                        </div>
+                    </div>
+
+                    <form id="dashboard-form" class="space-y-6" enctype="multipart/form-data">
+                        @csrf
+
+                        <div class="space-y-6">
+                            <!-- Logo da Empresa -->
+                            <div>
+                                <label for="logo_empresa" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Logo da Empresa
+                                </label>
+                                @if($configuracao && $configuracao->logo_empresa)
+                                    <div class="mb-3">
+                                        <img src="{{ asset('storage/' . $configuracao->logo_empresa) }}" alt="Logo atual" class="max-w-xs h-20 object-contain border border-gray-300 rounded p-2">
+                                    </div>
+                                @endif
+                                <input type="file"
+                                       id="logo_empresa"
+                                       name="logo_empresa"
+                                       accept="image/*"
+                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <p class="mt-1 text-xs text-gray-500">Faça upload da logo da empresa. Formatos aceitos: JPG, PNG, GIF, SVG (máx. 2MB)</p>
+                            </div>
+
+                            <!-- Texto de Boas-vindas -->
+                            <div>
+                                <label for="texto_boas_vindas_dashboard" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Texto de Boas-vindas
+                                </label>
+                                <textarea id="texto_boas_vindas_dashboard"
+                                          name="texto_boas_vindas"
+                                          rows="3"
+                                          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                          placeholder="Ex: Tenha um excelente dia!">{{ old('texto_boas_vindas', $configuracao->texto_boas_vindas ?? '') }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Este texto aparecerá abaixo de "Olá, empresa!" no dashboard</p>
+                            </div>
+
+                            <!-- Frase da Empresa -->
+                            <div>
+                                <label for="frase_empresa_dashboard" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Frase da Empresa
+                                </label>
+                                <textarea id="frase_empresa_dashboard"
+                                          name="frase_empresa"
+                                          rows="3"
+                                          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                          placeholder="Ex: Transformando desafios em oportunidades">{{ old('frase_empresa', $configuracao->frase_empresa ?? '') }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">Esta frase aparecerá na seção "Mensagem da Empresa" no dashboard</p>
+                            </div>
+
+                            <!-- Vídeo Institucional -->
+                            <div>
+                                <label for="video_institucional" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Vídeo Institucional (URL do YouTube)
+                                </label>
+                                <input type="text"
+                                       id="video_institucional"
+                                       name="video_institucional"
+                                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                       placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ ou dQw4w9WgXcQ"
+                                       value="{{ old('video_institucional', $configuracao->video_institucional ?? '') }}">
+                                <p class="mt-1 text-xs text-gray-500">Cole a URL completa do YouTube ou apenas o ID do vídeo. Este vídeo aparecerá no dashboard.</p>
                             </div>
                         </div>
 
@@ -161,7 +262,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         switchTab('dados-gerais');
 
-        // Form submit via AJAX
+        // Form submit via AJAX - Dados Gerais
         const form = document.getElementById('configuracoes-form');
         if (form) {
             form.addEventListener('submit', async function(e) {
@@ -207,6 +308,62 @@
                     // Erro de rede
                     document.getElementById('error-text').textContent = 'Erro ao salvar configurações. Verifique sua conexão e tente novamente.';
                     document.getElementById('error-message').classList.remove('hidden');
+                } finally {
+                    // Reabilitar botão
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            });
+        }
+
+        // Form submit via AJAX - Dashboard
+        const dashboardForm = document.getElementById('dashboard-form');
+        if (dashboardForm) {
+            dashboardForm.addEventListener('submit', async function(e) {
+                e.preventDefault(); // Prevenir submit padrão
+
+                const formData = new FormData(dashboardForm);
+                const submitButton = dashboardForm.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+
+                // Desabilitar botão e mostrar loading
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+
+                // Esconder mensagens anteriores
+                document.getElementById('success-message-dashboard').classList.add('hidden');
+                document.getElementById('error-message-dashboard').classList.add('hidden');
+
+                try {
+                    const response = await fetch('{{ route("configuracoes.gerais.update") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                            'Accept': 'application/json',
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        // Sucesso
+                        document.getElementById('success-text-dashboard').textContent = data.message || 'Configurações salvas com sucesso!';
+                        document.getElementById('success-message-dashboard').classList.remove('hidden');
+
+                        // Recarregar página após 1 segundo para atualizar a imagem
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        // Erro
+                        document.getElementById('error-text-dashboard').textContent = data.message || 'Erro ao salvar configurações. Tente novamente.';
+                        document.getElementById('error-message-dashboard').classList.remove('hidden');
+                    }
+                } catch (error) {
+                    // Erro de rede
+                    document.getElementById('error-text-dashboard').textContent = 'Erro ao salvar configurações. Verifique sua conexão e tente novamente.';
+                    document.getElementById('error-message-dashboard').classList.remove('hidden');
                 } finally {
                     // Reabilitar botão
                     submitButton.disabled = false;
