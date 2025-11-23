@@ -100,6 +100,8 @@ Route::middleware('auth')->group(function () {
 // Rotas protegidas por plano ativo
 Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/atualizacoes', [App\Http\Controllers\AtualizacaoSistemaController::class, 'index'])->name('atualizacoes.index');
+    Route::get('/atualizacoes/{atualizacao}', [App\Http\Controllers\AtualizacaoSistemaController::class, 'show'])->name('atualizacoes.show');
 
     // Rotas de usuários
     Route::resource('usuarios', App\Http\Controllers\UsuarioController::class)

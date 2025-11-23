@@ -9,6 +9,7 @@ use App\Models\Empresa;
 use App\Models\Whitelabel;
 use App\Models\UltimaAcesso;
 use App\Models\Configuracao;
+use App\Models\AtualizacaoSistema;
 
 class DashboardController extends Controller
 {
@@ -62,6 +63,9 @@ class DashboardController extends Controller
             ];
         }
 
-        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes'));
+        // Buscar últimas 10 atualizações do sistema
+        $atualizacoes = AtualizacaoSistema::orderBy('created_at', 'desc')->limit(10)->get();
+
+        return view('dashboard', compact('user', 'currentCompany', 'currentWhitelabel', 'lastAccess', 'configuracoes', 'atualizacoes'));
     }
 }

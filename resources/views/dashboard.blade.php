@@ -125,12 +125,19 @@
     }
 
     .update-item {
-        padding: 1rem;
+        padding: 0;
         background: #f9fafb;
         margin-bottom: 0.75rem;
         border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .update-item a {
+        padding: 1rem;
         display: flex;
         gap: 1rem;
+        text-decoration: none;
+        color: inherit;
     }
 
     .update-icon {
@@ -145,8 +152,8 @@
     }
 
     .update-icon.melhorias {
-        background: #fef3c7;
-        color: #f59e0b;
+        background: #d1fae5;
+        color: #10b981;
     }
 
     .update-icon.novos-recursos {
@@ -352,111 +359,31 @@
         <div class="dashboard-card">
             <h3 class="section-title">Atualizações</h3>
             <ul class="updates-list" id="updatesList" style="flex: 1;">
-                <li class="update-item">
-                    <div class="update-icon novos-recursos">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Nova Interface do Dashboard</h4>
-                        <p>Redesign completo do dashboard com layout em 2 colunas, seções de boas-vindas, vídeo institucional, atualizações e desenvolvimento.</p>
-                        <div class="update-date">15/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon melhorias">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Melhorias no Sistema Financeiro</h4>
-                        <p>Novos relatórios e visualizações para análise financeira com gráficos interativos e exportação em múltiplos formatos.</p>
-                        <div class="update-date">12/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon novos-recursos">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Integração com APIs de Pagamento</h4>
-                        <p>Nova integração com principais gateways de pagamento para facilitar transações e cobranças automáticas.</p>
-                        <div class="update-date">10/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon melhorias">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Otimização de Performance</h4>
-                        <p>Melhorias significativas na velocidade de carregamento das páginas e otimização de consultas ao banco de dados.</p>
-                        <div class="update-date">08/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon novos-recursos">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Notificações em Tempo Real</h4>
-                        <p>Sistema de notificações push implementado para alertas importantes e atualizações do sistema.</p>
-                        <div class="update-date">05/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon melhorias">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Melhorias na Gestão de Usuários</h4>
-                        <p>Interface aprimorada para gerenciamento de usuários, grupos e permissões com maior flexibilidade.</p>
-                        <div class="update-date">03/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon novos-recursos">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Exportação de Relatórios em PDF</h4>
-                        <p>Nova funcionalidade para exportar relatórios financeiros e gerenciais diretamente em formato PDF.</p>
-                        <div class="update-date">01/12/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon melhorias">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Correções no Módulo de Loteamento</h4>
-                        <p>Correção de bugs e melhorias na interface do módulo de gestão de loteamentos e vendas de lotes.</p>
-                        <div class="update-date">28/11/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon novos-recursos">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Dashboard Analytics Avançado</h4>
-                        <p>Novo painel de analytics com métricas detalhadas, gráficos interativos e insights automatizados.</p>
-                        <div class="update-date">25/11/2024</div>
-                    </div>
-                </li>
-                <li class="update-item">
-                    <div class="update-icon melhorias">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="update-content">
-                        <h4>Melhorias na Responsividade</h4>
-                        <p>Otimização da interface para dispositivos móveis com melhor experiência de uso em tablets e smartphones.</p>
-                        <div class="update-date">22/11/2024</div>
-                    </div>
-                </li>
+                @forelse($atualizacoes as $atualizacao)
+                    <li class="update-item">
+                        <a href="{{ route('atualizacoes.show', $atualizacao) }}" class="flex gap-4 w-full hover:opacity-80 transition-opacity">
+                            <div class="update-icon {{ $atualizacao->tipo->value === 1 ? 'novos-recursos' : 'melhorias' }}">
+                                <i class="fas {{ $atualizacao->tipo_icon }}"></i>
+                            </div>
+                            <div class="update-content">
+                                <h4>{{ $atualizacao->titulo }}</h4>
+                                <p>{{ $atualizacao->minitexto }}</p>
+                                <div class="update-date">{{ $atualizacao->created_at->format('d/m/Y') }}</div>
+                            </div>
+                        </a>
+                    </li>
+                @empty
+                    <li class="update-item">
+                        <div class="update-content">
+                            <p class="text-gray-500 text-center">Nenhuma atualização disponível no momento.</p>
+                        </div>
+                    </li>
+                @endforelse
             </ul>
-            <button class="btn-portal-ideias" onclick="window.location.href='#portal-ideias'">
-                <i class="fas fa-lightbulb"></i>
-                Portal de Ideias
-            </button>
+            <a href="{{ route('atualizacoes.index') }}" class="btn-portal-ideias" style="text-decoration: none;">
+                <i class="fas fa-list"></i>
+                Ver Atualizações
+            </a>
         </div>
 
         <!-- Parte 2: Desenvolvimento -->
