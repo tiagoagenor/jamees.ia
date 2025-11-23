@@ -22,14 +22,14 @@
         background: white;
         border-radius: 0.75rem;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        padding: 1.5rem;
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
-        height: 600px;
+        height: 450px;
     }
 
     .dashboard-card.welcome-card {
-        max-height: 600px;
+        max-height: 450px;
         overflow-y: auto;
         padding-right: 0.5rem;
     }
@@ -57,28 +57,28 @@
     }
 
     .company-logo {
-        max-width: 180px;
-        max-height: 90px;
+        max-width: 220px;
+        max-height: 110px;
         object-fit: contain;
         margin: 0 auto 1.5rem auto;
         display: block;
     }
 
     .welcome-section h5 {
-        font-size: 1.125rem;
+        font-size: 0.9375rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 0.5rem;
     }
 
     .welcome-section .welcome-text {
-        font-size: 0.9375rem;
+        font-size: 0.8125rem;
         color: #6b7280;
         margin-bottom: 1.5rem;
     }
 
     .company-message-title {
-        font-size: 1rem;
+        font-size: 0.875rem;
         font-weight: 700;
         color: #1f2937;
         margin-top: 1.5rem;
@@ -88,7 +88,7 @@
     .company-quote {
         font-style: italic;
         color: #6b7280;
-        font-size: 0.9375rem;
+        font-size: 0.8125rem;
         margin-top: 0.5rem;
     }
 
@@ -171,33 +171,34 @@
     }
 
     .update-item h4 {
-        font-size: 1rem;
+        font-size: 0.875rem;
         font-weight: 600;
         color: #1f2937;
         margin-bottom: 0.25rem;
     }
 
     .update-item p {
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
         color: #6b7280;
         margin: 0 0 0.5rem 0;
         line-height: 1.5;
     }
 
     .update-date {
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         color: #9ca3af;
         margin-top: 0.25rem;
     }
 
     .btn-portal-ideias {
         width: 100%;
-        padding: 0.75rem 1rem;
+        padding: 0.625rem 1rem;
         background: #3b82f6;
         color: white;
         border: none;
         border-radius: 0.5rem;
         font-weight: 600;
+        font-size: 0.875rem;
         cursor: pointer;
         transition: background 0.2s;
         margin-top: 1rem;
@@ -243,7 +244,7 @@
     }
 
     .development-item h4 {
-        font-size: 1rem;
+        font-size: 0.875rem;
         font-weight: 600;
         color: #1f2937;
         margin-bottom: 0.5rem;
@@ -265,14 +266,14 @@
     }
 
     .progress-text {
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
         color: #6b7280;
         margin-top: 0.25rem;
     }
 
 
     .section-title {
-        font-size: 1.75rem;
+        font-size: 1.125rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 1rem;
@@ -281,7 +282,7 @@
     }
     
     .video-section-title {
-        font-size: 1.75rem;
+        font-size: 1.125rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 1rem;
@@ -302,12 +303,12 @@
         }
         
         .welcome-section h5 {
-            font-size: 1rem;
+            font-size: 0.875rem;
         }
         
         .section-title,
         .video-section-title {
-            font-size: 1.5rem;
+            font-size: 1rem;
         }
     }
 </style>
