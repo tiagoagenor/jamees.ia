@@ -206,6 +206,10 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::post('/conciliacao-bancaria/transacoes/{transacaoOfx}/vincular-conta', [App\Http\Controllers\ConciliacaoBancariaController::class, 'vincularConta'])->name('conciliacao-bancaria.vincular-conta')->middleware('permission:conciliacao-bancaria,editar');
     Route::post('/conciliacao-bancaria/transacoes/{transacaoOfx}/criar-e-conciliar', [App\Http\Controllers\ConciliacaoBancariaController::class, 'criarEConciliarConta'])->name('conciliacao-bancaria.criar-e-conciliar')->middleware('permission:conciliacao-bancaria,editar');
 
+    // Relatórios
+    Route::get('/relatorios/cadastros', [App\Http\Controllers\RelatorioController::class, 'cadastros'])->name('relatorios.cadastros');
+    Route::get('/relatorios/financeiro', [App\Http\Controllers\RelatorioController::class, 'financeiro'])->name('relatorios.financeiro');
+
     // Rotas de Formas de Pagamento
     Route::get('/formas-pagamento', [App\Http\Controllers\FormaPagamentoController::class, 'index'])->name('forma-pagamento.index')->middleware('permission:formas-pagamento,listar');
     Route::get('/formas-pagamento/create', [App\Http\Controllers\FormaPagamentoController::class, 'create'])->name('forma-pagamento.create')->middleware('permission:formas-pagamento,criar');

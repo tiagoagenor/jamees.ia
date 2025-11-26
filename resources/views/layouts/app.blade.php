@@ -203,6 +203,31 @@
                         </ul>
                     </li>
 
+                    <!-- Relatórios -->
+                    <li>
+                        <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('relatorios')">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-alt mr-3 text-slate-400"></i>
+                                Relatórios
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-200" id="relatorios-arrow"></i>
+                        </div>
+                        <ul id="relatorios-submenu" class="ml-4 mt-2 space-y-1 hidden">
+                            <li>
+                                <a href="{{ route('relatorios.cadastros') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('relatorios.cadastros') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-user-plus mr-3 {{ request()->routeIs('relatorios.cadastros') ? 'text-blue-700' : 'text-slate-400' }}"></i>
+                                    Cadastros
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('relatorios.financeiro') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('relatorios.financeiro') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-dollar-sign mr-3 {{ request()->routeIs('relatorios.financeiro') ? 'text-blue-700' : 'text-slate-400' }}"></i>
+                                    Financeiro
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     <!-- Configurações -->
                     <li>
                         <div class="flex items-center justify-between px-3 py-2 text-sm font-medium text-slate-600 hover:bg-gray-50 hover:text-slate-900 cursor-pointer rounded-xl transition-colors duration-200" onclick="toggleSubmenu('configuracoes')">
@@ -522,7 +547,7 @@
         // Initialize menu state - always start with menus closed
         function initializeMenuState() {
             // All available menu sections
-            const allMenus = ['cadastro', 'financeiro', 'opcoes-auxiliares', 'configuracoes'];
+            const allMenus = ['cadastro', 'loteamento', 'financeiro', 'opcoes-auxiliares', 'relatorios', 'configuracoes'];
 
             // Initialize all menus - always start closed
             allMenus.forEach(menuId => {

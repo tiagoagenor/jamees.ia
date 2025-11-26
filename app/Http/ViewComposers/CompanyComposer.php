@@ -190,6 +190,23 @@ class CompanyComposer
                 ],
             ],
             [
+                'nome' => 'Relatórios',
+                'rota' => null,
+                'icone' => 'fa-file-alt',
+                'submenu' => [
+                    [
+                        'nome' => 'Cadastros',
+                        'rota' => null,
+                        'icone' => 'fa-address-book',
+                    ],
+                    [
+                        'nome' => 'Financeiro',
+                        'rota' => null,
+                        'icone' => 'fa-chart-line',
+                    ],
+                ],
+            ],
+            [
                 'nome' => 'Configurações',
                 'rota' => null,
                 'icone' => 'fa-cog',
