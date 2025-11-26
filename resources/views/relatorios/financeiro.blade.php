@@ -136,22 +136,72 @@
 
     <!-- Gráficos -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
-                Distribuição por Situação
-            </h3>
+        <div class="bg-white shadow rounded-lg p-6 relative">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                    Distribuição por Situação
+                </h3>
+                <button onclick="abrirModalGrafico('distribuicao')" class="text-gray-500 hover:text-blue-600 transition-colors" title="Expandir gráfico">
+                    <i class="fas fa-expand text-lg"></i>
+                </button>
+            </div>
             <div class="h-64">
                 <canvas id="graficoDistribuicao"></canvas>
             </div>
         </div>
-        <div class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
-                Movimentações por Mês
-            </h3>
-            <div class="h-64">
+        <div class="bg-white shadow rounded-lg p-6 relative">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                    Movimentações por Mês
+                </h3>
+                <button onclick="abrirModalGrafico('mensal')" class="text-gray-500 hover:text-blue-600 transition-colors" title="Expandir gráfico">
+                    <i class="fas fa-expand text-lg"></i>
+                </button>
+            </div>
+            <div class="h-80">
                 <canvas id="graficoMensal"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Gráfico de Distribuição -->
+    <div id="modalDistribuicao" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                    Distribuição por Situação
+                </h3>
+                <button onclick="fecharModalGrafico('distribuicao')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="h-96">
+                    <canvas id="graficoDistribuicaoModal"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Gráfico Mensal -->
+    <div id="modalMensal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-auto">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                    Movimentações por Mês
+                </h3>
+                <button onclick="fecharModalGrafico('mensal')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="h-96">
+                    <canvas id="graficoMensalModal"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -164,14 +214,10 @@
                 Resultados
             </h2>
             <div class="flex space-x-2">
-                <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+                <a href="{{ route('relatorios.financeiro.exportar-csv', request()->query()) }}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm inline-flex items-center">
                     <i class="fas fa-file-excel mr-2"></i>
                     Exportar Excel
-                </button>
-                <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
-                    <i class="fas fa-file-pdf mr-2"></i>
-                    Exportar PDF
-                </button>
+                </a>
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -491,8 +537,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Dados para os gráficos
     const distribuicaoSituacao = @json($distribuicaoSituacao);
     const labelsMensais = @json($labelsMensais);
-    const dadosMensais = @json($dadosMensais);
-    const valoresMensais = @json($valoresMensais);
+    const valoresPagar = @json($valoresPagar);
+    const valoresReceber = @json($valoresReceber);
 
     // Cores para as situações
     const coresSituacao = {
@@ -502,14 +548,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'Cancelada': '#6b7280' // gray
     };
 
-    // Gráfico de Distribuição por Situação (Pizza)
-    const ctxDistribuicao = document.getElementById('graficoDistribuicao');
-    if (ctxDistribuicao) {
+    // Função para criar gráfico de distribuição
+    function criarGraficoDistribuicao(canvasId, tamanhoFonte = 12) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+
         const labels = Object.keys(distribuicaoSituacao);
         const dados = Object.values(distribuicaoSituacao);
         const cores = labels.map(label => coresSituacao[label] || '#9ca3af');
 
-        new Chart(ctxDistribuicao, {
+        return new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: labels,
@@ -529,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         labels: {
                             padding: 15,
                             font: {
-                                size: 12
+                                size: tamanhoFonte
                             }
                         }
                     },
@@ -549,50 +597,88 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gráfico de Movimentações por Mês (Barras)
-    const ctxMensal = document.getElementById('graficoMensal');
-    if (ctxMensal) {
-        new Chart(ctxMensal, {
+    // Gráfico de Distribuição por Situação (Pizza) - Original
+    let chartDistribuicao = criarGraficoDistribuicao('graficoDistribuicao', 12);
+    let chartDistribuicaoModal = null;
+
+    // Função para criar gráfico mensal
+    function criarGraficoMensal(canvasId, tamanhoFonte = 12) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+
+        return new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labelsMensais,
-                datasets: [{
-                    label: 'Quantidade de Movimentações',
-                    data: dadosMensais,
-                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                    borderColor: 'rgba(59, 130, 246, 1)',
-                    borderWidth: 1
-                }]
+                datasets: [
+                    {
+                        label: 'Contas a Pagar',
+                        data: valoresPagar,
+                        backgroundColor: valoresPagar.map(valor => valor === 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.6)'), // Vermelho mais transparente para 0
+                        borderColor: valoresPagar.map(valor => valor === 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(239, 68, 68, 1)'),
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Contas a Receber',
+                        data: valoresReceber,
+                        backgroundColor: valoresReceber.map(valor => valor === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.6)'), // Verde mais transparente para 0
+                        borderColor: valoresReceber.map(valor => valor === 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 1)'),
+                        borderWidth: 1
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 10
+                    }
+                },
                 plugins: {
                     legend: {
                         display: true,
                         position: 'top',
                         labels: {
                             font: {
-                                size: 12
+                                size: tamanhoFonte
                             }
                         }
                     },
                     tooltip: {
+                        enabled: true,
+                        filter: function(tooltipItem) {
+                            // Sempre mostrar tooltip, mesmo para valores 0
+                            return true;
+                        },
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y;
+                                const valor = context.parsed.y;
+                                // Sempre mostrar o valor, mesmo se for 0
+                                return context.dataset.label + ': R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                             }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
+                        stacked: false, // Barras lado a lado, não empilhadas
                         ticks: {
-                            stepSize: 1,
                             font: {
-                                size: 11
-                            }
+                                size: tamanhoFonte - 1
+                            },
+                            callback: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            },
+                            stepSize: null // Permitir que o Chart.js calcule automaticamente os intervalos
                         },
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)'
@@ -601,8 +687,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     x: {
                         ticks: {
                             font: {
-                                size: 11
-                            }
+                                size: tamanhoFonte - 1
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
                         },
                         grid: {
                             display: false
@@ -612,6 +700,61 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Gráfico de Movimentações por Mês (Barras) - Original
+    let chartMensal = criarGraficoMensal('graficoMensal', 12);
+    let chartMensalModal = null;
+
+    // Funções para abrir e fechar modais
+    window.abrirModalGrafico = function(tipo) {
+        const modalId = tipo === 'distribuicao' ? 'modalDistribuicao' : 'modalMensal';
+        const canvasId = tipo === 'distribuicao' ? 'graficoDistribuicaoModal' : 'graficoMensalModal';
+        const modal = document.getElementById(modalId);
+        
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Criar gráfico no modal se ainda não foi criado
+            setTimeout(function() {
+                if (tipo === 'distribuicao' && !chartDistribuicaoModal) {
+                    chartDistribuicaoModal = criarGraficoDistribuicao(canvasId, 16);
+                } else if (tipo === 'mensal' && !chartMensalModal) {
+                    chartMensalModal = criarGraficoMensal(canvasId, 16);
+                } else {
+                    // Atualizar gráfico existente
+                    if (tipo === 'distribuicao' && chartDistribuicaoModal) {
+                        chartDistribuicaoModal.update();
+                    } else if (tipo === 'mensal' && chartMensalModal) {
+                        chartMensalModal.update();
+                    }
+                }
+            }, 100);
+        }
+    };
+
+    window.fecharModalGrafico = function(tipo) {
+        const modalId = tipo === 'distribuicao' ? 'modalDistribuicao' : 'modalMensal';
+        const modal = document.getElementById(modalId);
+        
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    };
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modalDistribuicao')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModalGrafico('distribuicao');
+        }
+    });
+
+    document.getElementById('modalMensal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModalGrafico('mensal');
+        }
+    });
 });
 </script>
 @endsection

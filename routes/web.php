@@ -209,6 +209,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     // Relatórios
     Route::get('/relatorios/cadastros', [App\Http\Controllers\RelatorioController::class, 'cadastros'])->name('relatorios.cadastros');
     Route::get('/relatorios/financeiro', [App\Http\Controllers\RelatorioController::class, 'financeiro'])->name('relatorios.financeiro');
+    Route::get('/relatorios/financeiro/exportar-csv', [App\Http\Controllers\RelatorioController::class, 'exportarFinanceiroCsv'])->name('relatorios.financeiro.exportar-csv');
 
     // Rotas de Formas de Pagamento
     Route::get('/formas-pagamento', [App\Http\Controllers\FormaPagamentoController::class, 'index'])->name('forma-pagamento.index')->middleware('permission:formas-pagamento,listar');
