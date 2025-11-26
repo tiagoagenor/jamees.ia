@@ -710,7 +710,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             minRotation: 45
                         },
                         grid: {
-                            display: false
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.1)',
+                            borderDash: [5, 5], // Linha pontilhada
+                            drawBorder: false
                         }
                     }
                 }
