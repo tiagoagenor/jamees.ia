@@ -260,11 +260,20 @@
                                 <i class="fas fa-toggle-{{ $movimentacao->isPendente() ? 'on' : 'off' }} mr-2"></i>
                                 {{ $movimentacao->isPendente() ? 'Marcar como Paga' : 'Marcar como Pendente' }}
                             </button>
-                            <button onclick="confirmarExclusaoSweetAlert('{{ $movimentacao->id }}', '{{ $movimentacao->descricao }}')"
-                                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                                <i class="fas fa-trash mr-2"></i>
-                                Excluir
-                            </button>
+                            @if($movimentacao->estaConciliado())
+                                <button disabled
+                                        class="bg-gray-400 cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium"
+                                        title="Não é possível excluir uma movimentação conciliada">
+                                    <i class="fas fa-trash mr-2"></i>
+                                    Excluir (conciliado)
+                                </button>
+                            @else
+                                <button onclick="confirmarExclusaoSweetAlert('{{ $movimentacao->id }}', '{{ $movimentacao->descricao }}')"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                    <i class="fas fa-trash mr-2"></i>
+                                    Excluir
+                                </button>
+                            @endif
                         </div>
                         <div class="text-sm text-gray-500">
                             Última atualização: {{ $movimentacao->atualizado_em->diffForHumans() }}

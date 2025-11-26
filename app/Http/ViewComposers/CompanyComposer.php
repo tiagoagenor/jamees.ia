@@ -159,7 +159,7 @@ class CompanyComposer
                         'nome' => 'Opções auxiliares',
                         'rota' => null,
                         'icone' => 'fa-cogs',
-                        'submenu' => [
+                        'submenu' => array_filter([
                             [
                                 'nome' => 'Contas bancárias',
                                 'rota' => 'conta-empresa.index',
@@ -180,7 +180,12 @@ class CompanyComposer
                                 'rota' => 'centro-custo.index',
                                 'icone' => 'fa-building',
                             ],
-                        ],
+                            PermissionHelper::can('conciliacao-bancaria', 'listar') ? [
+                                'nome' => 'Conciliação bancária',
+                                'rota' => 'conciliacao-bancaria.index',
+                                'icone' => 'fa-balance-scale',
+                            ] : null,
+                        ], fn($item) => $item !== null),
                     ],
                 ],
             ],

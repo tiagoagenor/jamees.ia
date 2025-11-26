@@ -13,8 +13,11 @@
                                      $filtroSituacao !== 'todos' || 
                                      !empty($filtroVencimentoInicio) || 
                                      !empty($filtroVencimentoFim) || 
+                                     !empty(request('valor_minimo')) || 
+                                     !empty(request('valor_maximo')) || 
                                      !empty($filtroParcelaCodigo) || 
-                                     !empty($filtroEntidadeTipo);
+                                     !empty($filtroEntidadeTipo) ||
+                                     !empty(request('conta_bancaria'));
                     @endphp
                     @if($temFiltros)
                         <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}"
@@ -137,23 +140,105 @@
                                 </select>
                             </div>
 
-                            <!-- Botões de Ação -->
+                            <!-- Filtro por Conta Bancária -->
                             <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    <i class="fas fa-cogs text-gray-400 mr-1"></i>
-                                    Ações
+                                <label for="conta_bancaria" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-university text-gray-400 mr-1"></i>
+                                    Conta Bancária
                                 </label>
-                                <div class="flex space-x-2">
-                                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
-                                        <i class="fas fa-search mr-2"></i>
-                                        Filtrar
-                                    </button>
-                                    <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-center">
-                                        <i class="fas fa-times mr-2"></i>
-                                        Limpar
-                                    </a>
-                                </div>
+                                <select name="conta_bancaria" id="conta_bancaria" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Todas as contas</option>
+                                    @foreach($contasBancarias as $conta)
+                                        <option value="{{ $conta->id }}" {{ request('conta_bancaria') == $conta->id ? 'selected' : '' }}>
+                                            {{ $conta->nome }}@if($conta->banco) - {{ $conta->banco->nome }}@endif
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
+                        </div>
+
+                        <!-- Link para Busca Avançada -->
+                        <div class="flex items-center justify-between">
+                            <button type="button" 
+                                    id="toggle-busca-avancada"
+                                    onclick="toggleBuscaAvancada()"
+                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                                <i class="fas fa-chevron-down mr-2" id="icon-busca-avancada"></i>
+                                Busca avançada
+                            </button>
+                        </div>
+
+                        <!-- Filtros Avançados (Data e Valor) - Ocultos por padrão -->
+                        <div id="filtros-avancados" class="{{ (!empty($filtroVencimentoInicio) || !empty($filtroVencimentoFim) || !empty(request('valor_minimo')) || !empty(request('valor_maximo'))) ? '' : 'hidden' }} grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Filtro por Vencimento Início -->
+                            <div class="space-y-2">
+                                <label for="vencimento_inicio" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-1"></i>
+                                    Vencimento Início
+                                </label>
+                                <input type="date"
+                                       name="vencimento_inicio"
+                                       id="vencimento_inicio"
+                                       value="{{ $filtroVencimentoInicio }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Filtro por Vencimento Fim -->
+                            <div class="space-y-2">
+                                <label for="vencimento_fim" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-1"></i>
+                                    Vencimento Fim
+                                </label>
+                                <input type="date"
+                                       name="vencimento_fim"
+                                       id="vencimento_fim"
+                                       value="{{ $filtroVencimentoFim }}"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Filtro por Valor Mínimo -->
+                            <div class="space-y-2">
+                                <label for="valor_minimo" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-dollar-sign text-gray-400 mr-1"></i>
+                                    Valor Mínimo
+                                </label>
+                                <input type="number"
+                                       name="valor_minimo"
+                                       id="valor_minimo"
+                                       step="0.01"
+                                       min="0"
+                                       value="{{ request('valor_minimo') }}"
+                                       placeholder="0,00"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Filtro por Valor Máximo -->
+                            <div class="space-y-2">
+                                <label for="valor_maximo" class="block text-sm font-medium text-gray-700">
+                                    <i class="fas fa-dollar-sign text-gray-400 mr-1"></i>
+                                    Valor Máximo
+                                </label>
+                                <input type="number"
+                                       name="valor_maximo"
+                                       id="valor_maximo"
+                                       step="0.01"
+                                       min="0"
+                                       value="{{ request('valor_maximo') }}"
+                                       placeholder="0,00"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="flex justify-end space-x-2 pt-4 border-t border-gray-200">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-search mr-2"></i>
+                                Filtrar
+                            </button>
+                            <a href="{{ route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-times mr-2"></i>
+                                Limpar
+                            </a>
                         </div>
 
                         <!-- Filtros de Lote (aparecem apenas quando tipo = Loteamento) -->
@@ -273,7 +358,7 @@
 
                 <!-- Tabela -->
                 @if($movimentacoes->count() > 0)
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-visible">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>
@@ -476,16 +561,29 @@
                                                 </div>
 
                                                 <!-- Excluir -->
-                                                <div class="relative group">
-                                                    <button onclick="confirmarExclusaoSweetAlert('{{ $movimentacao->id }}', '{{ $movimentacao->descricao }}')" class="text-red-600 hover:text-red-900 flex items-center">
-                                                        <i class="fas fa-trash"></i>
-                                                        <span class="sr-only">Excluir</span>
-                                                    </button>
-                                                    <div class="absolute z-10 invisible inline-block px-2 py-1 text-xs font-medium text-white transition-opacity duration-200 bg-gray-900 rounded shadow opacity-0 group-hover:visible group-hover:opacity-100 -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                                        Excluir
-                                                        <div class="absolute w-2 h-2 bg-gray-900 rotate-45 left-1/2 -translate-x-1/2 top-full"></div>
+                                                @if($movimentacao->estaConciliado())
+                                                    <div class="relative group" style="position: relative; overflow: visible;">
+                                                        <button disabled class="text-gray-400 cursor-not-allowed flex items-center">
+                                                            <i class="fas fa-trash"></i>
+                                                            <span class="sr-only">Excluir (conciliado)</span>
+                                                        </button>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-[9999] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow whitespace-nowrap pointer-events-none" style="position: absolute;">
+                                                            Movimentação conciliada
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                @else
+                                                    <div class="relative group" style="position: relative; overflow: visible;">
+                                                        <button onclick="confirmarExclusaoSweetAlert('{{ $movimentacao->id }}', '{{ $movimentacao->descricao }}')" class="text-red-600 hover:text-red-900 flex items-center">
+                                                            <i class="fas fa-trash"></i>
+                                                            <span class="sr-only">Excluir</span>
+                                                        </button>
+                                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-[9999] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded shadow whitespace-nowrap pointer-events-none" style="position: absolute;">
+                                                            Excluir
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 w-2 h-2 bg-gray-900 rotate-45"></div>
+                                                        </div>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -1394,6 +1492,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 10);
         });
     });
+});
+
+// Função para mostrar/esconder busca avançada (definida globalmente)
+function toggleBuscaAvancada() {
+    const filtrosAvancados = document.getElementById('filtros-avancados');
+    const icon = document.getElementById('icon-busca-avancada');
+    
+    if (!filtrosAvancados || !icon) return;
+    
+    if (filtrosAvancados.classList.contains('hidden')) {
+        filtrosAvancados.classList.remove('hidden');
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    } else {
+        filtrosAvancados.classList.add('hidden');
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    }
+}
+
+// Ajustar ícone inicial se os filtros avançados estiverem visíveis
+document.addEventListener('DOMContentLoaded', function() {
+    const filtrosAvancados = document.getElementById('filtros-avancados');
+    const icon = document.getElementById('icon-busca-avancada');
+    
+    if (filtrosAvancados && icon && !filtrosAvancados.classList.contains('hidden')) {
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    }
 });
 </script>
 

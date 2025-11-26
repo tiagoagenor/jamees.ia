@@ -172,6 +172,14 @@
                                             Contas bancárias
                                         </a>
                                     </li>
+                                    @if(\App\Helpers\PermissionHelper::can('conciliacao-bancaria', 'listar'))
+                                    <li>
+                                        <a href="{{ route('conciliacao-bancaria.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('conciliacao-bancaria.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                            <i class="fas fa-balance-scale mr-3 {{ request()->routeIs('conciliacao-bancaria.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
+                                            Conciliação bancária
+                                        </a>
+                                    </li>
+                                    @endif
                                     <li>
                                         <a href="{{ route('forma-pagamento.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('forma-pagamento.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
                                             <i class="fas fa-credit-card mr-3 {{ request()->routeIs('forma-pagamento.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>

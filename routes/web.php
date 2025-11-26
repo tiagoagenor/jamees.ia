@@ -197,6 +197,15 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
     Route::delete('/contas-bancarias/{contaEmpresa}', [App\Http\Controllers\ContaEmpresaController::class, 'destroy'])->name('conta-empresa.destroy');
     Route::patch('/contas-bancarias/{contaEmpresa}/toggle-status', [App\Http\Controllers\ContaEmpresaController::class, 'toggleStatus'])->name('conta-empresa.toggle-status');
 
+    // Rotas de Conciliação Bancária
+    Route::get('/conciliacao-bancaria', [App\Http\Controllers\ConciliacaoBancariaController::class, 'index'])->name('conciliacao-bancaria.index')->middleware('permission:conciliacao-bancaria,listar');
+    Route::get('/conciliacao-bancaria/create', [App\Http\Controllers\ConciliacaoBancariaController::class, 'create'])->name('conciliacao-bancaria.create')->middleware('permission:conciliacao-bancaria,criar');
+    Route::post('/conciliacao-bancaria', [App\Http\Controllers\ConciliacaoBancariaController::class, 'store'])->name('conciliacao-bancaria.store')->middleware('permission:conciliacao-bancaria,criar');
+    Route::get('/conciliacao-bancaria/{conciliacaoBancaria}', [App\Http\Controllers\ConciliacaoBancariaController::class, 'show'])->name('conciliacao-bancaria.show')->middleware('permission:conciliacao-bancaria,visualizar');
+    Route::post('/conciliacao-bancaria/transacoes/{transacaoOfx}/buscar-contas', [App\Http\Controllers\ConciliacaoBancariaController::class, 'buscarContas'])->name('conciliacao-bancaria.buscar-contas')->middleware('permission:conciliacao-bancaria,editar');
+    Route::post('/conciliacao-bancaria/transacoes/{transacaoOfx}/vincular-conta', [App\Http\Controllers\ConciliacaoBancariaController::class, 'vincularConta'])->name('conciliacao-bancaria.vincular-conta')->middleware('permission:conciliacao-bancaria,editar');
+    Route::post('/conciliacao-bancaria/transacoes/{transacaoOfx}/criar-e-conciliar', [App\Http\Controllers\ConciliacaoBancariaController::class, 'criarEConciliarConta'])->name('conciliacao-bancaria.criar-e-conciliar')->middleware('permission:conciliacao-bancaria,editar');
+
     // Rotas de Formas de Pagamento
     Route::get('/formas-pagamento', [App\Http\Controllers\FormaPagamentoController::class, 'index'])->name('forma-pagamento.index')->middleware('permission:formas-pagamento,listar');
     Route::get('/formas-pagamento/create', [App\Http\Controllers\FormaPagamentoController::class, 'create'])->name('forma-pagamento.create')->middleware('permission:formas-pagamento,criar');

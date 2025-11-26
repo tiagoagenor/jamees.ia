@@ -49,9 +49,12 @@ class MovimentacaoController extends Controller
         $filtroDescricao = $request->get('descricao', '');
         $filtroVencimentoInicio = $request->get('vencimento_inicio', '');
         $filtroVencimentoFim = $request->get('vencimento_fim', '');
+        $filtroValorMinimo = $request->get('valor_minimo', '');
+        $filtroValorMaximo = $request->get('valor_maximo', '');
         $filtroParcelaCodigo = $request->get('parcela_codigo', '');
         $filtroEntidadeTipo = $request->get('entidade_tipo', '');
         $filtroEntidadeId = $request->get('entidade_id', '');
+        $filtroContaBancaria = $request->get('conta_bancaria', '');
 
         // Se o tipo for Loteamento (5), o entidade_id já contém o lote_id
         // Não precisamos dos filtros intermediários (empreendimento, quadra, lote)
@@ -84,6 +87,16 @@ class MovimentacaoController extends Controller
             $query->where('vencimento', '<=', $filtroVencimentoFim);
         }
 
+        // Filtro por valor mínimo
+        if (!empty($filtroValorMinimo)) {
+            $query->where('valor_total', '>=', $filtroValorMinimo);
+        }
+
+        // Filtro por valor máximo
+        if (!empty($filtroValorMaximo)) {
+            $query->where('valor_total', '<=', $filtroValorMaximo);
+        }
+
         // Filtro por parcela_codigo (quando clicar no número da parcela)
         if (!empty($filtroParcelaCodigo)) {
             $query->where('parcela_codigo', $filtroParcelaCodigo);
@@ -97,6 +110,11 @@ class MovimentacaoController extends Controller
         // Filtro por ID de entidade
         if (!empty($filtroEntidadeId)) {
             $query->where('entidade_id', $filtroEntidadeId);
+        }
+
+        // Filtro por Conta Bancária
+        if (!empty($filtroContaBancaria)) {
+            $query->where('conta_empresa_id', $filtroContaBancaria);
         }
 
         // Ordenação tri-state
@@ -123,9 +141,12 @@ class MovimentacaoController extends Controller
             'descricao' => $filtroDescricao,
             'vencimento_inicio' => $filtroVencimentoInicio,
             'vencimento_fim' => $filtroVencimentoFim,
+            'valor_minimo' => $filtroValorMinimo,
+            'valor_maximo' => $filtroValorMaximo,
             'parcela_codigo' => $filtroParcelaCodigo,
             'entidade_tipo' => $filtroEntidadeTipo,
             'entidade_id' => $filtroEntidadeId,
+            'conta_bancaria' => $filtroContaBancaria,
             'sort_by' => $sortBy,
             'sort_direction' => $sortDirection,
         ]);
@@ -150,9 +171,12 @@ class MovimentacaoController extends Controller
             $filtroDescricao,
             $filtroVencimentoInicio,
             $filtroVencimentoFim,
+            $filtroValorMinimo,
+            $filtroValorMaximo,
             $filtroParcelaCodigo,
             $filtroEntidadeTipo,
-            $filtroEntidadeId
+            $filtroEntidadeId,
+            $filtroContaBancaria
         );
 
         $titulo = $tipoEnum->getLabel();
@@ -160,7 +184,7 @@ class MovimentacaoController extends Controller
 
         // Buscar dados para o modal
         $formasPagamento = FormaPagamento::daEmpresa($empresaAtual->id)->disponiveis()->orderBy('nome')->get();
-        $contasBancarias = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->orderBy('nome')->get();
+        $contasBancarias = ContaEmpresa::daEmpresa($empresaAtual->id)->ativas()->with('banco')->orderBy('nome')->get();
 
         // Buscar empreendimentos para filtro de lote
         $empreendimentos = \App\Models\Empreendimento::daEmpresa($empresaAtual->id)->orderBy('nome')->get();
@@ -1005,6 +1029,17 @@ class MovimentacaoController extends Controller
             abort(403, 'Movimentação não encontrada.');
         }
 
+        // Verificar se a movimentação está conciliada
+        if ($movimentacao->estaConciliado()) {
+            $queryParams = $request->query();
+            unset($queryParams['_token']);
+            unset($queryParams['_method']);
+
+            return redirect()
+                ->route($tipo == 1 ? 'contas-a-pagar.index' : 'contas-a-receber.index', $queryParams)
+                ->with('error', 'Não é possível excluir uma movimentação que já foi conciliada.');
+        }
+
         try {
             // Registrar exclusão no audit log antes de deletar
             $tipoEnum = MovimentacaoTipoEnum::tryFrom($tipo);
@@ -1119,12 +1154,12 @@ class MovimentacaoController extends Controller
     /**
      * Calcular resumos para os cards (considerando filtros aplicados)
      */
-    private function calcularResumos($empresaId, $tipoEnum, $filtroDescricao = '', $filtroVencimentoInicio = '', $filtroVencimentoFim = '', $filtroParcelaCodigo = '', $filtroEntidadeTipo = '', $filtroEntidadeId = '')
+    private function calcularResumos($empresaId, $tipoEnum, $filtroDescricao = '', $filtroVencimentoInicio = '', $filtroVencimentoFim = '', $filtroValorMinimo = '', $filtroValorMaximo = '', $filtroParcelaCodigo = '', $filtroEntidadeTipo = '', $filtroEntidadeId = '', $filtroContaBancaria = '')
     {
         $hoje = now()->toDateString();
 
         // Função auxiliar para aplicar filtros comuns
-        $aplicarFiltrosComuns = function($query) use ($filtroDescricao, $filtroVencimentoInicio, $filtroVencimentoFim, $filtroParcelaCodigo, $filtroEntidadeTipo, $filtroEntidadeId) {
+        $aplicarFiltrosComuns = function($query) use ($filtroDescricao, $filtroVencimentoInicio, $filtroVencimentoFim, $filtroValorMinimo, $filtroValorMaximo, $filtroParcelaCodigo, $filtroEntidadeTipo, $filtroEntidadeId, $filtroContaBancaria) {
             if (!empty($filtroDescricao)) {
                 $query->where('descricao', 'LIKE', '%' . $filtroDescricao . '%');
             }
@@ -1134,6 +1169,12 @@ class MovimentacaoController extends Controller
             if (!empty($filtroVencimentoFim)) {
                 $query->where('vencimento', '<=', $filtroVencimentoFim);
             }
+            if (!empty($filtroValorMinimo)) {
+                $query->where('valor_total', '>=', $filtroValorMinimo);
+            }
+            if (!empty($filtroValorMaximo)) {
+                $query->where('valor_total', '<=', $filtroValorMaximo);
+            }
             if (!empty($filtroParcelaCodigo)) {
                 $query->where('parcela_codigo', $filtroParcelaCodigo);
             }
@@ -1142,6 +1183,9 @@ class MovimentacaoController extends Controller
             }
             if (!empty($filtroEntidadeId)) {
                 $query->where('entidade_id', $filtroEntidadeId);
+            }
+            if (!empty($filtroContaBancaria)) {
+                $query->where('conta_empresa_id', $filtroContaBancaria);
             }
             return $query;
         };

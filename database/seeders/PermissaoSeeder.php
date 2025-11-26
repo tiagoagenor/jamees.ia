@@ -92,6 +92,13 @@ class PermissaoSeeder extends Seeder
             ['modulo' => 'central-custo', 'acao' => 'visualizar', 'nome' => 'Visualizar centro de custo', 'descricao' => 'Ver detalhes de centros de custo'],
             ['modulo' => 'central-custo', 'acao' => 'deletar', 'nome' => 'Deletar centro de custo', 'descricao' => 'Remover centros de custo do sistema'],
 
+            // Módulo: Conciliação Bancária
+            ['modulo' => 'conciliacao-bancaria', 'acao' => 'listar', 'nome' => 'Listar conciliações bancárias', 'descricao' => 'Visualizar lista de conciliações bancárias'],
+            ['modulo' => 'conciliacao-bancaria', 'acao' => 'criar', 'nome' => 'Criar conciliação bancária', 'descricao' => 'Adicionar novas conciliações bancárias'],
+            ['modulo' => 'conciliacao-bancaria', 'acao' => 'editar', 'nome' => 'Editar conciliação bancária', 'descricao' => 'Modificar dados de conciliações bancárias'],
+            ['modulo' => 'conciliacao-bancaria', 'acao' => 'visualizar', 'nome' => 'Visualizar conciliação bancária', 'descricao' => 'Ver detalhes de conciliações bancárias'],
+            ['modulo' => 'conciliacao-bancaria', 'acao' => 'deletar', 'nome' => 'Deletar conciliação bancária', 'descricao' => 'Remover conciliações bancárias do sistema'],
+
             // Módulo: Movimentação Financeira
             ['modulo' => 'movimentacao', 'acao' => 'listar', 'nome' => 'Listar movimentações', 'descricao' => 'Visualizar lista de movimentações financeiras'],
             ['modulo' => 'movimentacao', 'acao' => 'criar', 'nome' => 'Criar movimentação', 'descricao' => 'Adicionar novas movimentações financeiras'],

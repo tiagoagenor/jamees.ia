@@ -9,6 +9,7 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Movimentacao extends Model
 {
@@ -165,6 +166,21 @@ class Movimentacao extends Model
     public function scopeCanceladas($query)
     {
         return $query->where('situacao', MovimentacaoSituacaoEnum::CANCELADA);
+    }
+
+    /**
+     * Verifica se a movimentação está conciliada com uma transação OFX
+     */
+    public function estaConciliado(): bool
+    {
+        $transacaoOfx = \App\Models\TransacaoOfx::where(function($query) {
+            $query->where('conta_pagar_id', $this->id)
+                  ->orWhere('conta_receber_id', $this->id);
+        })
+        ->where('conciliado', true)
+        ->first();
+
+        return $transacaoOfx !== null;
     }
 
     public function scopeVencidasPorData($query)
