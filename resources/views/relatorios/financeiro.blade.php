@@ -650,21 +650,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     tooltip: {
                         enabled: true,
+                        mode: 'index',
+                        intersect: false,
                         filter: function(tooltipItem) {
                             // Sempre mostrar tooltip, mesmo para valores 0
                             return true;
                         },
                         callbacks: {
+                            title: function(context) {
+                                // Título do tooltip com o mês
+                                return context[0].label;
+                            },
                             label: function(context) {
                                 const valor = context.parsed.y;
                                 // Sempre mostrar o valor, mesmo se for 0
                                 return context.dataset.label + ': R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            },
+                            footer: function(context) {
+                                // Calcular saldo (Receber - Pagar) quando ambas as barras estão visíveis
+                                if (context.length === 2) {
+                                    const receber = context.find(c => c.dataset.label === 'Contas a Receber')?.parsed.y || 0;
+                                    const pagar = context.find(c => c.dataset.label === 'Contas a Pagar')?.parsed.y || 0;
+                                    const saldo = receber - pagar;
+                                    const sinal = saldo >= 0 ? '+' : '';
+                                    return 'Saldo: ' + sinal + 'R$ ' + saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                }
+                                return '';
                             }
                         }
                     },
                     interaction: {
-                        intersect: false,
-                        mode: 'index'
+                        mode: 'index',
+                        intersect: false
                     }
                 },
                 scales: {
