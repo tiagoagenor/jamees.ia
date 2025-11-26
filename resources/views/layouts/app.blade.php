@@ -225,6 +225,14 @@
                                     Financeiro
                                 </a>
                             </li>
+                            @if(\App\Helpers\PermissionHelper::can('audit', 'listar'))
+                            <li>
+                                <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('audit.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
+                                    <i class="fas fa-history mr-3 {{ request()->routeIs('audit.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
+                                    Histórico de Alterações
+                                </a>
+                            </li>
+                            @endif
                         </ul>
                     </li>
 
@@ -250,14 +258,6 @@
                                     Aplicativo
                                 </a>
                             </li>
-                            @if(\App\Helpers\PermissionHelper::can('audit', 'listar'))
-                            <li>
-                                <a href="{{ route('audit.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('audit.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
-                                    <i class="fas fa-history mr-3 {{ request()->routeIs('audit.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
-                                    Histórico de Alterações
-                                </a>
-                            </li>
-                            @endif
                             <li>
                                 <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('planos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
                                     <i class="fas fa-crown mr-3 {{ request()->routeIs('planos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>

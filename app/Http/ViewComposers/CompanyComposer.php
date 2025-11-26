@@ -193,7 +193,7 @@ class CompanyComposer
                 'nome' => 'Relatórios',
                 'rota' => null,
                 'icone' => 'fa-file-alt',
-                'submenu' => [
+                'submenu' => array_filter([
                     [
                         'nome' => 'Cadastros',
                         'rota' => null,
@@ -204,7 +204,12 @@ class CompanyComposer
                         'rota' => null,
                         'icone' => 'fa-chart-line',
                     ],
-                ],
+                    PermissionHelper::can('audit', 'listar') ? [
+                        'nome' => 'Histórico de Alterações',
+                        'rota' => 'audit.index',
+                        'icone' => 'fa-history',
+                    ] : null,
+                ], fn($item) => $item !== null),
             ],
             [
                 'nome' => 'Configurações',
@@ -221,11 +226,6 @@ class CompanyComposer
                         'rota' => 'aplicativos.index',
                         'icone' => 'fa-mobile-alt',
                     ],
-                    PermissionHelper::can('audit', 'listar') ? [
-                        'nome' => 'Histórico de Alterações',
-                        'rota' => 'audit.index',
-                        'icone' => 'fa-history',
-                    ] : null,
                     [
                         'nome' => 'Meu Plano',
                         'rota' => 'planos.index',
