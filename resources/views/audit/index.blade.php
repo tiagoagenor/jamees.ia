@@ -3,7 +3,7 @@
 @section('title', 'Histórico de Alterações')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="container mx-auto">
     <!-- Header -->
     <div class="mb-6">
         <div>

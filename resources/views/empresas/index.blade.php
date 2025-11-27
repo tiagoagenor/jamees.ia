@@ -4,7 +4,7 @@
 @section('page-title', 'Empresas')
 
 @section('content')
-<div id="empresas-app" class="max-w-7xl mx-auto">
+<div id="empresas-app" class="container mx-auto">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>
