@@ -331,7 +331,7 @@
     }
 </style>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <!-- Coluna 1 -->
     <div class="flex flex-col gap-6">
         <!-- Parte 1: Logo e Boas-vindas -->

@@ -4,7 +4,7 @@
 @section('page-title', 'Conciliação Bancária')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
         <div>

@@ -3,7 +3,7 @@
 @section('title', 'Centros de Custo')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto">
     <!-- Header -->
     <div class="mb-8">
         <div class="flex justify-between items-center">

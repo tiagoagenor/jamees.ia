@@ -3,7 +3,7 @@
 @section('title', 'Meu Plano')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto">
     <!-- Mensagens de Erro/Sucesso -->
     @if(session('error'))
         <div class="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded">
