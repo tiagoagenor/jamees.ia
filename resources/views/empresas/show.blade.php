@@ -50,8 +50,8 @@
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Tipo</dt>
                             <dd class="mt-1">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $empresa->tipo == 'PJ' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                    {{ $empresa->tipo == 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física' }}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $empresa->tipo === \App\Enums\EmpresaTipoEnum::PJ ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ $empresa->tipo?->getLabel() }}
                                 </span>
                             </dd>
                         </div>
@@ -139,7 +139,7 @@
             @endif
 
             <!-- Informações Pessoais (para PF) -->
-            @if($empresa->tipo == 'PF' && ($empresa->nome || $empresa->cpf || $empresa->rg))
+            @if($empresa->tipo === \App\Enums\EmpresaTipoEnum::PF && ($empresa->nome || $empresa->cpf || $empresa->rg))
             <div class="bg-white shadow rounded-lg">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900">Informações Pessoais</h3>

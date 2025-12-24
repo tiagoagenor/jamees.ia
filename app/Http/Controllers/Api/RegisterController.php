@@ -14,6 +14,7 @@ use App\Models\Grupo;
 use App\Models\Permissao;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
+use App\Enums\EmpresaTipoEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 
@@ -58,7 +59,7 @@ class RegisterController extends Controller
                     'whitelabel_id' => $whitelabel->id,
                     'nome_fantasia' => $request->empresa_nome,
                     'razao_social' => $request->empresa_nome,
-                    'tipo' => 'PJ',
+                    'tipo' => EmpresaTipoEnum::PJ,
                     'status' => EmpresaStatusEnum::ATIVA,
                     'principal' => 1,
                     'criado_em' => now(),

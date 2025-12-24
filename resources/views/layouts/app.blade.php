@@ -317,7 +317,7 @@
                                 </p>
                                 <p class="text-xs text-slate-400" id="current-company-type">
                                     @if($currentCompany)
-                                        {{ $currentCompany->tipo }}
+                                        {{ $currentCompany->tipo?->getValue() }}
                                     @endif
                                 </p>
                             </div>
@@ -435,13 +435,13 @@
                     @if($empresaPrincipal && $empresaPrincipal->empresasFilhas->count() > 0)
                         <!-- Empresa Principal -->
                         <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresaPrincipal->id ? 'bg-blue-50 border-blue-200' : '' }}"
-                             onclick="selectCompany('{{ $empresaPrincipal->id }}', '{{ $empresaPrincipal->nome_fantasia ?? $empresaPrincipal->razao_social }}', '{{ $empresaPrincipal->tipo }}')">
+                             onclick="selectCompany('{{ $empresaPrincipal->id }}', '{{ $empresaPrincipal->nome_fantasia ?? $empresaPrincipal->razao_social }}', '{{ $empresaPrincipal->tipo?->getValue() }}')">
                             <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
                                 <i class="fas fa-building text-green-600"></i>
                             </div>
                             <div class="flex-1">
                                 <div class="font-medium text-gray-900">{{ $empresaPrincipal->nome_fantasia ?? $empresaPrincipal->razao_social }}</div>
-                                <div class="text-sm text-gray-500">{{ $empresaPrincipal->tipo }} - Principal</div>
+                                <div class="text-sm text-gray-500">{{ $empresaPrincipal->tipo?->getValue() }} - Principal</div>
                             </div>
                             @if($currentCompany && $currentCompany->id == $empresaPrincipal->id)
                                 <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
@@ -453,13 +453,13 @@
                         <!-- Empresas Filhas -->
                         @foreach($empresaPrincipal->empresasFilhas as $empresa)
                             <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresa->id ? 'bg-blue-50 border-blue-200' : '' }}"
-                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo }}')">
+                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo?->getValue() }}')">
                                 <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                                     <i class="fas fa-building text-blue-600"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="font-medium text-gray-900">{{ $empresa->nome_fantasia ?? $empresa->razao_social }}</div>
-                                    <div class="text-sm text-gray-500">{{ $empresa->tipo }}</div>
+                                    <div class="text-sm text-gray-500">{{ $empresa->tipo?->getValue() }}</div>
                                 </div>
                                 @if($currentCompany && $currentCompany->id == $empresa->id)
                                     <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
@@ -471,13 +471,13 @@
                     @elseif(Auth::user()->empresas->count() > 0)
                         @foreach(Auth::user()->empresas as $empresa)
                             <div class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer {{ $currentCompany && $currentCompany->id == $empresa->id ? 'bg-blue-50 border-blue-200' : '' }}"
-                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo }}')">
+                                 onclick="selectCompany('{{ $empresa->id }}', '{{ $empresa->nome_fantasia ?? $empresa->razao_social }}', '{{ $empresa->tipo?->getValue() }}')">
                                 <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                                     <i class="fas fa-building text-blue-600"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="font-medium text-gray-900">{{ $empresa->nome_fantasia ?? $empresa->razao_social }}</div>
-                                    <div class="text-sm text-gray-500">{{ $empresa->tipo }}</div>
+                                    <div class="text-sm text-gray-500">{{ $empresa->tipo?->getValue() }}</div>
                                 </div>
                                 @if($currentCompany && $currentCompany->id == $empresa->id)
                                     <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">

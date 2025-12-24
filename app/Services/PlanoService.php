@@ -15,12 +15,23 @@ class PlanoService
     /**
      * Ativa um plano de teste gratuito para uma empresa
      */
-    public function ativarTesteGratuito(Empresa $empresa, int $dias = 10): EmpresaPlano
+    public function ativarTesteGratuito(Empresa $empresa, ?int $dias = null): EmpresaPlano
     {
         // Desativar plano atual se existir
         $this->desativarPlanoAtual($empresa);
 
         $planoTeste = Plano::where('tipo', 'teste')->first();
+
+        if (!$planoTeste) {
+            throw new \Exception('Plano de teste não encontrado.');
+        }
+
+        // Usar dias_teste do plano se não foi informado um valor específico
+        $dias = $dias ?? $planoTeste->dias_teste ?? 10;
+
+        if (!$dias || $dias <= 0) {
+            throw new \Exception('Dias de teste não configurados no plano de teste.');
+        }
 
         $dataInicio = now();
         $dataFim = $dataInicio->copy()->addDays($dias);

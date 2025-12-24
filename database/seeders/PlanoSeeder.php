@@ -95,6 +95,7 @@ class PlanoSeeder extends Seeder
                 'nome' => 'Plano de Teste',
                 'descricao' => 'Plano de teste gratuito para novos usuários - 10 dias',
                 'tipo' => PlanoTipoEnum::TESTE,
+                'dias_teste' => 10,
                 'preco_mensal' => 0.00,
                 'preco_trimestral' => 0.00,
                 'preco_semestral' => 0.00,

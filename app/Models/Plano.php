@@ -19,6 +19,7 @@ class Plano extends Model
         'nome',
         'descricao',
         'tipo',
+        'dias_teste',
         'preco_mensal',
         'preco_trimestral',
         'preco_semestral',

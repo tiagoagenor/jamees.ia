@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\HasUuid;
 use App\Enums\EmpresaStatusEnum;
+use App\Enums\EmpresaTipoEnum;
 
 class Empresa extends Model
 {
@@ -45,6 +46,7 @@ class Empresa extends Model
         'criado_em' => 'datetime',
         'atualizado_em' => 'datetime',
         'status' => EmpresaStatusEnum::class,
+        'tipo' => EmpresaTipoEnum::class,
     ];
 
     protected static function boot()

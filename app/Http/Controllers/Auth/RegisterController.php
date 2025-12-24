@@ -21,6 +21,7 @@ use App\Services\PlanoConta\CriarPlanoContaService;
 use App\Services\PHPMailerService;
 use App\Enums\UsuarioStatusEnum;
 use App\Enums\EmpresaStatusEnum;
+use App\Enums\EmpresaTipoEnum;
 use App\Enums\UsuarioTelefoneTipoEnum;
 use Illuminate\Support\Str;
 
@@ -70,7 +71,7 @@ class RegisterController extends Controller
                 'whitelabel_id' => $whitelabel->id,
                 'nome_fantasia' => $request->empresa_nome,
                 'razao_social' => $request->empresa_nome,
-                'tipo' => 'PJ',
+                'tipo' => EmpresaTipoEnum::PJ,
                 'status' => EmpresaStatusEnum::ATIVA,
                 'principal' => 1,
                 'criado_em' => now(),
@@ -118,9 +119,13 @@ class RegisterController extends Controller
         // Vincular usuário ao grupo administrativo
         $usuario->grupos()->sync([$grupoAdmin->id]);
 
-        // Criar plano de teste de 10 dias para a empresa
+        // Criar plano de teste para a empresa (dias vêm da tabela de planos)
         $planoService = new PlanoService();
-        $planoTeste = $planoService->ativarTesteGratuito($empresa, 10);
+        $planoTeste = $planoService->ativarTesteGratuito($empresa);
+        
+        // Obter dias de teste do plano para a mensagem
+        $plano = $planoTeste->plano;
+        $diasTeste = $plano->dias_teste ?? 10;
 
         // Criar estrutura DRE padrão para a empresa
         $dreService = new CriarDreService();
@@ -153,6 +158,6 @@ class RegisterController extends Controller
             Log::error('Erro ao enviar email de boas-vindas: ' . $e->getMessage());
         }
 
-        return redirect()->route('dashboard')->with('success', 'Usuário registrado com sucesso! Você tem 10 dias de teste gratuito.');
+        return redirect()->route('dashboard')->with('success', "Usuário registrado com sucesso! Você tem {$diasTeste} dias de teste gratuito.");
     }
 }

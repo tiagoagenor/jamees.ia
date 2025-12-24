@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Empresa;
 use App\Models\EmpresaContato;
 use App\Models\EmpresaEndereco;
-use App\Enums\EmpresaStatus;
+use App\Enums\EmpresaStatusEnum;
+use App\Enums\EmpresaTipoEnum;
 use Illuminate\Support\Str;
 use App\Services\AuditService;
 
@@ -18,7 +19,7 @@ class AtualizarEmpresaService
             'nome_fantasia' => 'required|string|max:255',
             'razao_social' => 'nullable|string|max:255',
             'cnpj' => 'nullable|string|max:255',
-            'tipo' => 'required|string|in:PJ,PF',
+            'tipo' => 'required|integer|in:1,2',
             'status' => 'nullable|integer',
             'nome_referencia' => 'nullable|string|max:255',
             'inscricao_estadual' => 'nullable|string|max:255',
@@ -52,7 +53,7 @@ class AtualizarEmpresaService
                 'nome_fantasia' => $request->nome_fantasia,
                 'razao_social' => $request->razao_social,
                 'cnpj' => $request->cnpj,
-                'tipo' => $request->tipo,
+                'tipo' => EmpresaTipoEnum::from($request->tipo),
                 'status' => $request->status ?? $empresa->status,
                 'nome_referencia' => $request->nome_referencia,
                 'inscricao_estadual' => $request->inscricao_estadual,

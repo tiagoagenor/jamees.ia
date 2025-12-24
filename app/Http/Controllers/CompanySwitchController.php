@@ -62,7 +62,7 @@ class CompanySwitchController extends Controller
                 'company' => [
                     'id' => $company->id,
                     'nome' => $company->nome_fantasia ?? $company->razao_social,
-                    'tipo' => $company->tipo
+                    'tipo' => $company->tipo?->value
                 ]
             ]);
 

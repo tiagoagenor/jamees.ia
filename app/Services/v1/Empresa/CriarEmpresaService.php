@@ -8,6 +8,7 @@ use App\Models\Empresa;
 use App\Models\EmpresaContato;
 use App\Models\EmpresaEndereco;
 use App\Enums\EmpresaStatusEnum;
+use App\Enums\EmpresaTipoEnum;
 use App\Enums\UsuarioStatusEnum;
 use Illuminate\Support\Str;
 use App\Services\AuditService;
@@ -20,7 +21,7 @@ class CriarEmpresaService
             'nome_fantasia' => 'required|string|max:255',
             'razao_social' => 'nullable|string|max:255',
             'cnpj' => 'nullable|string|max:255',
-            'tipo' => 'required|string|in:PJ,PF',
+            'tipo' => 'required|integer|in:1,2',
             'status' => 'nullable|integer',
             'principal' => 'nullable|integer',
             'nome_referencia' => 'nullable|string|max:255',
@@ -57,7 +58,7 @@ class CriarEmpresaService
                 'nome_fantasia' => $request->nome_fantasia,
                 'razao_social' => $request->razao_social,
                 'cnpj' => $request->cnpj,
-                'tipo' => $request->tipo,
+                'tipo' => EmpresaTipoEnum::from($request->tipo),
                 'status' => $request->status ?? EmpresaStatusEnum::ATIVA,
                 'principal' => $request->principal ?? 0,
                 'nome_referencia' => $request->nome_referencia,
