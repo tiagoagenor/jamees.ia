@@ -246,11 +246,6 @@ class CompanyComposer
                         'rota' => 'empresas.index',
                         'icone' => 'fa-building',
                     ] : null,
-                    [
-                        'nome' => 'Modelos de Emails',
-                        'rota' => null,
-                        'icone' => 'fa-envelope',
-                    ],
                 ], fn($item) => $item !== null),
             ],
         ];

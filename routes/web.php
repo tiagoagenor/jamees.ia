@@ -248,6 +248,7 @@ Route::middleware(['auth', 'plano.ativo'])->group(function () {
 
     // Dashboard Financeiro
     Route::get('/dashboard-financeiro', [App\Http\Controllers\DashboardFinanceiroController::class, 'index'])->name('dashboard.financeiro')->middleware('permission:movimentacao,listar');
+    Route::get('/dashboard-financeiro-novo', [App\Http\Controllers\DashboardFinanceiroController::class, 'dashboardNovo'])->name('dashboard.financeiro.novo')->middleware('permission:movimentacao,listar');
 
     // Rotas de Movimentação Financeira - Contas a Pagar
     Route::get('/contas-a-pagar', [App\Http\Controllers\MovimentacaoController::class, 'index'])->name('contas-a-pagar.index')->middleware('permission:movimentacao,listar')->defaults('tipo', 1);

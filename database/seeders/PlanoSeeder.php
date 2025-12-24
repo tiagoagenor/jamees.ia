@@ -20,11 +20,11 @@ class PlanoSeeder extends Seeder
                 'nome' => 'Plano Base',
                 'descricao' => 'Plano básico com funcionalidades essenciais para pequenas empresas',
                 'tipo' => PlanoTipoEnum::BASE,
-                'preco_mensal' => 29.90,
-                'preco_trimestral' => 79.90, // 5% desconto
-                'preco_semestral' => 149.90, // 10% desconto
-                'preco_anual' => 269.90, // 20% desconto
-                'limite_usuarios' => 5,
+                'preco_mensal' => 49.90,
+                'preco_trimestral' => 142.21,
+                'preco_semestral' => 269.46,
+                'preco_anual' => 479.04,
+                'limite_usuarios' => 1,
                 'limite_empresas' => 1,
                 'funcionalidades' => [
                     'Gestão básica de usuários',
@@ -37,12 +37,12 @@ class PlanoSeeder extends Seeder
                 'nome' => 'Plano Premium',
                 'descricao' => 'Plano premium com funcionalidades avançadas para empresas em crescimento',
                 'tipo' => PlanoTipoEnum::PREMIUM,
-                'preco_mensal' => 59.90,
-                'preco_trimestral' => 159.90, // 5% desconto
-                'preco_semestral' => 299.90, // 10% desconto
-                'preco_anual' => 539.90, // 20% desconto
-                'limite_usuarios' => 15,
-                'limite_empresas' => 3,
+                'preco_mensal' => 99.90,
+                'preco_trimestral' => 284.71,
+                'preco_semestral' => 539.46,
+                'preco_anual' => 959.04,
+                'limite_usuarios' => 3,
+                'limite_empresas' => 1,
                 'funcionalidades' => [
                     'Todas as funcionalidades do Plano Base',
                     'Gestão avançada de usuários',
@@ -56,12 +56,12 @@ class PlanoSeeder extends Seeder
                 'nome' => 'Plano Master',
                 'descricao' => 'Plano master com todas as funcionalidades para grandes empresas',
                 'tipo' => PlanoTipoEnum::MASTER,
-                'preco_mensal' => 99.90,
-                'preco_trimestral' => 269.90, // 5% desconto
-                'preco_semestral' => 509.90, // 10% desconto
-                'preco_anual' => 919.90, // 20% desconto
-                'limite_usuarios' => 50,
-                'limite_empresas' => 10,
+                'preco_mensal' => 129.90,
+                'preco_trimestral' => 370.21,
+                'preco_semestral' => 701.46,
+                'preco_anual' => 1247.04,
+                'limite_usuarios' => 5,
+                'limite_empresas' => 2,
                 'funcionalidades' => [
                     'Todas as funcionalidades do Plano Premium',
                     'Gestão ilimitada de usuários',
@@ -90,12 +90,13 @@ class PlanoSeeder extends Seeder
                     'Suporte dedicado',
                     'Consultoria especializada',
                 ],
+                'ativo' => false, // Inativo no banco
             ],
             [
                 'nome' => 'Plano de Teste',
-                'descricao' => 'Plano de teste gratuito para novos usuários - 10 dias',
+                'descricao' => 'Plano de teste gratuito para novos usuários - 15 dias',
                 'tipo' => PlanoTipoEnum::TESTE,
-                'dias_teste' => 10,
+                'dias_teste' => 15,
                 'preco_mensal' => 0.00,
                 'preco_trimestral' => 0.00,
                 'preco_semestral' => 0.00,
@@ -106,17 +107,32 @@ class PlanoSeeder extends Seeder
                     'Acesso total ao sistema',
                     'Todas as funcionalidades disponíveis',
                     'Suporte completo',
-                    'Período de teste de 10 dias',
+                    'Período de teste de 15 dias',
                 ],
             ],
         ];
 
         foreach ($planos as $planoData) {
-            Plano::create([
-                'id' => Str::uuid()->toString(),
-                ...$planoData,
-                'ativo' => true,
-            ]);
+            // Usar updateOrCreate para atualizar planos existentes ou criar novos
+            // Busca pelo tipo para manter o mesmo plano se já existir
+            Plano::updateOrCreate(
+                [
+                    'tipo' => $planoData['tipo'],
+                ],
+                [
+                    'nome' => $planoData['nome'],
+                    'descricao' => $planoData['descricao'],
+                    'preco_mensal' => $planoData['preco_mensal'],
+                    'preco_trimestral' => $planoData['preco_trimestral'],
+                    'preco_semestral' => $planoData['preco_semestral'],
+                    'preco_anual' => $planoData['preco_anual'],
+                    'limite_usuarios' => $planoData['limite_usuarios'] ?? null,
+                    'limite_empresas' => $planoData['limite_empresas'] ?? null,
+                    'dias_teste' => $planoData['dias_teste'] ?? null,
+                    'funcionalidades' => $planoData['funcionalidades'] ?? [],
+                    'ativo' => $planoData['ativo'] ?? true,
+                ]
+            );
         }
 
         $this->command->info('Planos criados com sucesso!');

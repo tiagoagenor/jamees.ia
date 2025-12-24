@@ -45,6 +45,37 @@ class DashboardFinanceiroController extends Controller
     }
 
     /**
+     * Exibir novo dashboard financeiro
+     */
+    public function dashboardNovo()
+    {
+        $empresaAtual = Auth::user()->empresaAtual();
+
+        if (!$empresaAtual) {
+            abort(403, 'Usuário não possui empresa atual.');
+        }
+
+        // Dados das contas a pagar
+        $contasPagar = $this->getContasPagar($empresaAtual->id);
+
+        // Dados das contas a receber
+        $contasReceber = $this->getContasReceber($empresaAtual->id);
+
+        // Fluxo de caixa (próximos 15 dias)
+        $fluxoCaixa = $this->getFluxoCaixa($empresaAtual->id);
+
+        // Saldo das contas bancárias
+        $saldoContas = $this->getSaldoContas($empresaAtual->id);
+
+        return view('dashboard.financeiro-novo', compact(
+            'contasPagar',
+            'contasReceber',
+            'fluxoCaixa',
+            'saldoContas'
+        ));
+    }
+
+    /**
      * Obter dados das contas a pagar
      */
     private function getContasPagar($empresaId)

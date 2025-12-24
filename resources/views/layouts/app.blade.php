@@ -288,12 +288,6 @@
                                 </a>
                             </li>
                             @endif
-                            <li>
-                                <a href="#" class="flex items-center px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-gray-50 hover:text-slate-900">
-                                    <i class="fas fa-envelope mr-3 text-slate-400"></i>
-                                    Modelos de Emails
-                                </a>
-                            </li>
                         </ul>
                     </li>
                 </ul>
