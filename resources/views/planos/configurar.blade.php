@@ -32,7 +32,11 @@
                     <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
                 </div>
                 
-                <!-- Step 3 -->
+                <!-- Step 3 - Aplicativos (apenas se feature flag estiver ativa e houver aplicativos ativos) -->
+                @php
+                    $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') && \App\Models\Aplicativo::ativos()->exists();
+                @endphp
+                @if($temAplicativosAtivos)
                 <div class="flex items-center flex-1">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
@@ -42,12 +46,13 @@
                     </div>
                     <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
                 </div>
+                @endif
                 
-                <!-- Step 4 -->
+                <!-- Step 4 (ou 3 se aplicativos estiver desativado) -->
                 <div class="flex items-center">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
-                            4
+                            {{ $temAplicativosAtivos ? '4' : '3' }}
                         </div>
                         <span class="mt-2 text-sm font-medium text-gray-500">Pagamento</span>
                     </div>
@@ -73,7 +78,7 @@
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">Personalize seu Plano</h2>
 
-                <form method="POST" action="{{ route('planos.aplicativos', $plano) }}" id="configurarForm">
+                <form method="POST" action="{{ $temAplicativosAtivos ? route('planos.aplicativos', $plano) : route('planos.pagamento.post', $plano) }}" id="configurarForm">
                     @csrf
                     <input type="hidden" name="periodo" value="{{ $periodo->value }}">
 
@@ -212,7 +217,7 @@
                 <button type="submit" 
                         form="configurarForm"
                         class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium">
-                    Continuar para Aplicativos
+                    {{ $temAplicativosAtivos ? 'Continuar para Aplicativos' : 'Continuar para Pagamento' }}
                 </button>
 
                 <p class="text-xs text-gray-500 text-center mt-4">

@@ -81,7 +81,7 @@
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">Aplicativos Disponíveis</h2>
 
-                <form method="POST" action="{{ route('planos.pagamento', $plano) }}" id="aplicativosForm">
+                <form method="POST" action="{{ route('planos.pagamento.post', $plano) }}" id="aplicativosForm">
                     @csrf
                     <input type="hidden" name="periodo" value="{{ $periodo->value }}">
                     <input type="hidden" name="usuarios_extras" value="{{ $usuariosExtras }}">

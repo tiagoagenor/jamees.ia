@@ -34,7 +34,11 @@
                     <div class="flex-1 h-1 bg-green-500 mx-2"></div>
                 </div>
                 
-                <!-- Step 3 -->
+                <!-- Step 3 - Aplicativos (apenas se feature flag estiver ativa e houver aplicativos ativos) -->
+                @php
+                    $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') && \App\Models\Aplicativo::ativos()->exists();
+                @endphp
+                @if($temAplicativosAtivos)
                 <div class="flex items-center flex-1">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-semibold text-sm">
@@ -46,12 +50,13 @@
                     </div>
                     <div class="flex-1 h-1 bg-green-500 mx-2"></div>
                 </div>
+                @endif
                 
-                <!-- Step 4 -->
+                <!-- Step 4 (ou 3 se aplicativos estiver desativado) -->
                 <div class="flex items-center">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">
-                            4
+                            {{ $temAplicativosAtivos ? '4' : '3' }}
                         </div>
                         <span class="mt-2 text-sm font-medium text-blue-600">Pagamento</span>
                     </div>
@@ -63,6 +68,10 @@
     <!-- Header -->
     <div class="mb-8">
         <div class="flex items-center mb-4">
+            @php
+                $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') && \App\Models\Aplicativo::ativos()->exists();
+            @endphp
+            @if($temAplicativosAtivos)
             <form method="POST" action="{{ route('planos.aplicativos', $plano) }}" class="inline">
                 @csrf
                 <input type="hidden" name="periodo" value="{{ $periodo->value }}">
@@ -77,6 +86,17 @@
                     ← Voltar
                 </button>
             </form>
+            @else
+            <form method="POST" action="{{ route('planos.configurar', $plano) }}" class="inline">
+                @csrf
+                <input type="hidden" name="periodo" value="{{ $periodo->value }}">
+                <input type="hidden" name="usuarios_extras" value="{{ $usuariosExtras }}">
+                <input type="hidden" name="empresas_extras" value="{{ $empresasExtras }}">
+                <button type="submit" class="text-blue-600 hover:text-blue-800 mr-4">
+                    ← Voltar
+                </button>
+            </form>
+            @endif
         </div>
         <h1 class="text-3xl font-bold text-gray-900">Finalizar Pagamento</h1>
         <p class="mt-2 text-gray-600">Confirme os dados e finalize sua assinatura</p>
@@ -116,6 +136,7 @@
                                     </div>
                                 </div>
                             </label>
+                            @if(\App\Helpers\FeatureFlagHelper::estaAtiva('boleto_bancario'))
                             <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                                 <input type="radio" name="metodo_pagamento" value="boleto" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                                 <div class="ml-3 flex-1">
@@ -127,6 +148,7 @@
                                     </div>
                                 </div>
                             </label>
+                            @endif
                             <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                                 <input type="radio" name="metodo_pagamento" value="pix" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
                                 <div class="ml-3 flex-1">
@@ -138,6 +160,37 @@
                                     </div>
                                 </div>
                             </label>
+                        </div>
+                    </div>
+
+                    <!-- Dados do PIX (mostrar apenas se PIX selecionado) -->
+                    <div id="dados-pix" class="mb-6" style="display: none;">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <p class="text-sm text-blue-800">
+                                <strong>Informações necessárias para pagamento via PIX:</strong>
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="cpf_cnpj" class="block text-sm font-medium text-gray-700 mb-2">
+                                    CPF/CNPJ <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="cpf_cnpj" 
+                                       name="cpf_cnpj"
+                                       placeholder="000.000.000-00"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="telefone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Telefone <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="telefone" 
+                                       name="telefone"
+                                       placeholder="(00) 00000-0000"
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
                         </div>
                     </div>
 
@@ -187,33 +240,6 @@
                                        name="cvv_cartao"
                                        placeholder="123"
                                        maxlength="4"
-                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Informações Adicionais -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Informações Adicionais</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="cpf_cnpj" class="block text-sm font-medium text-gray-700 mb-2">
-                                    CPF/CNPJ
-                                </label>
-                                <input type="text" 
-                                       id="cpf_cnpj" 
-                                       name="cpf_cnpj"
-                                       placeholder="000.000.000-00"
-                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label for="telefone" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Telefone
-                                </label>
-                                <input type="text" 
-                                       id="telefone" 
-                                       name="telefone"
-                                       placeholder="(00) 00000-0000"
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             </div>
                         </div>
@@ -291,14 +317,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const metodoPagamentoInputs = document.querySelectorAll('input[name="metodo_pagamento"]');
     const dadosCartao = document.getElementById('dados-cartao');
+    const dadosPix = document.getElementById('dados-pix');
 
-    function toggleDadosCartao() {
+    function toggleDadosPagamento() {
         const metodoSelecionado = document.querySelector('input[name="metodo_pagamento"]:checked').value;
         dadosCartao.style.display = metodoSelecionado === 'cartao' ? 'block' : 'none';
+        dadosPix.style.display = metodoSelecionado === 'pix' ? 'block' : 'none';
     }
 
     metodoPagamentoInputs.forEach(input => {
-        input.addEventListener('change', toggleDadosCartao);
+        input.addEventListener('change', toggleDadosPagamento);
     });
 
     // Máscaras
@@ -322,7 +350,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    toggleDadosCartao();
+    toggleDadosPagamento();
+    
+    // Máscaras para CPF/CNPJ e Telefone
+    const cpfCnpj = document.getElementById('cpf_cnpj');
+    if (cpfCnpj) {
+        cpfCnpj.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                // CPF
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // CNPJ
+                value = value.replace(/(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1/$2');
+                value = value.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+
+    const telefone = document.getElementById('telefone');
+    if (telefone) {
+        telefone.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
 });
 </script>
 @endsection

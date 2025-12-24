@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Plano;
 use App\Models\Empresa;
 use App\Services\PlanoService;
+use App\Services\PagBankService;
 use App\Enums\PlanoPeriodoEnum;
 use App\Enums\PlanoStatusEnum;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,16 @@ class PlanoController extends Controller
      */
     public function aplicativos(Request $request, Plano $plano)
     {
+        // Verificar se a feature flag de aplicativos está ativa e se existem aplicativos ativos
+        $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') 
+            && \App\Models\Aplicativo::ativos()->exists();
+        
+        if (!$temAplicativosAtivos) {
+            // Se não estiver ativa ou não houver aplicativos, redirecionar direto para pagamento
+            return redirect()->route('planos.pagamento', $plano)
+                ->withInput($request->all());
+        }
+
         $request->validate([
             'periodo' => 'required|in:mensal,trimestral,semestral,anual',
             'usuarios_extras' => 'nullable|integer|min:0',
@@ -141,16 +152,68 @@ class PlanoController extends Controller
     }
 
     /**
-     * Show payment page
+     * Show payment page (GET)
      */
     public function pagamento(Request $request, Plano $plano)
+    {
+        // Para GET, período é opcional (pode vir da query string)
+        $periodoValue = $request->get('periodo');
+        
+        if (!$periodoValue) {
+            return redirect()->route('planos.show', $plano)
+                ->with('error', 'Por favor, selecione um período primeiro.');
+        }
+
+        $request->validate([
+            'periodo' => 'required|in:mensal,trimestral,semestral,anual',
+        ]);
+
+        $periodo = PlanoPeriodoEnum::from($periodoValue);
+        $precoBase = $plano->getPrecoPorPeriodo($periodoValue);
+        $usuariosExtras = 0;
+        $empresasExtras = 0;
+        
+        // Verificar se a feature flag está ativa e se existem aplicativos ativos
+        $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') 
+            && \App\Models\Aplicativo::ativos()->exists();
+        
+        $aplicativosIds = [];
+        $aplicativos = collect();
+        $valorAplicativos = 0;
+
+        // Preços adicionais
+        $precoUsuarioAdicional = 10.00;
+        $precoEmpresaAdicional = 50.00;
+
+        $valorUsuariosExtras = 0;
+        $valorEmpresasExtras = 0;
+        $valorTotal = $precoBase;
+
+        return view('planos.pagamento', compact(
+            'plano',
+            'periodo',
+            'precoBase',
+            'usuariosExtras',
+            'empresasExtras',
+            'valorUsuariosExtras',
+            'valorEmpresasExtras',
+            'valorAplicativos',
+            'aplicativos',
+            'valorTotal'
+        ));
+    }
+
+    /**
+     * Process payment page data (POST)
+     */
+    public function pagamentoPost(Request $request, Plano $plano)
     {
         // Validar período sempre
         $request->validate([
             'periodo' => 'required|in:mensal,trimestral,semestral,anual',
         ]);
 
-        // Validar outros campos (tanto para GET quanto POST)
+        // Validar outros campos
         $request->validate([
             'usuarios_extras' => 'nullable|integer|min:0',
             'empresas_extras' => 'nullable|integer|min:0',
@@ -162,7 +225,15 @@ class PlanoController extends Controller
         $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
         $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
         $empresasExtras = (int) ($request->empresas_extras ?? 0);
-        $aplicativosIds = $request->aplicativos ?? [];
+        
+        // Verificar se a feature flag está ativa e se existem aplicativos ativos
+        $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') 
+            && \App\Models\Aplicativo::ativos()->exists();
+        
+        // Se não houver aplicativos ativos, ignorar aplicativos
+        $aplicativosIds = $temAplicativosAtivos 
+            ? ($request->aplicativos ?? []) 
+            : [];
 
         // Preços adicionais
         $precoUsuarioAdicional = 10.00;
@@ -171,11 +242,14 @@ class PlanoController extends Controller
         $valorUsuariosExtras = $usuariosExtras * $precoUsuarioAdicional;
         $valorEmpresasExtras = $empresasExtras * $precoEmpresaAdicional;
 
-        // Calcular valor dos aplicativos selecionados
-        $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+        // Calcular valor dos aplicativos selecionados (apenas se houver aplicativos ativos)
+        $aplicativos = collect();
         $valorAplicativos = 0;
-        foreach ($aplicativos as $aplicativo) {
-            $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+        if ($temAplicativosAtivos && !empty($aplicativosIds)) {
+            $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+            foreach ($aplicativos as $aplicativo) {
+                $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+            }
         }
 
         $valorTotal = $precoBase + $valorUsuariosExtras + $valorEmpresasExtras + $valorAplicativos;
@@ -205,6 +279,13 @@ class PlanoController extends Controller
             'empresas_extras' => 'nullable|integer|min:0',
             'aplicativos' => 'nullable|array',
             'aplicativos.*' => 'exists:aplicativos,id',
+            'metodo_pagamento' => 'required|in:cartao,boleto,pix',
+            'cpf_cnpj' => 'required_if:metodo_pagamento,pix|nullable|string',
+            'telefone' => 'required_if:metodo_pagamento,pix|nullable|string',
+        ], [
+            'metodo_pagamento.required' => 'Por favor, selecione um método de pagamento.',
+            'cpf_cnpj.required_if' => 'CPF/CNPJ é obrigatório para pagamento via PIX.',
+            'telefone.required_if' => 'Telefone é obrigatório para pagamento via PIX.',
         ]);
 
         $empresaPrincipal = $this->getEmpresaPrincipal();
@@ -216,13 +297,19 @@ class PlanoController extends Controller
 
         $periodo = PlanoPeriodoEnum::from($request->periodo);
 
-        // Validar período do aplicativo baseado no plano atual
-        $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
-        if ($planoAtual && !$planoAtual->isTeste() && $planoAtual->periodo) {
-            // Se não for teste, o período do aplicativo deve ser o mesmo do plano
-            if ($periodo->value !== $planoAtual->periodo->value) {
-                return redirect()->back()
-                    ->with('error', "Você só pode contratar aplicativos no período {$planoAtual->periodo->getLabel()} (mesmo período do seu plano atual).");
+        // Verificar se a feature flag está ativa e se existem aplicativos ativos
+        $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') 
+            && \App\Models\Aplicativo::ativos()->exists();
+
+        // Validar período do aplicativo baseado no plano atual (apenas se houver aplicativos ativos)
+        if ($temAplicativosAtivos) {
+            $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
+            if ($planoAtual && !$planoAtual->isTeste() && $planoAtual->periodo) {
+                // Se não for teste, o período do aplicativo deve ser o mesmo do plano
+                if ($periodo->value !== $planoAtual->periodo->value) {
+                    return redirect()->back()
+                        ->with('error', "Você só pode contratar aplicativos no período {$planoAtual->periodo->getLabel()} (mesmo período do seu plano atual).");
+                }
             }
         }
 
@@ -238,7 +325,15 @@ class PlanoController extends Controller
         // Preparar dados para a view de sucesso
         $usuariosExtras = (int) ($request->usuarios_extras ?? 0);
         $empresasExtras = (int) ($request->empresas_extras ?? 0);
-        $aplicativosIds = $request->aplicativos ?? [];
+        
+        // Verificar se a feature flag está ativa e se existem aplicativos ativos
+        $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') 
+            && \App\Models\Aplicativo::ativos()->exists();
+        
+        // Se não houver aplicativos ativos, ignorar aplicativos
+        $aplicativosIds = $temAplicativosAtivos 
+            ? ($request->aplicativos ?? []) 
+            : [];
 
         // Preços adicionais
         $precoUsuarioAdicional = 10.00;
@@ -247,27 +342,106 @@ class PlanoController extends Controller
         $valorUsuariosExtras = $usuariosExtras * $precoUsuarioAdicional;
         $valorEmpresasExtras = $empresasExtras * $precoEmpresaAdicional;
 
-        // Calcular valor dos aplicativos selecionados
-        $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+        // Calcular valor dos aplicativos selecionados (apenas se houver aplicativos ativos)
+        $aplicativos = collect();
         $valorAplicativos = 0;
-        foreach ($aplicativos as $aplicativo) {
-            $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+        if ($temAplicativosAtivos && !empty($aplicativosIds)) {
+            $aplicativos = \App\Models\Aplicativo::whereIn('id', $aplicativosIds)->get();
+            foreach ($aplicativos as $aplicativo) {
+                $valorAplicativos += $aplicativo->getPrecoPorPeriodo($request->periodo);
+            }
         }
 
         $precoBase = $plano->getPrecoPorPeriodo($request->periodo);
         $valorTotal = $precoBase + $valorUsuariosExtras + $valorEmpresasExtras + $valorAplicativos;
+
+        // Processar pagamento PIX
+        if ($request->metodo_pagamento === 'pix') {
+            $pagBankService = new PagBankService();
+            $usuario = Auth::user();
+            
+            $dadosCliente = [
+                'nome' => $usuario->nome ?? $usuario->name ?? 'Cliente',
+                'email' => $usuario->email,
+                'cpf' => $request->cpf_cnpj,
+                'telefone' => $request->telefone,
+            ];
+
+            $dadosProduto = [
+                'id' => $plano->id,
+                'nome' => $plano->nome . ' - ' . $periodo->getLabel(),
+                'quantidade' => 1,
+                'valor' => $valorTotal,
+            ];
+
+            // Gerar reference_id com máximo de 64 caracteres (requisito do PagBank)
+            $referenceId = 'plano_' . substr(str_replace('-', '', $plano->id), 0, 8) . '_' . substr(str_replace('-', '', $empresaPrincipal->id), 0, 8) . '_' . time();
+            $referenceId = substr($referenceId, 0, 64); // Garantir que não exceda 64 caracteres
+            
+            $resultado = $pagBankService->criarPagamentoPix($dadosCliente, $dadosProduto, $referenceId);
+
+            if (!$resultado['success']) {
+                \Log::error('Erro ao criar pagamento PIX', [
+                    'error' => $resultado['error'] ?? 'Erro desconhecido',
+                    'status' => $resultado['status'] ?? null,
+                    'dados_cliente' => $dadosCliente,
+                    'dados_produto' => $dadosProduto
+                ]);
+                
+                return redirect()->route('planos.pagamento', $plano)
+                    ->with('error', 'Erro ao processar pagamento PIX: ' . ($resultado['error'] ?? 'Erro desconhecido'))
+                    ->withInput();
+            }
+
+            $pagamentoData = $resultado['data'];
+            
+            // Verificar se os dados necessários estão presentes
+            if (!isset($pagamentoData['qr_codes']) || empty($pagamentoData['qr_codes'])) {
+                \Log::error('QR Code não encontrado na resposta do PagBank', [
+                    'pagamento_data' => $pagamentoData
+                ]);
+                
+                return redirect()->route('planos.pagamento', $plano)
+                    ->with('error', 'Erro ao gerar QR Code PIX. Por favor, tente novamente.')
+                    ->withInput();
+            }
+            
+            // Salvar dados do pagamento na sessão para exibir QR Code
+            session([
+                'pagamento_pix' => [
+                    'order_id' => $pagamentoData['id'] ?? null,
+                    'reference_id' => $referenceId,
+                    'qr_code_url' => $pagamentoData['qr_codes'][0]['links'][0]['href'] ?? null,
+                    'qr_code_text' => $pagamentoData['qr_codes'][0]['text'] ?? null,
+                    'plano_id' => $plano->id,
+                    'periodo' => $periodo->value,
+                    'usuarios_extras' => $usuariosExtras,
+                    'empresas_extras' => $empresasExtras,
+                    'aplicativos_ids' => $aplicativosIds,
+                    'valor_total' => $valorTotal,
+                ]
+            ]);
+            
+            // Forçar salvamento da sessão antes do redirecionamento
+            session()->save();
+
+            // Redirecionar para página de aguardo de pagamento PIX
+            return redirect()->route('planos.pix.aguardar', $plano);
+        }
 
         // Se é período de teste, ativar plano pago
         $planoAtual = $this->planoService->obterPlanoAtual($empresaPrincipal);
         if ($planoAtual && $planoAtual->isTeste()) {
             $novoPlano = $this->planoService->ativarPlano($empresaPrincipal, $plano, $periodo);
 
-            // Salvar aplicativos selecionados
-            if (!empty($aplicativosIds)) {
-                $empresaPrincipal->aplicativos()->sync($aplicativosIds);
-            } else {
-                // Se não selecionou nenhum aplicativo, remover todos
-                $empresaPrincipal->aplicativos()->detach();
+            // Salvar aplicativos selecionados (apenas se houver aplicativos ativos)
+            if ($temAplicativosAtivos) {
+                if (!empty($aplicativosIds)) {
+                    $empresaPrincipal->aplicativos()->sync($aplicativosIds);
+                } else {
+                    // Se não selecionou nenhum aplicativo, remover todos
+                    $empresaPrincipal->aplicativos()->detach();
+                }
             }
 
             // Recarregar a empresa e o plano para garantir que está disponível
@@ -363,6 +537,100 @@ class PlanoController extends Controller
             'aplicativos',
             'valorTotal'
         ));
+    }
+
+    /**
+     * Show page waiting for PIX payment
+     */
+    public function aguardarPix(Plano $plano)
+    {
+        $pagamentoPix = session('pagamento_pix');
+
+        if (!$pagamentoPix) {
+            \Log::warning('Sessão de pagamento PIX não encontrada', [
+                'plano_id' => $plano->id,
+                'user_id' => Auth::id(),
+                'session_id' => session()->getId()
+            ]);
+            
+            return redirect()->route('planos.pagamento', $plano)
+                ->with('error', 'Sessão de pagamento não encontrada. Por favor, tente novamente.');
+        }
+
+        // Verificar se os dados necessários estão presentes
+        if (empty($pagamentoPix['qr_code_url']) && empty($pagamentoPix['qr_code_text'])) {
+            \Log::warning('QR Code PIX não encontrado na sessão', [
+                'plano_id' => $plano->id,
+                'pagamento_pix' => $pagamentoPix
+            ]);
+            
+            return redirect()->route('planos.pagamento', $plano)
+                ->with('error', 'Dados do QR Code não encontrados. Por favor, tente novamente.');
+        }
+
+        return view('planos.pix-aguardar', compact('plano', 'pagamentoPix'));
+    }
+
+    /**
+     * Webhook para receber notificações do PagBank
+     */
+    public function webhookPix(Request $request)
+    {
+        try {
+            $data = $request->all();
+            
+            \Log::info('Webhook PagBank recebido', $data);
+
+            // Verificar se o pagamento foi aprovado
+            if (isset($data['charges']) && is_array($data['charges'])) {
+                foreach ($data['charges'] as $charge) {
+                    if (isset($charge['status']) && $charge['status'] === 'PAID') {
+                        // Buscar dados do pagamento na sessão ou banco de dados
+                        $referenceId = $data['reference_id'] ?? null;
+                        
+                        if ($referenceId && strpos($referenceId, 'plano_') === 0) {
+                            // Extrair informações do reference_id
+                            $parts = explode('_', $referenceId);
+                            if (count($parts) >= 3) {
+                                $planoId = $parts[1];
+                                $empresaId = $parts[2];
+                                
+                                // Buscar empresa e plano
+                                $empresa = Empresa::find($empresaId);
+                                $plano = Plano::find($planoId);
+                                
+                                if ($empresa && $plano) {
+                                    // Recuperar dados da sessão ou recriar
+                                    $periodoValue = $data['metadata']['periodo'] ?? 'mensal';
+                                    $periodo = PlanoPeriodoEnum::from($periodoValue);
+                                    
+                                    // Ativar plano
+                                    $novoPlano = $this->planoService->ativarPlano($empresa, $plano, $periodo);
+                                    
+                                    // Atualizar sessão
+                                    $this->atualizarSessaoPlano($empresa);
+                                    
+                                    \Log::info('Plano ativado via webhook PIX', [
+                                        'empresa_id' => $empresaId,
+                                        'plano_id' => $planoId,
+                                        'order_id' => $data['id'] ?? null
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return response()->json(['success' => true], 200);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao processar webhook PagBank', [
+                'error' => $e->getMessage(),
+                'data' => $request->all()
+            ]);
+
+            return response()->json(['error' => 'Erro ao processar webhook'], 500);
+        }
     }
 
     /**

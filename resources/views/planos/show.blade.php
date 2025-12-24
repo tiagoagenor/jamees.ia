@@ -30,7 +30,11 @@
                     <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
                 </div>
                 
-                <!-- Step 3 -->
+                <!-- Step 3 - Aplicativos (apenas se feature flag estiver ativa e houver aplicativos ativos) -->
+                @php
+                    $temAplicativosAtivos = \App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos') && \App\Models\Aplicativo::ativos()->exists();
+                @endphp
+                @if($temAplicativosAtivos)
                 <div class="flex items-center flex-1">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
@@ -40,12 +44,13 @@
                     </div>
                     <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
                 </div>
+                @endif
                 
-                <!-- Step 4 -->
+                <!-- Step 4 (ou 3 se aplicativos estiver desativado) -->
                 <div class="flex items-center">
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-semibold text-sm">
-                            4
+                            {{ $temAplicativosAtivos ? '4' : '3' }}
                         </div>
                         <span class="mt-2 text-sm font-medium text-gray-500">Pagamento</span>
                     </div>

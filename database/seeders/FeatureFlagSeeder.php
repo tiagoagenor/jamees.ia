@@ -22,6 +22,13 @@ class FeatureFlagSeeder extends Seeder
                 'escopo' => 'global',
                 'ativo' => true,
             ],
+            [
+                'codigo' => 'boleto_bancario',
+                'nome' => 'Boleto Bancário',
+                'descricao' => 'Habilita a opção de pagamento via boleto bancário',
+                'escopo' => 'global',
+                'ativo' => true,
+            ],
         ];
 
         foreach ($featureFlags as $flag) {

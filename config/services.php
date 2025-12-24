@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'pagbank' => [
+        'token' => env('PAGBANK_TOKEN'),
+        'sandbox' => env('PAGBANK_SANDBOX', true),
+    ],
+
 ];

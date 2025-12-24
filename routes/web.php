@@ -82,9 +82,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/planos/{plano}', [App\Http\Controllers\PlanoController::class, 'show'])->name('planos.show');
     Route::match(['get', 'post'], '/planos/{plano}/configurar', [App\Http\Controllers\PlanoController::class, 'configurar'])->name('planos.configurar');
     Route::match(['get', 'post'], '/planos/{plano}/aplicativos', [App\Http\Controllers\PlanoController::class, 'aplicativos'])->name('planos.aplicativos');
-    Route::match(['get', 'post'], '/planos/{plano}/pagamento', [App\Http\Controllers\PlanoController::class, 'pagamento'])->name('planos.pagamento');
+    Route::get('/planos/{plano}/pagamento', [App\Http\Controllers\PlanoController::class, 'pagamento'])->name('planos.pagamento');
+    Route::post('/planos/{plano}/pagamento', [App\Http\Controllers\PlanoController::class, 'pagamentoPost'])->name('planos.pagamento.post');
     Route::post('/planos/{plano}/ativar', [App\Http\Controllers\PlanoController::class, 'ativar'])->name('planos.ativar');
     Route::get('/planos/{plano}/sucesso', [App\Http\Controllers\PlanoController::class, 'sucesso'])->name('planos.sucesso');
+    Route::get('/planos/{plano}/pix/aguardar', [App\Http\Controllers\PlanoController::class, 'aguardarPix'])->name('planos.pix.aguardar');
+    Route::post('/planos/pix/webhook', [App\Http\Controllers\PlanoController::class, 'webhookPix'])->name('pagbank.webhook');
     Route::post('/planos/cancelar', [App\Http\Controllers\PlanoController::class, 'cancelar'])->name('planos.cancelar');
     Route::get('/planos/historico', [App\Http\Controllers\PlanoController::class, 'historico'])->name('planos.historico');
     Route::get('/api/plano-info', [App\Http\Controllers\PlanoController::class, 'info'])->name('planos.info');
