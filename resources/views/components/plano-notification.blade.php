@@ -25,10 +25,6 @@
                        class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200">
                         Contratar Plano
                     </a>
-                    <button onclick="this.parentElement.parentElement.parentElement.style.display='none'"
-                            class="text-yellow-800 hover:text-yellow-900 text-sm">
-                        ✕
-                    </button>
                 </div>
             </div>
         </div>

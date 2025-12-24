@@ -58,6 +58,9 @@ class AuthenticatedSessionController extends Controller
     {
         Auth::guard('web')->logout();
 
+        // Limpar feature flags da sessão
+        $request->session()->forget('feature_flags');
+
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();

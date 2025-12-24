@@ -46,6 +46,9 @@ class CompanySwitchController extends Controller
             session(['whitelabel_atual_id' => $company->whitelabel_id]);
             session()->save(); // Force save to ensure persistence
 
+            // Recarregar feature flags na sessão com a nova empresa
+            \App\Helpers\FeatureFlagHelper::carregarNaSessao($company->id, $user->id);
+
             // Log the access
             $this->logAccess($user->id, $company->whitelabel_id, $company->id);
 

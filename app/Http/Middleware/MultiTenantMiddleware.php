@@ -92,6 +92,14 @@ class MultiTenantMiddleware
                 session(['aplicativos_empresa' => $aplicativos->pluck('codigo')->toArray()]);
             }
 
+            // Carregar feature flags na sessão se ainda não foram carregadas ou se empresa mudou
+            if (!session('feature_flags') || session('empresa_atual_id')) {
+                \App\Helpers\FeatureFlagHelper::carregarNaSessao(
+                    session('empresa_atual_id'),
+                    $user->id
+                );
+            }
+
             // Registrar último acesso
             if (session('empresa_atual_id') && session('whitelabel_atual_id')) {
                 UltimaAcesso::updateOrCreate(

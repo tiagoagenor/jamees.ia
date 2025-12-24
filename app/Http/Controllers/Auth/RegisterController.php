@@ -142,6 +142,9 @@ class RegisterController extends Controller
         // Fazer login do usuário
         Auth::login($usuario);
 
+        // Carregar feature flags na sessão
+        \App\Helpers\FeatureFlagHelper::carregarNaSessao();
+
         // Enviar email de boas-vindas
         try {
             $dadosUsuario = [

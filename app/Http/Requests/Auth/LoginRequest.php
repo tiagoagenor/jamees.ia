@@ -80,6 +80,9 @@ class LoginRequest extends FormRequest
                 session(['aplicativos_empresa' => $aplicativos->pluck('codigo')->toArray()]);
             }
 
+            // Carregar feature flags na sessão
+            \App\Helpers\FeatureFlagHelper::carregarNaSessao();
+
             // Debug: Verificar se o login funcionou
             \Log::info('Login successful', [
                 'user_id' => Auth::id(),

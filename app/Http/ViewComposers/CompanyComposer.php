@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Empresa;
 use App\Helpers\AplicativoHelper;
 use App\Helpers\PermissionHelper;
+use App\Helpers\FeatureFlagHelper;
 
 class CompanyComposer
 {
@@ -221,11 +222,11 @@ class CompanyComposer
                         'rota' => 'configuracoes.gerais.index',
                         'icone' => 'fa-sliders-h',
                     ],
-                    [
+                    FeatureFlagHelper::estaAtiva('aplicativos') ? [
                         'nome' => 'Aplicativo',
                         'rota' => 'aplicativos.index',
                         'icone' => 'fa-mobile-alt',
-                    ],
+                    ] : null,
                     [
                         'nome' => 'Meu Plano',
                         'rota' => 'planos.index',

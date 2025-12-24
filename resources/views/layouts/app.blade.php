@@ -252,12 +252,14 @@
                                     Geral
                                 </a>
                             </li>
+                            @if(\App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos'))
                             <li>
                                 <a href="{{ route('aplicativos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('aplicativos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
                                     <i class="fas fa-mobile-alt mr-3 {{ request()->routeIs('aplicativos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
                                     Aplicativo
                                 </a>
                             </li>
+                            @endif
                             <li>
                                 <a href="{{ route('planos.index') }}" class="flex items-center px-3 py-2 rounded-lg text-sm {{ request()->routeIs('planos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900' }} transition-colors duration-200">
                                     <i class="fas fa-crown mr-3 {{ request()->routeIs('planos.*') ? 'text-blue-700' : 'text-slate-400' }}"></i>
@@ -359,10 +361,12 @@
 
                     <div class="flex items-center space-x-4">
                         <!-- Aplicativos -->
+                        @if(\App\Helpers\FeatureFlagHelper::estaAtiva('aplicativos'))
                         <a href="{{ route('aplicativos.index') }}" class="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-200">
                             <i class="fas fa-mobile-alt mr-2"></i>
                             Aplicativos
                         </a>
+                        @endif
 
                         <!-- Notifications -->
                         <button class="text-gray-500 hover:text-gray-700 focus:outline-none">
